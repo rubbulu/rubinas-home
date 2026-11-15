@@ -1638,6 +1638,119 @@
       font-size: 12.5px;
     }
 
+    /* In-Laptop Browser Preview & Repo Card Subview */
+    .laptop-subview {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: #1e1e1e;
+      overflow: hidden;
+    }
+
+    .laptop-subview[hidden] {
+      display: none;
+    }
+
+    .laptop-browser-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: #252526;
+      border-bottom: 1px solid #333333;
+      flex-shrink: 0;
+    }
+
+    .laptop-address-bar {
+      flex: 1;
+      min-width: 0;
+      padding: 5px 10px;
+      border-radius: 4px;
+      background: #141414;
+      border: 1px solid #3c3c3c;
+      color: #d4d4d4;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .laptop-iframe-stage {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: #0f172a;
+    }
+
+    .laptop-live-frame {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #ffffff;
+    }
+
+    .laptop-live-status {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 18px;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.94);
+      color: #e2e8f0;
+    }
+
+    .laptop-live-status[hidden] {
+      display: none;
+    }
+
+    .laptop-live-status p {
+      margin: 0;
+      font-size: 13.5px;
+      line-height: 1.45;
+      color: #cbd5e1;
+      max-width: 38ch;
+    }
+
+    .laptop-repo-stage {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #1e1e1e;
+    }
+
+    .laptop-repo-card {
+      background: #252526;
+      border: 1px solid #3c3c3c;
+      border-left: 3px solid #2dd4bf;
+      border-radius: 6px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .laptop-repo-slug {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #4ec9b0;
+      word-break: break-all;
+    }
+
     /* ==========================================================================
        CLEAN SCROLLING HTML NORMAL VIEW / FALLBACK
        ========================================================================== */
@@ -1890,7 +2003,7 @@
     <aside id="room-banner" class="room-banner" aria-live="polite" tabindex="0" hidden>
       <p id="room-banner-kicker" class="room-banner__kicker">ROOM 01 / 05</p>
       <h1 id="room-banner-title" class="room-banner__title">Hall: About</h1>
-      <p id="room-banner-sub" class="room-banner__sub">Click wall frame for About &amp; Resume, or drag items.</p>
+      <p id="room-banner-sub" class="room-banner__sub">Click the wall frame for About &amp; Resume, or click the floor to walk.</p>
     </aside>
 
     <!-- Compact Floating Knock Trigger (Positioned near the front door) -->
@@ -1916,7 +2029,7 @@
         <span class="vscode-titlebar__right">Study · Desk IDE</span>
       </div>
 
-      <div class="vscode-workbench">
+      <div id="vscode-workbench" class="vscode-workbench">
         <div class="vscode-activity" aria-hidden="true">
           <div class="vscode-activity-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -1938,6 +2051,8 @@
           <div id="vscode-editor-panel" class="vscode-editor-scroll" role="tabpanel" tabindex="0"></div>
         </div>
       </div>
+
+      <div id="laptop-subview" class="laptop-subview" hidden></div>
 
       <div class="vscode-statusbar">
         <span>main* · <span id="vscode-status-count">5 files</span></span>
@@ -1984,7 +2099,6 @@
 
       <div id="dock-more-menu" class="dock-more-menu" role="menu" hidden>
         <button id="wave-btn" type="button" class="hud-btn hud-btn--accent" role="menuitem">Wave</button>
-        <button id="reset-room-btn" type="button" class="hud-btn" role="menuitem">Reset room</button>
       </div>
     </div>
   </div>
@@ -2078,7 +2192,7 @@
           id: "hall",
           name: "Hall",
           bannerTitle: "Hall: About",
-          bannerSub: "Click wall frame for About & Resume, or drag items.",
+          bannerSub: "Click the wall frame for About & Resume, or click the floor to walk.",
           actionLabel: "Open About & Resume",
           overviewPos: [-5.1, 0, 5.1]
         },
@@ -2432,6 +2546,8 @@
       terraceStarA11y: document.getElementById("terrace-star-a11y"),
       leaveLaptopBtn: document.getElementById("leave-laptop-btn"),
       laptopScreenOverlay: document.getElementById("laptop-screen-overlay"),
+      vscodeWorkbench: document.getElementById("vscode-workbench"),
+      laptopSubview: document.getElementById("laptop-subview"),
       vscodeFiles: document.getElementById("vscode-files"),
       vscodeTabs: document.getElementById("vscode-tabs"),
       vscodeBreadcrumb: document.getElementById("vscode-breadcrumb"),
@@ -2448,7 +2564,6 @@
       dockMoreBtn: document.getElementById("dock-more-btn"),
       dockMoreMenu: document.getElementById("dock-more-menu"),
       waveBtn: document.getElementById("wave-btn"),
-      resetRoomBtn: document.getElementById("reset-room-btn"),
       roomActionBtn: document.getElementById("room-action-btn"),
 
       normalView: document.getElementById("normal-view"),
@@ -2835,6 +2950,108 @@
       }, triggerEl, true);
     }
 
+    let laptopLiveTimer = 0;
+
+    function closeLaptopSubview(restoreFocus = false) {
+      clearTimeout(laptopLiveTimer);
+      laptopLiveTimer = 0;
+      const oldFrame = els.laptopSubview.querySelector("iframe");
+      if (oldFrame) oldFrame.src = "about:blank";
+      els.laptopSubview.hidden = true;
+      els.laptopSubview.innerHTML = "";
+      els.vscodeWorkbench.hidden = false;
+      if (restoreFocus) {
+        const activeTabEl = els.vscodeTabs.querySelector('[aria-selected="true"]');
+        activeTabEl?.focus();
+      }
+    }
+
+    function openLaptopLivePreview(proj) {
+      if (!proj || !proj.liveUrl) return;
+      clearTimeout(laptopLiveTimer);
+      els.vscodeWorkbench.hidden = true;
+      els.laptopSubview.hidden = false;
+      els.laptopSubview.innerHTML = `
+        <div class="laptop-browser-bar">
+          <button type="button" id="laptop-back-btn" class="vscode-btn-secondary">Back</button>
+          <div class="laptop-address-bar" title="${proj.liveUrl}">${proj.liveUrl}</div>
+          <a href="${proj.liveUrl}" target="_blank" rel="noopener noreferrer" class="vscode-btn-primary">Open in new tab</a>
+        </div>
+        <div class="laptop-iframe-stage">
+          <iframe id="laptop-live-frame" class="laptop-live-frame" src="${proj.liveUrl}" title="${proj.title} live preview" referrerpolicy="no-referrer"></iframe>
+          <div id="laptop-live-status" class="laptop-live-status">
+            <p id="laptop-live-status-msg">Loading preview...</p>
+            <a id="laptop-live-fallback-link" href="${proj.liveUrl}" target="_blank" rel="noopener noreferrer" class="vscode-btn-primary" hidden>Open in new tab</a>
+          </div>
+        </div>
+      `;
+
+      const backBtn = document.getElementById("laptop-back-btn");
+      const frame = document.getElementById("laptop-live-frame");
+      const statusEl = document.getElementById("laptop-live-status");
+      const statusMsg = document.getElementById("laptop-live-status-msg");
+      const fallbackLink = document.getElementById("laptop-live-fallback-link");
+      let settled = false;
+
+      const showUnavailable = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(laptopLiveTimer);
+        laptopLiveTimer = 0;
+        if (frame) frame.hidden = true;
+        if (statusEl && statusMsg && fallbackLink) {
+          statusEl.hidden = false;
+          statusMsg.textContent = "This site can't be shown here";
+          fallbackLink.hidden = false;
+        }
+      };
+
+      backBtn?.addEventListener("click", () => closeLaptopSubview(true));
+      backBtn?.focus();
+
+      frame?.addEventListener("load", () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(laptopLiveTimer);
+        laptopLiveTimer = 0;
+        if (statusEl) statusEl.hidden = true;
+      });
+      frame?.addEventListener("error", showUnavailable);
+
+      laptopLiveTimer = window.setTimeout(showUnavailable, 6000);
+    }
+
+    function openLaptopRepoCard(proj) {
+      if (!proj || !proj.repoUrl) return;
+      clearTimeout(laptopLiveTimer);
+      els.vscodeWorkbench.hidden = true;
+      els.laptopSubview.hidden = false;
+      const repoSlug = proj.repoUrl.replace(/^https?:\/\/github\.com\//i, "").replace(/\/+$/, "");
+      const techBlock = proj.tech.length
+        ? `<ul class="vscode-tech-list">${proj.tech.map((t) => `<li class="vscode-tech-tag">${t}</li>`).join("")}</ul>`
+        : "";
+      els.laptopSubview.innerHTML = `
+        <div class="laptop-browser-bar">
+          <button type="button" id="laptop-back-btn" class="vscode-btn-secondary">Back</button>
+          <div class="laptop-address-bar" title="${proj.repoUrl}">${proj.repoUrl}</div>
+        </div>
+        <div class="laptop-repo-stage">
+          <article class="laptop-repo-card">
+            <p class="laptop-repo-slug">${repoSlug}</p>
+            <h2 class="vscode-proj-title">${proj.title}</h2>
+            <p class="vscode-proj-desc">${proj.description}</p>
+            ${techBlock}
+            <div class="vscode-actions">
+              <a href="${proj.repoUrl}" target="_blank" rel="noopener noreferrer" class="vscode-btn-primary">Open on GitHub</a>
+            </div>
+          </article>
+        </div>
+      `;
+      const backBtn = document.getElementById("laptop-back-btn");
+      backBtn?.addEventListener("click", () => closeLaptopSubview(true));
+      backBtn?.focus();
+    }
+
     function selectLaptopProject(idx, focusTab = false) {
       const list = ROOM_CONFIG.projects;
       appState.activeProjectIdx = ((idx % list.length) + list.length) % list.length;
@@ -2842,6 +3059,7 @@
     }
 
     function renderLaptopIde(focusTab = false) {
+      closeLaptopSubview(false);
       const projects = ROOM_CONFIG.projects;
       const activeIdx = ((appState.activeProjectIdx % projects.length) + projects.length) % projects.length;
       const proj = projects[activeIdx];
@@ -2908,11 +3126,11 @@
 
       const projIdxStr = String(activeIdx + 1).padStart(2, "0");
       const projTotStr = String(projects.length).padStart(2, "0");
-      const codeLinkHtml = proj.repoUrl
-        ? `<a href="${proj.repoUrl}" target="_blank" rel="noopener noreferrer" class="vscode-btn-primary">Code</a>`
+      const codeBtnHtml = proj.repoUrl
+        ? `<button type="button" id="vscode-code-btn" class="vscode-btn-primary">Code</button>`
         : "";
-      const liveLinkHtml = proj.liveUrl
-        ? `<a href="${proj.liveUrl}" target="_blank" rel="noopener noreferrer" class="vscode-btn-secondary">Live</a>`
+      const liveBtnHtml = proj.liveUrl
+        ? `<button type="button" id="vscode-live-btn" class="vscode-btn-secondary">Live</button>`
         : "";
 
       const techBlockHtml = proj.tech.length
@@ -2936,12 +3154,15 @@
           <p class="vscode-proj-desc">${proj.description}</p>
           ${techBlockHtml}
           <div class="vscode-actions">
-            ${codeLinkHtml}
-            ${liveLinkHtml}
+            ${codeBtnHtml}
+            ${liveBtnHtml}
           </div>
         </article>
       `;
       els.vscodeEditorPanel.scrollTop = 0;
+
+      document.getElementById("vscode-code-btn")?.addEventListener("click", () => openLaptopRepoCard(proj));
+      document.getElementById("vscode-live-btn")?.addEventListener("click", () => openLaptopLivePreview(proj));
 
       if (focusTab) {
         const activeTabEl = document.getElementById(`vscode-tab-${proj.id}`);
@@ -3316,7 +3537,7 @@
       /* Perspective Camera (Exterior framing + Inside-Room 35-40° follow & orbit) */
       const ISO_BASE_DIR = new THREE.Vector3(0.86, 0.62, 0.96).normalize();
       const SCREEN_RIGHT = new THREE.Vector3(1, 0, -1).normalize();
-      const BASE_FOV = 47;
+      const BASE_FOV = 54;
 
       const camera = new THREE.PerspectiveCamera(
         BASE_FOV,
@@ -3332,7 +3553,7 @@
         const vh = Math.max(320, window.innerHeight);
         const aspect = Math.max(0.35, vw / vh);
         camera.aspect = aspect;
-        camera.fov = aspect < 1 ? THREE.MathUtils.clamp(BASE_FOV / Math.pow(aspect, 0.28), BASE_FOV, 58) : BASE_FOV;
+        camera.fov = aspect < 1 ? THREE.MathUtils.clamp(BASE_FOV / Math.pow(aspect, 0.24), BASE_FOV, 64) : BASE_FOV;
         camera.updateProjectionMatrix();
       }
       updateCameraFovForViewport();
@@ -3358,22 +3579,33 @@
       const STAIR1_STEPS = 11;
       const STAIR2_STEPS = 10;
 
-      /* Furniture/avatar drag bounds per room (Bedroom expanded to Z ∈ [-4.2, +3.8]) */
+      /* Avatar walkable bounds per room (clamped >= 0.45 units inside every inner wall & railing) */
       const ROOM_BOUNDS = [
-        { minX: -11.75, maxX: -5.25, minZ: -3.55, maxZ: 3.45, floorY: GROUND_Y },
-        { minX: -3.25, maxX: 3.25, minZ: -3.55, maxZ: 3.45, floorY: GROUND_Y },
-        { minX: 5.25, maxX: 11.75, minZ: -3.55, maxZ: 3.45, floorY: GROUND_Y },
-        { minX: -1.75, maxX: 11.4, minZ: -3.55, maxZ: 3.15, floorY: BEDROOM_Y },
-        { minX: 0.45, maxX: 9.9, minZ: -3.55, maxZ: 0.55, floorY: TERRACE_Y }
+        { minX: -11.82, maxX: -4.76, minZ: -3.42, maxZ: 3.42, floorY: GROUND_Y },
+        { minX: -3.64, maxX: 3.64, minZ: -3.42, maxZ: 3.42, floorY: GROUND_Y },
+        { minX: 4.76, maxX: 12.04, minZ: -3.42, maxZ: 3.42, floorY: GROUND_Y },
+        { minX: -1.62, maxX: 11.82, minZ: -3.42, maxZ: 3.02, floorY: BEDROOM_Y },
+        { minX: 0.25, maxX: 10.18, minZ: -3.56, maxZ: 0.40, floorY: TERRACE_Y }
       ];
 
-      /* Camera stay-inside-room bounds (kept comfortably below ceilings so top walls fill view) */
+      function clampWalkPos(roomIdx, x, z) {
+        const b = ROOM_BOUNDS[roomIdx] || ROOM_BOUNDS[0];
+        let cx = THREE.MathUtils.clamp(x, b.minX, b.maxX);
+        let cz = THREE.MathUtils.clamp(z, b.minZ, b.maxZ);
+        /* Keep >= 0.5 units clear of Stair 2 railing inside Bedroom */
+        if (roomIdx === 3 && cz > -2.95 && cz < 0.72 && cx > 10.25 && cx < 12.3) {
+          cx = 10.25;
+        }
+        return { x: cx, y: b.floorY, z: cz };
+      }
+
+      /* Camera stay-inside-room bounds (pulled back and leveled so entire back wall & posters stay inside viewport) */
       const ROOM_CAM_BOUNDS = [
-        { minX: -11.95, maxX: -4.45, minZ: -3.55, maxZ: 3.65, minY: 2.3, maxY: 4.78, centerX: -8.4, centerZ: 0.0, floorY: GROUND_Y, horiz: 4.95, pitch: 0.64 },
-        { minX: -3.95, maxX: 3.95, minZ: -3.55, maxZ: 3.65, minY: 2.3, maxY: 4.78, centerX: 0.0, centerZ: 0.0, floorY: GROUND_Y, horiz: 4.95, pitch: 0.64 },
-        { minX: 4.45, maxX: 12.25, minZ: -3.55, maxZ: 3.65, minY: 2.3, maxY: 4.78, centerX: 8.4, centerZ: 0.0, floorY: GROUND_Y, horiz: 4.95, pitch: 0.64 },
-        { minX: -2.0, maxX: 12.2, minZ: -3.55, maxZ: 3.35, minY: BEDROOM_Y + 2.2, maxY: TERRACE_Y - 0.34, centerX: 5.1, centerZ: -0.2, floorY: BEDROOM_Y, horiz: 4.6, pitch: 0.64 },
-        { minX: -1.8, maxX: 13.8, minZ: -4.8, maxZ: 4.8, minY: TERRACE_Y + 2.4, maxY: TERRACE_Y + 5.6, centerX: 5.2, centerZ: -1.5, floorY: TERRACE_Y, horiz: 6.1, pitch: 0.50 }
+        { minX: -11.85, maxX: -4.45, minZ: -3.45, maxZ: 3.62, minY: 2.35, maxY: 4.25, centerX: -8.4, centerZ: -1.1, floorY: GROUND_Y, horiz: 6.2, pitch: 0.16, az: 0.28 },
+        { minX: -3.95, maxX: 3.95, minZ: -3.45, maxZ: 3.62, minY: 2.35, maxY: 4.25, centerX: 0.0, centerZ: -1.1, floorY: GROUND_Y, horiz: 6.2, pitch: 0.16, az: 0.28 },
+        { minX: 4.45, maxX: 12.25, minZ: -3.45, maxZ: 3.62, minY: 2.35, maxY: 4.25, centerX: 8.4, centerZ: -1.1, floorY: GROUND_Y, horiz: 6.2, pitch: 0.16, az: 0.28 },
+        { minX: -1.9, maxX: 12.1, minZ: -3.45, maxZ: 3.35, minY: BEDROOM_Y + 2.25, maxY: TERRACE_Y - 0.45, centerX: 5.1, centerZ: -1.2, floorY: BEDROOM_Y, horiz: 6.5, pitch: 0.15, az: 0.16 },
+        { minX: -1.6, maxX: 13.6, minZ: -4.6, maxZ: 4.9, minY: TERRACE_Y + 2.35, maxY: TERRACE_Y + 5.2, centerX: 5.2, centerZ: -1.65, floorY: TERRACE_Y, horiz: 6.4, pitch: 0.34, az: 0.32 }
       ];
       const STAIR1_CAM_BOUNDS = { minX: 11.4, maxX: 14.3, minZ: -3.75, maxZ: 3.65, minY: 2.3, maxY: 9.4 };
 
@@ -3521,32 +3753,35 @@
         const cz = THREE.MathUtils.lerp(bA.centerZ, bB.centerZ, t);
         const horizBase = THREE.MathUtils.lerp(bA.horiz, bB.horiz, t);
         const pitchBase = THREE.MathUtils.lerp(bA.pitch, bB.pitch, t);
+        const baseAz = THREE.MathUtils.lerp(bA.az ?? BASE_CORNER_AZIMUTH, bB.az ?? BASE_CORNER_AZIMUTH, t);
 
-        /* Look at Rubina torso with gentle room-center anchor so furniture stays framed */
-        const centerBias = (bA === ROOM_CAM_BOUNDS[4] && t === 0) ? 0.36 : 0.24;
+        /* Frame both Rubina and the full back wall (including all posters & frames) cleanly inside viewport */
+        const centerBias = onStair1 ? 0.25 : 0.62;
+        const lookLift = (bA === ROOM_CAM_BOUNDS[4] && t === 0) ? 1.55 : (onStair1 ? 1.45 : 2.1);
         outLook.set(
           THREE.MathUtils.lerp(pos.x, cx, centerBias),
-          pos.y + (bA === ROOM_CAM_BOUNDS[4] ? 1.25 : 1.05),
+          pos.y + lookLift,
           THREE.MathUtils.lerp(pos.z, cz, centerBias)
         );
 
-        const az = BASE_CORNER_AZIMUTH + camOrbit.curYaw + parallax.curX * 0.08;
-        const effPitch = THREE.MathUtils.clamp(pitchBase + camOrbit.curPitch - parallax.curY * 0.055, 0.44, 0.78);
+        const az = baseAz + camOrbit.curYaw + parallax.curX * 0.06;
+        const effPitch = onStair1
+          ? THREE.MathUtils.clamp(0.45 + camOrbit.curPitch - parallax.curY * 0.04, 0.28, 0.65)
+          : THREE.MathUtils.clamp(pitchBase + camOrbit.curPitch - parallax.curY * 0.04, 0.05, 0.42);
 
         let camX = outLook.x + Math.sin(az) * horizBase;
         let camZ = outLook.z + Math.cos(az) * horizBase;
         camX = THREE.MathUtils.clamp(camX, minX, maxX);
         camZ = THREE.MathUtils.clamp(camZ, minZ, maxZ);
 
-        /* Corner relief: if Rubina walks near the +X/+Z wall, pull camera laterally back into open room */
         let horiz = Math.hypot(camX - outLook.x, camZ - outLook.z);
-        if (horiz < 3.45) {
-          if (outLook.x > (minX + maxX) * 0.5) camX = Math.max(minX, outLook.x - 3.0);
-          if (outLook.z > (minZ + maxZ) * 0.5) camZ = Math.max(minZ, outLook.z - 2.6);
+        if (horiz < 3.6 && onStair1) {
+          if (outLook.x > (minX + maxX) * 0.5) camX = Math.max(minX, outLook.x - 2.6);
+          if (outLook.z > (minZ + maxZ) * 0.5) camZ = Math.max(minZ, outLook.z - 2.4);
           horiz = Math.hypot(camX - outLook.x, camZ - outLook.z);
         }
 
-        const camY = THREE.MathUtils.clamp(outLook.y + Math.max(2.6, horiz) * Math.tan(effPitch), minY, maxY);
+        const camY = THREE.MathUtils.clamp(outLook.y + Math.max(2.2, horiz) * Math.tan(effPitch), minY, maxY);
         outPos.set(camX, camY, camZ);
       }
 
@@ -3950,8 +4185,10 @@
       npCanvas.width = 512;
       npCanvas.height = 128;
       const npCtx = npCanvas.getContext("2d");
+      const maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
       const npTex = trackTex(new THREE.CanvasTexture(npCanvas));
       npTex.colorSpace = THREE.SRGBColorSpace;
+      npTex.anisotropy = maxAniso;
 
       function drawDoorPlate(text) {
         npCtx.fillStyle = "#090d1f";
@@ -3972,7 +4209,7 @@
       plateBacking.position.set(0, 3.03, 2.82);
       const doorPlateMesh = new THREE.Mesh(
         trackGeo(new THREE.PlaneGeometry(1.62, 0.36)),
-        trackMat(new THREE.MeshBasicMaterial({ map: npTex }))
+        trackMat(new THREE.MeshBasicMaterial({ map: npTex, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }))
       );
       doorPlateMesh.position.set(0, 3.03, 2.86);
       exteriorGroup.add(plateBacking, doorPlateMesh, doorPivot);
@@ -4031,6 +4268,7 @@
       fCtx.fillText("RESUME & ABOUT", 128, 128);
       const frameTex = trackTex(new THREE.CanvasTexture(frameCanvas));
       frameTex.colorSpace = THREE.SRGBColorSpace;
+      frameTex.anisotropy = maxAniso;
 
       const wbCanvas = document.createElement("canvas");
       wbCanvas.width = 512;
@@ -4059,6 +4297,7 @@
       });
       const wbTex = trackTex(new THREE.CanvasTexture(wbCanvas));
       wbTex.colorSpace = THREE.SRGBColorSpace;
+      wbTex.anisotropy = maxAniso;
 
       /* Panoramic Night Sky Dome Texture for Rooftop Terrace */
       const skyDomeCanvas = document.createElement("canvas");
@@ -4222,7 +4461,13 @@
       const hBaseMat = stdMat(0xcbd5e1, 0.6, 0.08);
       const hRailMat = stdMat(0x5eead4, 0.35, 0.45);
       const hTrimMat = stdMat(0x64748b, 0.5, 0.25);
-      const hStripMat = stdMat(0x2dd4bf, 0.32, 0.22, { emissive: 0x0f766e, emissiveIntensity: 0.35 });
+      const hStripMat = stdMat(0x2dd4bf, 0.32, 0.22, {
+        emissive: 0x0f766e,
+        emissiveIntensity: 0.35,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1
+      });
 
       /* Room 0: Hall (Cream) | Room 1: Study (Navy) | Room 2: Kitchen (Warm Yellow) */
       const hallFloorMat = stdMat(0xf5efe0, 0.78, 0.03);
@@ -4232,16 +4477,26 @@
       const kitchenFloorMat = stdMat(0xf4da92, 0.76, 0.03);
       const kitchenWallMat = stdMat(0xfbeab8, 0.86, 0.02);
 
-      /* Room 3: Bedroom (Lavender) | Room 4: Terrace (Dark Night Blue) */
+      /* Room 3: Bedroom (Lavender) | Room 4: Terrace (Constant Dark Slate-Blue) */
       const bedFloorMat = stdMat(0xdad0fa, 0.78, 0.04);
       const bedWallMat = stdMat(0xe8e1ff, 0.86, 0.02);
-      const hTerraceMat = stdMat(0x131c3d, 0.82, 0.08);
+      const hTerraceMat = stdMat(0x1e293b, 0.84, 0.06);
 
-      /* Lighter, High-Visibility Staircase Materials */
-      const hStairTreadMat = stdMat(0xf5d6a4, 0.52, 0.04);
-      const hStairNosingMat = stdMat(0x5eead4, 0.3, 0.15, { emissive: 0x2dd4bf, emissiveIntensity: 0.28 });
-      const hStairRiserMat = stdMat(0xe2e8f0, 0.65, 0.06);
-      const hStairFrameMat = stdMat(0x94a3b8, 0.45, 0.28);
+      /* Constant Warm Wood Brown Staircase Materials (never shift on Day/Night or room switch) */
+      const hStairTreadMat = stdMat(0xb9855a, 0.58, 0.04);
+      const hStairSideMat = stdMat(0x93623c, 0.64, 0.04);
+      const hStairTreadFaceMats = [
+        hStairSideMat,
+        hStairSideMat,
+        hStairTreadMat,
+        hStairSideMat,
+        hStairSideMat,
+        hStairSideMat
+      ];
+      const hStairNosingMat = stdMat(0x7c4f2d, 0.56, 0.05);
+      const hStairRiserMat = stdMat(0x8c5b37, 0.65, 0.04);
+      const hStairFrameMat = stdMat(0x744726, 0.62, 0.05);
+      const hStairRailMat = stdMat(0x4e2d16, 0.54, 0.06);
 
       dayNightUpdaters.push((night) => {
         hallFloorMat.color.setHex(night ? 0x352f42 : 0xf5efe0);
@@ -4252,13 +4507,9 @@
         kitchenWallMat.color.setHex(night ? 0x4b4129 : 0xfbeab8);
         bedFloorMat.color.setHex(night ? 0x282147 : 0xdad0fa);
         bedWallMat.color.setHex(night ? 0x332a59 : 0xe8e1ff);
-        hTerraceMat.color.setHex(night ? 0x0b1026 : 0x131c3d);
         hPlinthMat.color.setHex(night ? 0x090f24 : 0x1e293b);
         hCapMat.color.setHex(night ? 0x475569 : 0x94a3b8);
         hBaseMat.color.setHex(night ? 0x334155 : 0xcbd5e1);
-        hStairTreadMat.color.setHex(night ? 0xe7c18a : 0xf5d6a4);
-        hStairRiserMat.color.setHex(night ? 0x64748b : 0xe2e8f0);
-        hStairFrameMat.color.setHex(night ? 0x64748b : 0x94a3b8);
       });
 
       const partition01Group = new THREE.Group();
@@ -4288,7 +4539,7 @@
       const roomBackCapGeo = trackGeo(new THREE.BoxGeometry(8.42, 0.08, WALL_T + 0.05));
       const roomFrontWallGeo = trackGeo(new THREE.BoxGeometry(8.4, BEDROOM_Y, WALL_T));
       const roomFrontBaseGeo = trackGeo(new THREE.BoxGeometry(8.3, 0.18, 0.06));
-      const roomCeilGeo = trackGeo(new THREE.BoxGeometry(8.4, 0.28, 8.4));
+      const roomCeilGeo = trackGeo(new THREE.BoxGeometry(8.36, 0.24, 7.78));
 
       /* Hall (Room 0: X ∈ [-12.6, -4.2], closed 4 walls + ceiling) */
       const hallFloorSlab = new THREE.Mesh(roomSlabGeo, hPlinthMat);
@@ -4327,7 +4578,7 @@
       registerFadeEntry([gFrontWallHall, gFrontBaseHall, gFrontCapHall], { isFrontForOverview: true });
 
       const hallCeiling = new THREE.Mesh(roomCeilGeo, makeSegWallMat(0xf7f0df, 0x373147));
-      hallCeiling.position.set(-8.4, BEDROOM_Y - 0.14, 0);
+      hallCeiling.position.set(-8.4, BEDROOM_Y - 0.50, 0);
       registerFadeEntry([hallCeiling], { isCeiling: true });
       roomCeilings[0] = hallCeiling;
 
@@ -4366,7 +4617,7 @@
       registerFadeEntry([gFrontWallStudy, gFrontBaseStudy, gFrontCapStudy], { isFrontForOverview: true });
 
       const studyCeiling = new THREE.Mesh(roomCeilGeo, makeSegWallMat(0x1f2e56, 0x141e3d));
-      studyCeiling.position.set(0, BEDROOM_Y - 0.14, 0);
+      studyCeiling.position.set(0, BEDROOM_Y - 0.50, 0);
       registerFadeEntry([studyCeiling], { isCeiling: true });
       roomCeilings[1] = studyCeiling;
 
@@ -4405,7 +4656,7 @@
       registerFadeEntry([gFrontWallKitchen, gFrontBaseKitchen, gFrontCapKitchen], { isFrontForOverview: true });
 
       const kitchenCeiling = new THREE.Mesh(roomCeilGeo, makeSegWallMat(0xf5e2ac, 0x413824));
-      kitchenCeiling.position.set(8.4, BEDROOM_Y - 0.14, 0);
+      kitchenCeiling.position.set(8.4, BEDROOM_Y - 0.50, 0);
       registerFadeEntry([kitchenCeiling], { isCeiling: true });
       roomCeilings[2] = kitchenCeiling;
 
@@ -4489,9 +4740,14 @@
         const plaque = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.18, 0.34, 0.06)), hPlinthMat);
         const face = new THREE.Mesh(
           trackGeo(new THREE.PlaneGeometry(1.12, 0.28)),
-          trackMat(new THREE.MeshBasicMaterial({ map: createDoorwaySignTexture(label, accentHex) }))
+          trackMat(new THREE.MeshBasicMaterial({
+            map: createDoorwaySignTexture(label, accentHex),
+            polygonOffset: true,
+            polygonOffsetFactor: -1,
+            polygonOffsetUnits: -1
+          }))
         );
-        face.position.z = 0.034;
+        face.position.z = 0.036;
         sg.add(plaque, face);
         sg.position.set(x, y, z);
         sg.rotation.y = rotY;
@@ -4505,7 +4761,7 @@
       const partHeaderGeo = trackGeo(new THREE.BoxGeometry(0.22, BEDROOM_Y - 3.35, 3.2));
       const doorJambVGeo = trackGeo(new THREE.BoxGeometry(0.26, 3.35, 0.1));
       const doorJambHGeo = trackGeo(new THREE.BoxGeometry(0.26, 0.12, 3.32));
-      const threshGeo = trackGeo(new THREE.BoxGeometry(0.24, 0.024, 3.2));
+      const threshGeo = trackGeo(new THREE.BoxGeometry(0.24, 0.016, 3.2));
 
       [
         { grp: partition01Group, px: -4.2, dayHex: 0xe6e0d4, nightHex: 0x2b2944, label: "HALL ⇄ STUDY", accent: "#2dd4bf" },
@@ -4529,7 +4785,7 @@
         jambTop.position.set(px, 3.35, 0.45);
 
         const thr = new THREE.Mesh(threshGeo, hStripMat);
-        thr.position.set(px, 0.012, 0.45);
+        thr.position.set(px, 0.028, 0.45);
         thr.receiveShadow = true;
 
         registerFadeEntry([pb, pf, ph, jambB, jambF, jambTop]);
@@ -4538,8 +4794,8 @@
       });
 
       /* Thin floor strip & doorway sign at Staircase 1 entry (Kitchen -> Bedroom) */
-      const stair1Strip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.024, 2.15)), hStripMat);
-      stair1Strip.position.set(12.6, 0.012, 2.95);
+      const stair1Strip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.016, 2.15)), hStripMat);
+      stair1Strip.position.set(12.6, 0.028, 2.95);
       staircase1Group.add(stair1Strip);
       addDoorwaySign(staircase1Group, "↑ BEDROOM", "#a78bfa", 12.6, 3.65, 3.0, -Math.PI * 0.5);
 
@@ -4567,8 +4823,8 @@
       bLeftBase.position.set(-2.08, BEDROOM_Y + 0.08, -0.05);
       registerFadeEntry([bLeftWall, bLeftCap, bLeftBase]);
 
-      const bBackCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.02, 0.08, WALL_T + 0.05)), hCapMat);
-      bBackCap.position.set(5.1, TERRACE_Y + 0.04, Z_BACK + WALL_T * 0.5);
+      const bBackCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.08, WALL_T + 0.05)), hCapMat);
+      bBackCap.position.set(-1.4, TERRACE_Y + 0.04, Z_BACK + WALL_T * 0.5);
       const bBackBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(14.7, 0.16, 0.06)), hBaseMat);
       bBackBase.position.set(5.25, BEDROOM_Y + 0.08, Z_BACK_INNER + 0.02);
 
@@ -4590,14 +4846,19 @@
       bRightBase.position.set(12.28, BEDROOM_Y + 0.08, 0.9);
       registerFadeEntry([bRightWall, bRightHeader, bRightBase]);
 
-      /* Bedroom Ceiling Group (hidden while inside Bedroom, with Staircase 2 opening at [10.8, 12.6] x [-4.2, +0.6]) */
+      /* Bedroom Ceiling Group (split so zero coplanar faces ever overlap terraceSlab or tLanding) */
       const bedCeilingGroup = new THREE.Group();
-      const bCeilMain = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(13.2, 0.28, 8.0)), makeSegWallMat(0xdcd3f7, 0x2b234d));
-      bCeilMain.position.set(4.2, TERRACE_Y - 0.14, -0.2);
-      const bCeilStairFront = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.8, 0.28, 3.2)), makeSegWallMat(0xdcd3f7, 0x2b234d));
+      const bCeilMat = makeSegWallMat(0xdcd3f7, 0x2b234d);
+      const bCeilFront = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(13.2, 0.28, 2.8)), bCeilMat);
+      bCeilFront.position.set(4.2, TERRACE_Y - 0.14, 2.4);
+      const bCeilLeft = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.28, 5.2)), bCeilMat);
+      bCeilLeft.position.set(-1.4, TERRACE_Y - 0.14, -1.6);
+      const bCeilUnder = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(11.16, 0.14, 5.16)), bCeilMat);
+      bCeilUnder.position.set(5.2, TERRACE_Y - 0.45, -1.6);
+      const bCeilStairFront = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.8, 0.28, 3.2)), bCeilMat);
       bCeilStairFront.position.set(11.7, TERRACE_Y - 0.14, 2.2);
-      registerFadeEntry([bCeilMain, bCeilStairFront], { isCeiling: true });
-      bedCeilingGroup.add(bCeilMain, bCeilStairFront);
+      registerFadeEntry([bCeilFront, bCeilLeft, bCeilUnder, bCeilStairFront], { isCeiling: true });
+      bedCeilingGroup.add(bCeilFront, bCeilLeft, bCeilUnder, bCeilStairFront);
       roomCeilings[3] = bedCeilingGroup;
 
       roomGroups[3].add(
@@ -4610,7 +4871,7 @@
       stair1Landing.position.set(13.6, BEDROOM_Y - 0.18, -3.1);
       stair1Landing.castShadow = true;
       stair1Landing.receiveShadow = true;
-      const stair1LandingBackCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.02, 0.08, WALL_T + 0.05)), hCapMat);
+      const stair1LandingBackCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.96, 0.08, WALL_T + 0.05)), hCapMat);
       stair1LandingBackCap.position.set(13.6, TERRACE_Y + 0.04, Z_BACK + WALL_T * 0.5);
       const stair1LandingBackBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.16, 0.06)), hBaseMat);
       stair1LandingBackBase.position.set(13.6, BEDROOM_Y + 0.08, Z_BACK_INNER + 0.02);
@@ -4646,11 +4907,11 @@
       addRailingSegment(staircase1Group, 12.65, -2.0, 14.48, -2.0, BEDROOM_Y, true);
 
       /* Thin floor strips & signs at Stair 1 arrival + Stair 2 entry */
-      const stair1TopStrip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.024, 2.0)), hStripMat);
-      stair1TopStrip.position.set(12.6, BEDROOM_Y + 0.012, -3.1);
+      const stair1TopStrip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.016, 2.0)), hStripMat);
+      stair1TopStrip.position.set(12.6, BEDROOM_Y + 0.028, -3.1);
       staircase1Group.add(stair1TopStrip);
-      const stair2Strip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.68, 0.024, 0.14)), hStripMat);
-      stair2Strip.position.set(11.7, BEDROOM_Y + 0.012, 0.5);
+      const stair2Strip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.68, 0.016, 0.14)), hStripMat);
+      stair2Strip.position.set(11.7, BEDROOM_Y + 0.028, 0.5);
       staircase2Group.add(stair2Strip);
       addDoorwaySign(staircase2Group, "↑ TERRACE", "#5eead4", 11.7, BEDROOM_Y + 1.45, 0.55, -0.35);
 
@@ -4668,7 +4929,7 @@
           const t = (s + 0.5) / steps;
           const sy = yBottom + (s + 1) * stepHeight;
           const sz = zBottom + spanZ * t;
-          const tread = new THREE.Mesh(treadGeo, hStairTreadMat);
+          const tread = new THREE.Mesh(treadGeo, hStairTreadFaceMats);
           tread.position.set(cx, sy - 0.055, sz);
           tread.castShadow = true;
           tread.receiveShadow = true;
@@ -4692,11 +4953,11 @@
           str.position.set(cx + ox, midY - 0.12, midZ);
           str.rotation.x = slopePitch;
           str.castShadow = true;
-          const rail = new THREE.Mesh(handGeo, hRailMat);
+          const rail = new THREE.Mesh(handGeo, hStairRailMat);
           rail.position.set(cx + ox, midY + 0.66, midZ);
           rail.rotation.x = slopePitch;
           [0, 0.5, 1].forEach((pt) => {
-            const sp = new THREE.Mesh(sPostGeo, hRailMat);
+            const sp = new THREE.Mesh(sPostGeo, hStairRailMat);
             sp.position.set(cx + ox, yBottom + riseY * pt + 0.34, zBottom + spanZ * pt);
             sg.add(sp);
           });
@@ -4708,7 +4969,7 @@
       /* Staircase 1: Right end of Kitchen (13.6, 0, +3.2) -> Bedroom landing (13.6, 5.4, -2.0) */
       buildStaircase(staircase1Group, 13.6, 1.85, 3.2, -2.0, GROUND_Y, BEDROOM_Y, STAIR1_STEPS);
 
-      /* ---------- TOP LEVEL: OPEN ROOFTOP TERRACE (Dark Night Blue under Night Sky Dome) ---------- */
+      /* ---------- TOP LEVEL: OPEN ROOFTOP TERRACE (Constant Dark Slate-Blue under Night Sky Dome) ---------- */
       /* Deck: X ∈ [-0.4, +10.8] (11.2), Z ∈ [-4.2, +1.0] (5.2), top at TERRACE_Y = 10.2 */
       const terraceSlab = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(11.2, 0.36, 5.2)), hTerraceMat);
       terraceSlab.position.set(5.2, TERRACE_Y - 0.18, -1.6);
@@ -4717,11 +4978,11 @@
       tTrimFront.position.set(5.2, TERRACE_Y - 0.02, 1.0);
       roomGroups[4].add(terraceSlab, tTrimFront);
 
-      const tLanding = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.8, 0.36, 1.3)), hTerraceMat);
+      const tLanding = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.78, 0.36, 1.3)), hTerraceMat);
       tLanding.position.set(11.7, TERRACE_Y - 0.18, -3.55);
       tLanding.receiveShadow = true;
-      const tStairStrip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.024, 1.25)), hStripMat);
-      tStairStrip.position.set(10.8, TERRACE_Y + 0.012, -3.55);
+      const tStairStrip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.016, 1.25)), hStripMat);
+      tStairStrip.position.set(10.8, TERRACE_Y + 0.028, -3.55);
       staircase2Group.add(tLanding, tStairStrip);
 
       /* Terrace Full Perimeter Railings (Open deck under Night Sky Dome) */
@@ -4778,14 +5039,20 @@
 
       function addRoomRugAt(roomIdx, x, y, z, w, d, outerCol, innerCol) {
         const rg = new THREE.Group();
-        const r1 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w, 0.032, d)), stdMat(outerCol, 0.92, 0.02));
-        r1.position.y = 0.022;
+        const r1 = new THREE.Mesh(
+          trackGeo(new THREE.BoxGeometry(w, 0.022, d)),
+          stdMat(outerCol, 0.92, 0.02, { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 })
+        );
+        r1.position.y = 0.011;
         r1.receiveShadow = true;
-        const r2 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w * 0.72, 0.038, d * 0.68)), stdMat(innerCol, 0.92, 0.02));
-        r2.position.y = 0.026;
+        const r2 = new THREE.Mesh(
+          trackGeo(new THREE.BoxGeometry(w * 0.72, 0.016, d * 0.68)),
+          stdMat(innerCol, 0.92, 0.02, { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 })
+        );
+        r2.position.y = 0.030;
         r2.receiveShadow = true;
         rg.add(r1, r2);
-        rg.position.set(x, y, z);
+        rg.position.set(x, y + 0.02, z);
         roomGroups[roomIdx].add(rg);
       }
 
@@ -4862,21 +5129,27 @@
       hdFrame.position.y = 1.7;
       const hdLeaf = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.12, 3.15, 1.52)), stdMat(0x0f766e, 0.55, 0.1));
       hdLeaf.position.set(0.06, 1.58, 0);
-      const hdPlate = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(1.7, 0.42)), trackMat(new THREE.MeshBasicMaterial({ map: npTex })));
+      const hdPlate = new THREE.Mesh(
+        trackGeo(new THREE.PlaneGeometry(1.7, 0.42)),
+        trackMat(new THREE.MeshBasicMaterial({ map: npTex, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }))
+      );
       hdPlate.rotation.y = Math.PI / 2;
       hdPlate.position.set(0.14, 2.95, 0);
-      const welcomeMat = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.1, 0.036, 1.55)), stdMat(0x0d9488, 0.9, 0.02));
-      welcomeMat.position.set(0.92, 0.018, 0);
+      const welcomeMat = new THREE.Mesh(
+        trackGeo(new THREE.BoxGeometry(1.1, 0.028, 1.55)),
+        stdMat(0x0d9488, 0.9, 0.02, { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 })
+      );
+      welcomeMat.position.set(0.92, 0.034, 0);
       hallDoor.add(hdFrame, hdLeaf, hdPlate, welcomeMat);
       hallDoor.position.set(X_HALL_INNER, GROUND_Y, 2.25);
       enableShadows(hallDoor);
       roomGroups[0].add(hallDoor);
 
       addRoomWindowAt(0, X_HALL_INNER + 0.05, 2.85, -1.35, Math.PI / 2, 2.1, 1.8);
-      addWallArtAt(0, -10.55, 2.85, Z_BACK_INNER + 0.04, 0, 1.55, 1.2, 0x312e81, 0x2dd4bf);
-      addRoomRugAt(0, -8.1, GROUND_Y, 0.2, 4.4, 3.1, 0x4c1d95, 0x0f766e);
+      addWallArtAt(0, -10.55, 2.75, Z_BACK_INNER + 0.04, 0, 1.45, 1.1, 0x312e81, 0x2dd4bf);
+      addRoomRugAt(0, -7.8, GROUND_Y, 0.15, 3.8, 2.8, 0x4c1d95, 0x0f766e);
 
-      /* Sofa */
+      /* Sofa (centered directly in front of the left-wall window, facing +X into the Hall) */
       const sofaGroup = new THREE.Group();
       const sBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.3, 0.42, 1.0)), stdMat(0x6d28d9, 0.72, 0.05));
       sBase.position.y = 0.21;
@@ -4893,32 +5166,33 @@
       sofaGroup.add(sBase, sBack, sArmL, sArmR, sPillow, sPillow2);
       registerRoomItem(0, sofaGroup, {
         id: "sofa",
-        tooltip: "Sofa (Drag to move)",
-        pos: [-7.8, GROUND_Y, -2.95],
-        scale: 1.32
+        tooltip: "Sofa",
+        pos: [-11.58, GROUND_Y, -1.35],
+        rotY: Math.PI / 2,
+        scale: 1.12
       });
 
-      /* Coffee Table */
-      const coffeeTable = new THREE.Group();
-      const ctTop = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.3, 0.09, 0.75)), stdMat(0xc2956e, 0.55, 0.08));
-      ctTop.position.y = 0.44;
-      const ctLegGeo = trackGeo(new THREE.CylinderGeometry(0.04, 0.04, 0.4, 8));
+      /* Small Side Table next to Sofa (clear of door & walking path) */
+      const sideTable = new THREE.Group();
+      const ctTop = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.76, 0.08, 0.76)), stdMat(0xc2956e, 0.55, 0.08));
+      ctTop.position.y = 0.48;
+      const ctLegGeo = trackGeo(new THREE.CylinderGeometry(0.035, 0.035, 0.44, 8));
       const ctLegMat = stdMat(0x1e293b, 0.45, 0.4);
-      [[-0.52, -0.26], [0.52, -0.26], [-0.52, 0.26], [0.52, 0.26]].forEach(([lx, lz]) => {
+      [[-0.28, -0.28], [0.28, -0.28], [-0.28, 0.28], [0.28, 0.28]].forEach(([lx, lz]) => {
         const lg = new THREE.Mesh(ctLegGeo, ctLegMat);
-        lg.position.set(lx, 0.2, lz);
-        coffeeTable.add(lg);
+        lg.position.set(lx, 0.22, lz);
+        sideTable.add(lg);
       });
-      const ctBook = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.36, 0.07, 0.26)), stdMat(0x8b5cf6, 0.6, 0.1));
-      ctBook.position.set(-0.22, 0.52, 0);
-      const ctMug = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.08, 0.07, 0.14, 10)), stdMat(0x2dd4bf, 0.4, 0.1));
-      ctMug.position.set(0.28, 0.55, 0.08);
-      coffeeTable.add(ctTop, ctBook, ctMug);
-      registerRoomItem(0, coffeeTable, {
-        id: "coffeetable",
-        tooltip: "Coffee Table (Drag to move)",
-        pos: [-7.8, GROUND_Y, -0.45],
-        scale: 1.32
+      const ctBook = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.32, 0.06, 0.24)), stdMat(0x8b5cf6, 0.6, 0.1));
+      ctBook.position.set(-0.14, 0.55, -0.06);
+      const ctMug = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.075, 0.065, 0.13, 10)), stdMat(0x2dd4bf, 0.4, 0.1));
+      ctMug.position.set(0.16, 0.585, 0.1);
+      sideTable.add(ctTop, ctBook, ctMug);
+      registerRoomItem(0, sideTable, {
+        id: "sidetable",
+        tooltip: "Side Table",
+        pos: [-11.55, GROUND_Y, 0.45],
+        scale: 1.05
       });
 
       /* Shoe Rack */
@@ -4939,32 +5213,35 @@
       shoeRack.add(rSh1, rSh2, rSideL, rSideR, sh1, sh2);
       registerRoomItem(0, shoeRack, {
         id: "shoerack",
-        tooltip: "Shoe Rack (Drag to move)",
-        pos: [-11.1, GROUND_Y, -3.45],
-        scale: 1.3
+        tooltip: "Shoe Rack",
+        pos: [-10.55, GROUND_Y, -3.45],
+        scale: 1.12
       });
 
       /* 1 Hall Plant (clear of X = -4.2 doorway) */
-      registerRoomItem(0, createPottedPlant(1.42), {
+      registerRoomItem(0, createPottedPlant(1.36), {
         id: "hallplant",
-        tooltip: "Hall Plant (Drag to move)",
-        pos: [-5.55, GROUND_Y, -3.25]
+        tooltip: "Hall Plant",
+        pos: [-5.45, GROUND_Y, -3.25]
       });
 
-      /* Wall Frame -> About & Resume */
+      /* Wall Frame -> About & Resume (scaled cleanly inside back wall with > 0.5 margin on every side) */
       const wallFrame = new THREE.Group();
       const wfBox = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.75, 1.35, 0.1)), stdMat(0x1e293b, 0.4, 0.4));
       wfBox.position.y = 0.68;
-      const wfArt = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(1.55, 1.15)), trackMat(new THREE.MeshBasicMaterial({ map: frameTex })));
+      const wfArt = new THREE.Mesh(
+        trackGeo(new THREE.PlaneGeometry(1.55, 1.15)),
+        trackMat(new THREE.MeshBasicMaterial({ map: frameTex, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }))
+      );
       wfArt.position.set(0, 0.68, 0.06);
       wallFrame.add(wfBox, wfArt);
       registerRoomItem(0, wallFrame, {
         id: "wallframe",
-        tooltip: "Wall Frame: About & Resume (Click or drag)",
-        pos: [-7.8, 2.35, Z_BACK_INNER + 0.05],
-        fixedY: 2.35,
-        standPos: [-7.8, GROUND_Y, -1.65],
-        scale: 1.32,
+        tooltip: "Wall Frame: About & Resume",
+        pos: [-7.4, 2.05, Z_BACK_INNER + 0.05],
+        fixedY: 2.05,
+        standPos: [-7.4, GROUND_Y, -1.65],
+        scale: 1.0,
         gesture: "point",
         onClick: () => openAboutPanel(els.roomActionBtn)
       });
@@ -4997,7 +5274,7 @@
       }
       registerRoomItem(1, bookshelf, {
         id: "bookshelf",
-        tooltip: "Bookshelf: Projects (Click or drag)",
+        tooltip: "Bookshelf: Projects",
         pos: [-2.35, GROUND_Y, -3.4],
         standPos: [-2.3, GROUND_Y, -1.9],
         scale: 1.32,
@@ -5019,7 +5296,7 @@
       });
       registerRoomItem(1, deskGroup, {
         id: "desk",
-        tooltip: "Study Desk (Drag to move)",
+        tooltip: "Study Desk",
         pos: [1.35, GROUND_Y, -3.05],
         scale: 1.35
       });
@@ -5037,7 +5314,7 @@
       chairGroup.add(cSeat, cBack, cStem, cBase);
       registerRoomItem(1, chairGroup, {
         id: "chair",
-        tooltip: "Chair (Drag to move)",
+        tooltip: "Chair",
         pos: [1.35, GROUND_Y, -1.25],
         scale: 1.32
       });
@@ -5050,13 +5327,16 @@
       lPivot.rotation.x = -0.3;
       const lLid = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.84, 0.54, 0.035)), stdMat(0x1e293b, 0.35, 0.65));
       lLid.position.y = 0.27;
-      const lScr = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(0.75, 0.45)), trackMat(new THREE.MeshBasicMaterial({ map: codeTex })));
+      const lScr = new THREE.Mesh(
+        trackGeo(new THREE.PlaneGeometry(0.75, 0.45)),
+        trackMat(new THREE.MeshBasicMaterial({ map: codeTex, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }))
+      );
       lScr.position.set(0, 0.27, 0.02);
       lPivot.add(lLid, lScr);
       laptopGroup.add(lBase, lPivot);
       registerRoomItem(1, laptopGroup, {
         id: "laptop",
-        tooltip: "Laptop: Projects IDE (Click or drag)",
+        tooltip: "Laptop: Projects IDE",
         pos: [1.35, STUDY_DESK_Y, -2.92],
         standPos: [0.32, GROUND_Y, -1.92],
         scale: 1.35,
@@ -5098,7 +5378,7 @@
 
       registerRoomItem(1, lampGroup, {
         id: "lamp",
-        tooltip: "Desk Lamp: Toggle Day / Night (Click or drag)",
+        tooltip: "Desk Lamp: Toggle Day / Night",
         pos: [0.08, STUDY_DESK_Y, -3.22],
         standPos: [0.2, GROUND_Y, -1.8],
         scale: 1.35,
@@ -5110,7 +5390,7 @@
       /* 1 Study Plant (clear of X = +4.2 doorway) */
       registerRoomItem(1, createPottedPlant(1.38), {
         id: "studyplant",
-        tooltip: "Study Plant (Drag to move)",
+        tooltip: "Study Plant",
         pos: [2.75, GROUND_Y, 2.95]
       });
 
@@ -5127,7 +5407,7 @@
       counterGroup.add(kBody, kTop);
       registerRoomItem(2, counterGroup, {
         id: "counter",
-        tooltip: "Kitchen Counter (Drag to move)",
+        tooltip: "Kitchen Counter",
         pos: [9.1, GROUND_Y, -3.1],
         scale: 1.35
       });
@@ -5144,7 +5424,7 @@
       fridgeGroup.add(frBody, frTrim, frHandle);
       registerRoomItem(2, fridgeGroup, {
         id: "fridge",
-        tooltip: "Mint Pantry Fridge (Drag to move)",
+        tooltip: "Mint Pantry Fridge",
         pos: [5.55, GROUND_Y, -3.2]
       });
 
@@ -5169,7 +5449,7 @@
       });
       registerRoomItem(2, spiceRack, {
         id: "spicerack",
-        tooltip: "Spice Rack: Skill Jars (Click a jar or drag)",
+        tooltip: "Spice Rack: Skill Jars",
         pos: [7.9, KITCHEN_COUNTER_Y, -3.1],
         standPos: [7.9, GROUND_Y, -1.65],
         scale: 1.35,
@@ -5211,7 +5491,7 @@
       }
       registerRoomItem(2, kettleGroup, {
         id: "kettle",
-        tooltip: "Chai Kettle: Let's talk over chai (Click or drag)",
+        tooltip: "Chai Kettle: Let's talk over chai",
         pos: [10.35, KITCHEN_COUNTER_Y, -3.0],
         standPos: [10.3, GROUND_Y, -1.65],
         scale: 1.35,
@@ -5231,35 +5511,38 @@
       bistroTable.add(btTop, btStem, btFoot);
       registerRoomItem(2, bistroTable, {
         id: "bistro",
-        tooltip: "Chai Table (Drag to move)",
+        tooltip: "Chai Table",
         pos: [8.3, GROUND_Y, 2.55],
         scale: 1.28
       });
 
       registerRoomItem(2, createPottedPlant(1.32, 0xe2e8f0, 0x10b981), {
         id: "kitchenplant",
-        tooltip: "Herb Plant (Drag to move)",
+        tooltip: "Herb Plant",
         pos: [5.65, GROUND_Y, 2.95]
       });
 
       /* ---------------- ROOM 3: BEDROOM (LEARNING — 6 main items: 1 rug, 1 plant, 1 wall art + whiteboard, bed, nightstand, vinyl) ---------------- */
       addRoomWindowAt(3, -2.06, BEDROOM_Y + 2.65, -0.75, Math.PI / 2, 2.0, 1.65);
-      addWallArtAt(3, 8.9, BEDROOM_Y + 2.65, Z_BACK_INNER + 0.04, 0, 1.55, 1.15, 0x1e1b4b, 0x2dd4bf);
+      addWallArtAt(3, 8.9, BEDROOM_Y + 2.15, Z_BACK_INNER + 0.04, 0, 1.45, 1.05, 0x1e1b4b, 0x2dd4bf);
 
-      /* Whiteboard -> Currently Learning */
+      /* Whiteboard -> Currently Learning (scaled cleanly inside back wall with > 0.5 margin on every side) */
       const wbGroup = new THREE.Group();
       const wbFrame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.6, 1.45, 0.1)), stdMat(0x334155, 0.4, 0.3));
       wbFrame.position.y = 0.72;
-      const wbArt = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(2.44, 1.3)), trackMat(new THREE.MeshBasicMaterial({ map: wbTex })));
+      const wbArt = new THREE.Mesh(
+        trackGeo(new THREE.PlaneGeometry(2.44, 1.3)),
+        trackMat(new THREE.MeshBasicMaterial({ map: wbTex, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }))
+      );
       wbArt.position.set(0, 0.72, 0.06);
       wbGroup.add(wbFrame, wbArt);
       registerRoomItem(3, wbGroup, {
         id: "whiteboard",
-        tooltip: "Whiteboard: Currently Learning (Click or drag)",
-        pos: [5.1, BEDROOM_Y + 1.85, Z_BACK_INNER + 0.05],
-        fixedY: BEDROOM_Y + 1.85,
+        tooltip: "Whiteboard: Currently Learning",
+        pos: [5.1, BEDROOM_Y + 1.5, Z_BACK_INNER + 0.05],
+        fixedY: BEDROOM_Y + 1.5,
         standPos: [5.1, BEDROOM_Y, -2.0],
-        scale: 1.32,
+        scale: 0.9,
         gesture: "point",
         onClick: () => openLearningPanel(els.roomActionBtn)
       });
@@ -5281,7 +5564,7 @@
       bedGroup.add(bFrame, bHead, bMatt, bBlanket, bPil1, bPil2);
       registerRoomItem(3, bedGroup, {
         id: "bed",
-        tooltip: "Bed with Pillows (Drag to move)",
+        tooltip: "Bed with Pillows",
         pos: [-0.25, BEDROOM_Y, -2.0],
         scale: 1.24
       });
@@ -5297,22 +5580,30 @@
       nightStand.add(nsBody, nsLampBase, nsLampShade);
       registerRoomItem(3, nightStand, {
         id: "nightstand",
-        tooltip: "Bedside Lamp (Drag to move)",
+        tooltip: "Bedside Lamp",
         pos: [2.05, BEDROOM_Y, -3.4],
         scale: 1.3
       });
 
-      /* 1 Bedroom Rug */
+      /* 1 Bedroom Rug (raised 0.02 above floor with polygonOffset + non-overlapping layers) */
       const rugGroup = new THREE.Group();
-      const rOut = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(1.45, 1.45, 0.04, 20)), stdMat(0x5b21b6, 0.9, 0.02));
-      rOut.position.y = 0.02;
-      const rIn = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(1.0, 1.0, 0.045, 20)), stdMat(0x0f766e, 0.9, 0.02));
-      rIn.position.y = 0.022;
+      const rOut = new THREE.Mesh(
+        trackGeo(new THREE.CylinderGeometry(1.45, 1.45, 0.022, 20)),
+        stdMat(0x5b21b6, 0.9, 0.02, { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 })
+      );
+      rOut.position.y = 0.011;
+      rOut.receiveShadow = true;
+      const rIn = new THREE.Mesh(
+        trackGeo(new THREE.CylinderGeometry(1.0, 1.0, 0.016, 20)),
+        stdMat(0x0f766e, 0.9, 0.02, { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 })
+      );
+      rIn.position.y = 0.030;
+      rIn.receiveShadow = true;
       rugGroup.add(rOut, rIn);
       registerRoomItem(3, rugGroup, {
         id: "rug",
-        tooltip: "Cozy Rug (Drag to move)",
-        pos: [5.1, BEDROOM_Y, -0.85],
+        tooltip: "Cozy Rug",
+        pos: [5.1, BEDROOM_Y + 0.02, -0.85],
         scale: 1.22
       });
 
@@ -5330,7 +5621,7 @@
       vinylGroup.add(vStand, vPlinth, vDiscGroup);
       registerRoomItem(3, vinylGroup, {
         id: "vinyl",
-        tooltip: "Vinyl Player: Toggle Music (Click or drag)",
+        tooltip: "Vinyl Player: Toggle Music",
         pos: [8.1, BEDROOM_Y, -2.35],
         standPos: [7.1, BEDROOM_Y, -1.6],
         scale: 1.25,
@@ -5341,13 +5632,13 @@
       /* 1 Bedroom Plant */
       registerRoomItem(3, createPottedPlant(1.28), {
         id: "bedroomplant",
-        tooltip: "Bedroom Plant (Drag to move)",
+        tooltip: "Bedroom Plant",
         pos: [9.8, BEDROOM_Y, -3.3]
       });
 
       /* ---------------- ROOM 4: TERRACE (HACKATHONS — Open Railed Deck under Night Sky Dome) ---------------- */
       addWallArtAt(4, 1.6, TERRACE_Y + 0.72, -3.96, 0, 1.25, 0.9, 0x1e1b4b, 0x2dd4bf);
-      addRoomRugAt(4, 5.1, TERRACE_Y, -1.05, 4.1, 2.5, 0x1e293b, 0x0f766e);
+      addRoomRugAt(4, 5.1, TERRACE_Y, -1.05, 4.1, 2.5, 0x253248, 0x0f766e);
 
       const terraceBench = new THREE.Group();
       const tbSeat = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.75, 0.1, 0.68)), stdMat(0x9a6b48, 0.65, 0.05));
@@ -5363,7 +5654,7 @@
       terraceBench.add(tbSeat, tbBack, tbLegL, tbLegR, tbCushion);
       registerRoomItem(4, terraceBench, {
         id: "terracebench",
-        tooltip: "Terrace Bench (Drag to move)",
+        tooltip: "Terrace Bench",
         pos: [5.25, TERRACE_Y, -3.1],
         scale: 1.25
       });
@@ -5380,7 +5671,7 @@
       terraceTable.add(ttTop, ttLeg, ttScope);
       registerRoomItem(4, terraceTable, {
         id: "terracetable",
-        tooltip: "Stargazing Table (Drag to move)",
+        tooltip: "Stargazing Table",
         pos: [5.1, TERRACE_Y, -0.9]
       });
 
@@ -5392,7 +5683,7 @@
       lanternGroup.add(lnFrame, lnGlow);
       registerRoomItem(4, lanternGroup, {
         id: "lantern",
-        tooltip: "Terrace Lantern (Drag to move)",
+        tooltip: "Terrace Lantern",
         pos: [7.15, TERRACE_Y, -3.05],
         scale: 1.28
       });
@@ -5428,7 +5719,7 @@
       /* 1 Terrace Plant (clear of Staircase 2 landing) */
       registerRoomItem(4, createPottedPlant(1.26, 0x475569, 0x2dd4bf), {
         id: "terraceplant2",
-        tooltip: "Terrace Fern (Drag to move)",
+        tooltip: "Terrace Fern",
         pos: [1.05, TERRACE_Y, -0.45]
       });
 
@@ -5638,7 +5929,7 @@
       avatarGroup.scale.setScalar(EXTERIOR_AVATAR_SCALE);
       avatarGroup.userData = {
         id: "avatar",
-        tooltip: "Rubina (Click or drag anywhere)",
+        tooltip: "Rubina (Click to wave)",
         emissiveMaterials: []
       };
       avatarGroup.position.copy(EXTERIOR_AVATAR_POS);
@@ -5660,12 +5951,12 @@
         { x: 3.2, y: GROUND_Y, z: 0.5, roomIdx: 1 },     // 4 Study->Kitchen doorway west
         { x: 5.2, y: GROUND_Y, z: 0.5, roomIdx: 2 },     // 5 Study->Kitchen doorway east
         { x: 8.2, y: GROUND_Y, z: 0.45, roomIdx: 2 },    // 6 Kitchen center
-        { x: 12.1, y: GROUND_Y, z: 3.2, roomIdx: 2 },    // 7 Stair 1 pre-foot
+        { x: 11.95, y: GROUND_Y, z: 2.95, roomIdx: 2 },  // 7 Stair 1 pre-foot (>=0.45 inside walls)
         { x: 13.6, y: GROUND_Y, z: 3.2, roomIdx: 2 },    // 8 Stair 1 bottom
-        { x: 13.6, y: BEDROOM_Y, z: -2.0, roomIdx: 3 },  // 9 Stair 1 top
-        { x: 11.9, y: BEDROOM_Y, z: -2.0, roomIdx: 3 },  // 10 Bedroom entry from Stair 1
+        { x: 13.6, y: BEDROOM_Y, z: -2.8, roomIdx: 3 },  // 9 Stair 1 top landing (north of railing)
+        { x: 11.8, y: BEDROOM_Y, z: -3.05, roomIdx: 3 }, // 10 Bedroom entry from Stair 1
         { x: 5.4, y: BEDROOM_Y, z: -0.5, roomIdx: 3 },   // 11 Bedroom center
-        { x: 10.7, y: BEDROOM_Y, z: 0.4, roomIdx: 3 },   // 12 Stair 2 pre-foot
+        { x: 11.7, y: BEDROOM_Y, z: 1.05, roomIdx: 3 },  // 12 Stair 2 pre-foot (>=0.45 inside walls)
         { x: 11.7, y: BEDROOM_Y, z: 0.4, roomIdx: 3 },   // 13 Stair 2 bottom
         { x: 11.7, y: TERRACE_Y, z: -2.9, roomIdx: 4 },  // 14 Stair 2 top
         { x: 10.1, y: TERRACE_Y, z: -3.3, roomIdx: 4 },  // 15 Terrace landing entry
@@ -6043,7 +6334,6 @@
         appState.activeRoomIdx = 1;
         walkState.active = false;
         isOrbitDragging = false;
-        draggedItem = null;
         hoveredItem = null;
         els.hoverTooltip.hidden = true;
         els.speechBubble.hidden = true;
@@ -6074,6 +6364,7 @@
         if (appState.scenePhase !== "laptop" && !laptopFocus.active && !laptopFocus.leaving) return;
         laptopFocus.active = false;
         laptopFocus.overlayShown = false;
+        closeLaptopSubview(false);
 
         document.body.classList.remove("is-laptop-focused");
         els.leaveLaptopBtn.hidden = true;
@@ -6103,11 +6394,8 @@
 
       function focusLaptopProjects(triggerEl = null) {
         if (appState.scenePhase === "exterior" || appState.scenePhase === "opening" || appState.scenePhase === "laptop") return;
-        const standPos = new THREE.Vector3(
-          THREE.MathUtils.clamp(laptopGroup.position.x - 1.03, ROOM_BOUNDS[1].minX, ROOM_BOUNDS[1].maxX),
-          GROUND_Y,
-          THREE.MathUtils.clamp(laptopGroup.position.z + 1.0, ROOM_BOUNDS[1].minZ, ROOM_BOUNDS[1].maxZ)
-        );
+        const cl = clampWalkPos(1, laptopGroup.position.x - 1.03, laptopGroup.position.z + 1.0);
+        const standPos = new THREE.Vector3(cl.x, GROUND_Y, cl.z);
         walkToTarget(1, standPos, laptopGroup.position, () => {
           if (!prefersReducedMotion) {
             avatarState.gestureType = "point";
@@ -6229,19 +6517,23 @@
 
         els.hoverTooltip.hidden = true;
         hoveredItem = null;
-        draggedItem = null;
         avatarState.speechTimer = 0;
         els.speechBubble.hidden = true;
         document.body.style.cursor = "default";
 
         const wrapped = (targetRoomIdx + ROOM_CONFIG.rooms.length) % ROOM_CONFIG.rooms.length;
+        let clampedStand = null;
+        if (finalStandPos) {
+          const cl = clampWalkPos(wrapped, finalStandPos.x, finalStandPos.z);
+          clampedStand = new THREE.Vector3(cl.x, cl.y, cl.z);
+        }
 
         /* Reduced Motion: place Rubina at next room doorway and jump clip box & camera immediately */
         if (prefersReducedMotion) {
           walkState.active = false;
           appState.activeRoomIdx = wrapped;
-          if (finalStandPos) {
-            avatarGroup.position.copy(finalStandPos);
+          if (clampedStand) {
+            avatarGroup.position.copy(clampedStand);
           } else if (wrapped !== prevRoomIdx) {
             const entryWp = getDoorwayEntryWaypoint(prevRoomIdx, wrapped);
             avatarGroup.position.set(entryWp.x, entryWp.y, entryWp.z);
@@ -6262,7 +6554,7 @@
           return;
         }
 
-        const nodes = buildWalkNodes(avatarGroup.position, wrapped, finalStandPos);
+        const nodes = buildWalkNodes(avatarGroup.position, wrapped, clampedStand);
         if (nodes.length === 0 || (nodes.length === 1 && avatarGroup.position.distanceTo(nodes[0].pos) < 0.25)) {
           walkState.active = false;
           appState.activeRoomIdx = wrapped;
@@ -6389,7 +6681,6 @@
         els.speechBubble.hidden = true;
         els.hoverTooltip.hidden = true;
         hoveredItem = null;
-        draggedItem = null;
         document.body.classList.remove("controls-hidden", "is-laptop-focused");
         els.bottomDock.classList.remove("is-collapsed");
         els.dockToggleBtn.setAttribute("aria-expanded", "true");
@@ -6474,47 +6765,25 @@
         els.wholeHouseBtn.setAttribute("aria-pressed", "true");
         els.roomBannerKicker.textContent = "3-LEVEL CONNECTED HOUSE · OVERVIEW";
         els.roomBannerTitle.textContent = "Rubina's Whole House";
-        els.roomBannerSub.textContent = "Full connected home — drag to look around, or click any room tab.";
+        els.roomBannerSub.textContent = "Full connected home — click any room tab, object, or floor to explore.";
         showRoomChip();
         fitBoxPerspective(WHOLE_HOUSE_BOX, prefersReducedMotion, 1.15);
       }
 
-      function resetActiveRoomLayout() {
-        if (appState.scenePhase === "room" || appState.scenePhase === "overview") {
-          walkState.active = false;
-          camOrbit.targetYaw = 0;
-          camOrbit.targetPitch = 0;
-          const idx = appState.activeRoomIdx;
-          roomInteractiveItems[idx].forEach((item) => {
-            item.position.copy(item.userData.defaultPos);
-            item.rotation.y = item.userData.defaultRotY;
-          });
-          const homeWp = WAYPOINTS[ROOM_HOME_WP[idx]];
-          avatarGroup.position.set(homeWp.x, homeWp.y, homeWp.z);
-          avatarGroup.rotation.y = 0.45;
-          if (appState.scenePhase === "room") {
-            syncRoomCameraGoal(prefersReducedMotion);
-          } else {
-            fitBoxPerspective(WHOLE_HOUSE_BOX, prefersReducedMotion, 1.15);
-          }
-        }
-      }
-
       /* ======================================================================
-         6. RAYCASTING (Knock Door, Drag Avatar/Items in Connected House, Walk+Click)
+         6. RAYCASTING (Knock Door, Click Item to Open Panel, Click Floor to Walk)
          ====================================================================== */
       const raycaster = new THREE.Raycaster();
       const pointerNDC = new THREE.Vector2();
-      const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-      const dragHit = new THREE.Vector3();
+      const floorFallbackPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+      const floorFallbackHit = new THREE.Vector3();
 
       let hoveredItem = null;
-      let draggedItem = null;
-      let hoveredJar = null;
-      let dragOffset = new THREE.Vector3();
+      let pointerDownTarget = null;
+      let pointerDownJar = null;
       let downScreen = { x: 0, y: 0 };
-      let didDrag = false;
       let isOrbitDragging = false;
+      let orbitMoved = false;
       let orbitStartScreen = { x: 0, y: 0 };
       let orbitStartYaw = 0;
       let orbitStartPitch = 0;
@@ -6554,12 +6823,43 @@
         pointerNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
       }
 
+      function walkAvatarToClickPoint(rc) {
+        const surfHits = rc.intersectObjects(houseWalkSurfaces, false);
+        if (surfHits.length > 0) {
+          let chosen = surfHits[0];
+          if (appState.scenePhase === "room") {
+            const match = surfHits.find((h) => h.object.userData.walkMeta?.roomIdx === appState.activeRoomIdx);
+            if (match) chosen = match;
+          }
+          const meta = chosen.object.userData.walkMeta || {};
+          const targetRoom = appState.scenePhase === "room"
+            ? appState.activeRoomIdx
+            : (meta.roomIdx !== undefined ? meta.roomIdx : appState.activeRoomIdx);
+          const cl = clampWalkPos(targetRoom, chosen.point.x, chosen.point.z);
+          walkToTarget(targetRoom, new THREE.Vector3(cl.x, cl.y, cl.z), null, null, false);
+          return;
+        }
+
+        if (appState.scenePhase === "room") {
+          const rIdx = appState.activeRoomIdx;
+          const b = ROOM_BOUNDS[rIdx] || ROOM_BOUNDS[0];
+          floorFallbackPlane.constant = -b.floorY;
+          if (rc.ray.intersectPlane(floorFallbackPlane, floorFallbackHit)) {
+            const cl = clampWalkPos(rIdx, floorFallbackHit.x, floorFallbackHit.z);
+            walkToTarget(rIdx, new THREE.Vector3(cl.x, cl.y, cl.z), null, null, false);
+          }
+        }
+      }
+
       function onPointerDown(e) {
         if (!els.panelBackdrop.hidden || appState.scenePhase === "laptop") return;
         if (e.pointerType === "touch" && !e.isPrimary) return;
         updateNDC(e);
         downScreen = { x: e.clientX, y: e.clientY };
-        didDrag = false;
+        pointerDownTarget = null;
+        pointerDownJar = null;
+        isOrbitDragging = false;
+        orbitMoved = false;
 
         const targets = getCurrentTargets();
         if (targets.length > 0) {
@@ -6576,15 +6876,8 @@
                 }
                 return;
               }
-              draggedItem = item;
-              hoveredJar = jarHitTargets.includes(hits[0].object) ? hits[0].object : null;
-
-              dragPlane.constant = -item.position.y;
-              if (raycaster.ray.intersectPlane(dragPlane, dragHit)) {
-                dragOffset.copy(item.position).sub(dragHit);
-              } else {
-                dragOffset.set(0, 0, 0);
-              }
+              pointerDownTarget = item;
+              pointerDownJar = jarHitTargets.includes(hits[0].object) ? hits[0].object : null;
               return;
             }
           }
@@ -6595,35 +6888,7 @@
           orbitStartScreen = { x: e.clientX, y: e.clientY };
           orbitStartYaw = camOrbit.targetYaw;
           orbitStartPitch = camOrbit.targetPitch;
-          els.hoverTooltip.hidden = true;
-          document.body.style.cursor = "grabbing";
         }
-      }
-
-      function snapAvatarToHouseSurface(rc) {
-        const surfHits = rc.intersectObjects(houseWalkSurfaces, false);
-        if (surfHits.length === 0) return false;
-        const h = surfHits[0];
-        const meta = h.object.userData.walkMeta;
-        let ny = h.point.y;
-        if (meta && meta.steps) {
-          ny = steppedStairY(meta, h.point.z);
-        } else if (meta && (meta.zone === "hall" || meta.zone === "study" || meta.zone === "kitchen")) {
-          ny = GROUND_Y;
-        } else if (meta && meta.zone === "bedroom") {
-          ny = BEDROOM_Y;
-        } else if (meta && meta.zone === "terrace") {
-          ny = TERRACE_Y;
-        }
-        avatarGroup.position.set(h.point.x, ny, h.point.z);
-        if (meta && meta.roomIdx !== undefined && meta.roomIdx !== appState.activeRoomIdx) {
-          appState.activeRoomIdx = meta.roomIdx;
-          updateRoomUI(meta.roomIdx);
-        }
-        if (appState.scenePhase === "room") {
-          syncRoomCameraGoal(prefersReducedMotion);
-        }
-        return true;
       }
 
       function onPointerMove(e) {
@@ -6633,55 +6898,32 @@
         if (isOrbitDragging) {
           const dx = e.clientX - orbitStartScreen.x;
           const dy = e.clientY - orbitStartScreen.y;
-          const vw = Math.max(320, window.innerWidth);
-          const vh = Math.max(320, window.innerHeight);
-          camOrbit.targetYaw = THREE.MathUtils.clamp(
-            orbitStartYaw - (dx / vw) * (MAX_ORBIT_YAW * 2.2),
-            -MAX_ORBIT_YAW,
-            MAX_ORBIT_YAW
-          );
-          camOrbit.targetPitch = THREE.MathUtils.clamp(
-            orbitStartPitch + (dy / vh) * ((MAX_ORBIT_PITCH - MIN_ORBIT_PITCH) * 1.8),
-            MIN_ORBIT_PITCH,
-            MAX_ORBIT_PITCH
-          );
+          if (!orbitMoved && Math.hypot(dx, dy) > 6) {
+            orbitMoved = true;
+            els.hoverTooltip.hidden = true;
+            document.body.style.cursor = "grabbing";
+          }
+          if (orbitMoved) {
+            const vw = Math.max(320, window.innerWidth);
+            const vh = Math.max(320, window.innerHeight);
+            camOrbit.targetYaw = THREE.MathUtils.clamp(
+              orbitStartYaw - (dx / vw) * (MAX_ORBIT_YAW * 2.2),
+              -MAX_ORBIT_YAW,
+              MAX_ORBIT_YAW
+            );
+            camOrbit.targetPitch = THREE.MathUtils.clamp(
+              orbitStartPitch + (dy / vh) * ((MAX_ORBIT_PITCH - MIN_ORBIT_PITCH) * 1.8),
+              MIN_ORBIT_PITCH,
+              MAX_ORBIT_PITCH
+            );
+          }
           return;
         }
 
         /* Gentle camera parallax on mouse movement only */
-        if (e.pointerType === "mouse" && !draggedItem && !prefersReducedMotion) {
+        if (e.pointerType === "mouse" && !prefersReducedMotion) {
           parallax.targetX = pointerNDC.x;
           parallax.targetY = pointerNDC.y;
-        }
-
-        if (draggedItem) {
-          if (Math.hypot(e.clientX - downScreen.x, e.clientY - downScreen.y) > 6) {
-            didDrag = true;
-            walkState.active = false;
-            els.hoverTooltip.hidden = true;
-          }
-          if (didDrag) {
-            raycaster.setFromCamera(pointerNDC, camera);
-            if (draggedItem === avatarGroup) {
-              snapAvatarToHouseSurface(raycaster);
-              return;
-            }
-            if (raycaster.ray.intersectPlane(dragPlane, dragHit)) {
-              const rIdx = draggedItem.userData.roomIdx;
-              const bounds = ROOM_BOUNDS[rIdx] || ROOM_BOUNDS[0];
-              const nx = THREE.MathUtils.clamp(dragHit.x + dragOffset.x, bounds.minX, bounds.maxX);
-              const nz = THREE.MathUtils.clamp(dragHit.z + dragOffset.z, bounds.minZ, bounds.maxZ);
-              draggedItem.position.x = nx;
-              draggedItem.position.z = nz;
-
-              let baseY = bounds.floorY;
-              if (draggedItem.userData.fixedY !== undefined) baseY = draggedItem.userData.fixedY;
-              else if (draggedItem.userData.isDeskTop && Math.abs(nx - deskGroup.position.x) < 1.7 && Math.abs(nz - deskGroup.position.z) < 0.9) baseY = STUDY_DESK_Y;
-              else if (draggedItem.userData.isCounterTop && Math.abs(nx - counterGroup.position.x) < 2.85 && Math.abs(nz - counterGroup.position.z) < 0.98) baseY = KITCHEN_COUNTER_Y;
-              draggedItem.position.y = baseY + 0.35;
-            }
-          }
-          return;
         }
 
         const now = performance.now();
@@ -6709,60 +6951,62 @@
           els.hoverTooltip.textContent = nextHover === doorPivot
             ? "Front Door: Knock to enter"
             : (nextHover === avatarGroup
-              ? "Rubina (Click to wave or drag anywhere)"
+              ? "Rubina (Click to wave)"
               : (jarHit ? `Spice Jar · ${jarHit.userData.skill.name}` : nextHover.userData.tooltip));
           els.hoverTooltip.style.left = `${e.clientX}px`;
           els.hoverTooltip.style.top = `${e.clientY}px`;
           els.hoverTooltip.hidden = false;
-          document.body.style.cursor = "pointer";
+          document.body.style.cursor = (nextHover === doorPivot || nextHover === avatarGroup || nextHover.userData.onClick) ? "pointer" : "default";
         }
       }
 
-      function onPointerUp() {
+      function onPointerUp(e) {
         if (isOrbitDragging) {
+          const wasOrbit = orbitMoved;
           isOrbitDragging = false;
+          orbitMoved = false;
           document.body.style.cursor = "default";
+          if (!wasOrbit && e && e.type === "pointerup") {
+            updateNDC(e);
+            raycaster.setFromCamera(pointerNDC, camera);
+            walkAvatarToClickPoint(raycaster);
+          }
           return;
         }
-        if (!draggedItem) return;
-        const item = draggedItem;
-        const jar = hoveredJar;
-        draggedItem = null;
-        hoveredJar = null;
 
-        if (didDrag) {
-          if (item === avatarGroup) {
-            if (appState.scenePhase === "room") {
-              syncRoomCameraGoal(prefersReducedMotion);
+        const item = pointerDownTarget;
+        const jar = pointerDownJar;
+        pointerDownTarget = null;
+        pointerDownJar = null;
+        if (!item) return;
+
+        const moved = e ? Math.hypot(e.clientX - downScreen.x, e.clientY - downScreen.y) : 999;
+        if (moved > 10) return;
+
+        if (item === avatarGroup) {
+          showSpeech("Hi, I'm Rubina!", 2.4);
+          return;
+        }
+
+        if (item.userData.onClick) {
+          const targetRoom = item.userData.roomIdx;
+          const standPos = item.userData.standPos
+            ? item.userData.standPos.clone()
+            : (() => {
+              const cl = clampWalkPos(targetRoom, item.position.x, item.position.z + 1.15);
+              return new THREE.Vector3(cl.x, cl.y, cl.z);
+            })();
+          walkToTarget(targetRoom, standPos, item.position, () => {
+            if (!prefersReducedMotion) {
+              avatarState.gestureType = item.userData.gesture;
+              avatarState.gestureTimer = 0.75;
             }
-            return;
-          }
-          const bounds = ROOM_BOUNDS[item.userData.roomIdx] || ROOM_BOUNDS[0];
-          if (item.userData.fixedY !== undefined) item.position.y = item.userData.fixedY;
-          else if (item.userData.isDeskTop && Math.abs(item.position.x - deskGroup.position.x) < 1.7 && Math.abs(item.position.z - deskGroup.position.z) < 0.9) item.position.y = STUDY_DESK_Y;
-          else if (item.userData.isCounterTop && Math.abs(item.position.x - counterGroup.position.x) < 2.85 && Math.abs(item.position.z - counterGroup.position.z) < 0.98) item.position.y = KITCHEN_COUNTER_Y;
-          else item.position.y = bounds.floorY;
-        } else {
-          if (item === avatarGroup) {
-            showSpeech("Hi, I'm Rubina!", 2.4);
-          } else if (item.userData.onClick) {
-            const targetRoom = item.userData.roomIdx;
-            const bounds = ROOM_BOUNDS[targetRoom];
-            const standPos = item.userData.standPos
-              ? item.userData.standPos.clone()
-              : new THREE.Vector3(
-                THREE.MathUtils.clamp(item.position.x, bounds.minX + 0.5, bounds.maxX - 0.5),
-                bounds.floorY,
-                THREE.MathUtils.clamp(item.position.z + 1.15, bounds.minZ + 0.4, bounds.maxZ - 0.4)
-              );
-            walkToTarget(targetRoom, standPos, item.position, () => {
-              if (!prefersReducedMotion) {
-                avatarState.gestureType = item.userData.gesture;
-                avatarState.gestureTimer = 0.75;
-              }
-              item.userData.onClick(jar);
-            }, false);
-          }
+            item.userData.onClick(jar);
+          }, false);
+        } else if (appState.scenePhase === "room" || appState.scenePhase === "overview") {
+          const targetRoom = item.userData.roomIdx;
+          const cl = clampWalkPos(targetRoom, item.position.x, item.position.z + 1.15);
+          walkToTarget(targetRoom, new THREE.Vector3(cl.x, cl.y, cl.z), item.position, null, false);
         }
       }
 
@@ -7204,7 +7448,7 @@
           sunLight.target.position.z + 19
         );
 
-        /* 3. Perspective Camera Update (Room Follow + Laptop Zoom + Drag-to-Orbit ±25° + Mouse Parallax) */
+        /* 3. Perspective Camera Update (Room Follow + Laptop Zoom + Optional Camera Orbit ±25° + Mouse Parallax) */
         if (!prefersReducedMotion) {
           const pDamp = 1 - Math.exp(-5.5 * delta);
           parallax.curX = THREE.MathUtils.lerp(parallax.curX, parallax.targetX, pDamp);
@@ -7408,7 +7652,6 @@
         goToRoom,
         toggleWholeHouseOverview,
         toggleDayNight,
-        resetActiveRoomLayout,
         focusLaptopProjects,
         leaveLaptopFocus,
         showSpeech,
@@ -7520,11 +7763,6 @@
     els.waveBtn.addEventListener("click", () => {
       closeMoreMenu();
       if (appState.sceneApi) appState.sceneApi.showSpeech("Hi, I'm Rubina!", 2.4);
-    });
-
-    els.resetRoomBtn.addEventListener("click", () => {
-      closeMoreMenu();
-      if (appState.sceneApi) appState.sceneApi.resetActiveRoomLayout();
     });
 
     els.toggleViewBtn.addEventListener("click", () => {
