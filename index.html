@@ -704,6 +704,194 @@
       animation: panelPop 0.2s var(--ease-out);
     }
 
+    .glass-panel.glass-panel--wide {
+      width: min(820px, 100%);
+    }
+
+    .panel-tablist {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px;
+      border-radius: 10px;
+      background: rgba(18, 26, 56, 0.9);
+      border: 1px solid var(--hud-border);
+      margin-bottom: 4px;
+    }
+
+    .panel-tab {
+      min-height: 36px;
+      padding: 6px 16px;
+      border-radius: 7px;
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      transition: background-color 0.16s var(--ease-out), color 0.16s var(--ease-out);
+    }
+
+    .panel-tab:hover {
+      color: var(--text-light);
+      background: rgba(139, 92, 246, 0.16);
+    }
+
+    .panel-tab[aria-selected="true"] {
+      background: var(--accent-teal);
+      color: var(--text-on-teal);
+    }
+
+    .resume-doc {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--hud-border);
+      color: var(--text-light);
+    }
+
+    .resume-header {
+      border-bottom: 1px solid var(--hud-border);
+      padding-bottom: 12px;
+    }
+
+    .resume-name {
+      font-family: var(--font-display);
+      font-size: clamp(1.35rem, 2.8vw, 1.75rem);
+      font-weight: 800;
+      margin: 0 0 4px;
+      color: var(--text-light);
+    }
+
+    .resume-sub {
+      margin: 0 0 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--accent-teal);
+    }
+
+    .resume-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .resume-links a {
+      color: #c4b5fd;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .resume-links a:hover,
+    .resume-links a:focus-visible {
+      color: var(--accent-teal);
+    }
+
+    .resume-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .resume-section-title {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-teal);
+      margin: 0;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .resume-text {
+      margin: 0;
+      font-size: 0.89rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .resume-kv-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .resume-kv-list strong {
+      color: var(--text-light);
+    }
+
+    .resume-compact-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .resume-compact-item {
+      padding: 9px 12px;
+      border-radius: 8px;
+      background: rgba(18, 26, 56, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .resume-compact-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 4px 10px;
+    }
+
+    .resume-compact-title {
+      font-family: var(--font-display);
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: var(--text-light);
+      margin: 0;
+    }
+
+    .resume-compact-meta {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--accent-teal);
+    }
+
+    .resume-compact-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+    }
+
+    .resume-compact-links a {
+      color: #5eead4;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .print-resume-root {
+      display: none;
+    }
+
     @keyframes panelPop {
       from { opacity: 0; transform: translateY(10px) scale(0.98); }
       to { opacity: 1; transform: translateY(0) scale(1); }
@@ -1531,6 +1719,131 @@
         transition-duration: 0.01ms !important;
       }
     }
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 8mm 10mm;
+      }
+
+      html, body {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+
+      body > *:not(#print-resume-root) {
+        display: none !important;
+      }
+
+      #print-resume-root {
+        display: block !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-family: var(--font-body);
+      }
+
+      .print-resume-root .resume-doc {
+        background: #ffffff !important;
+        border: none !important;
+        padding: 0 !important;
+        gap: 6px !important;
+        color: #0f172a !important;
+      }
+
+      .print-resume-root .resume-header {
+        border-bottom: 1.5px solid #0f172a !important;
+        padding-bottom: 5px !important;
+      }
+
+      .print-resume-root .resume-name {
+        font-size: 15pt !important;
+        color: #0f172a !important;
+        margin-bottom: 1px !important;
+      }
+
+      .print-resume-root .resume-sub {
+        font-size: 9pt !important;
+        color: #334155 !important;
+        margin-bottom: 3px !important;
+      }
+
+      .print-resume-root .resume-links {
+        font-size: 7.5pt !important;
+        gap: 2px 10px !important;
+        color: #334155 !important;
+      }
+
+      .print-resume-root .resume-links a {
+        color: #1e293b !important;
+        text-decoration: none !important;
+      }
+
+      .print-resume-root .resume-section {
+        gap: 3px !important;
+      }
+
+      .print-resume-root .resume-section-title {
+        font-size: 8pt !important;
+        color: #0f172a !important;
+        border-bottom: 1px solid #cbd5e1 !important;
+        padding-bottom: 2px !important;
+      }
+
+      .print-resume-root .resume-text,
+      .print-resume-root .resume-kv-list {
+        font-size: 7.8pt !important;
+        line-height: 1.28 !important;
+        color: #1e293b !important;
+        gap: 2px !important;
+      }
+
+      .print-resume-root .resume-kv-list strong {
+        color: #0f172a !important;
+      }
+
+      .print-resume-root .resume-compact-list {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 4px 8px !important;
+      }
+
+      .print-resume-root .resume-compact-item {
+        background: transparent !important;
+        border: 0.5px solid #cbd5e1 !important;
+        border-radius: 4px !important;
+        padding: 3px 5px !important;
+        gap: 1.5px !important;
+        break-inside: avoid;
+      }
+
+      .print-resume-root .resume-compact-title {
+        font-size: 8pt !important;
+        color: #0f172a !important;
+      }
+
+      .print-resume-root .resume-compact-meta {
+        font-size: 7pt !important;
+        color: #334155 !important;
+      }
+
+      .print-resume-root .resume-compact-desc {
+        font-size: 7pt !important;
+        line-height: 1.2 !important;
+        color: #334155 !important;
+      }
+
+      .print-resume-root .resume-compact-links {
+        font-size: 6.8pt !important;
+        gap: 6px !important;
+      }
+
+      .print-resume-root .resume-compact-links a {
+        color: #1e293b !important;
+      }
+    }
   </style>
 </head>
 <body class="is-3d-active">
@@ -1693,15 +2006,19 @@
     </div>
   </div>
 
+  <!-- Dedicated Single-Page Print Resume Container -->
+  <div id="print-resume-root" class="print-resume-root" aria-hidden="true"></div>
+
   <script type="module">
     /* ==========================================================================
        EDIT ALL CONTENT, TEXT, LINKS & COLORS IN THIS SINGLE ROOM_CONFIG OBJECT
-       - owner: Bio, college, email, GitHub/LinkedIn, and resume download URL
+       - owner: Bio, college, email, GitHub/LinkedIn, portfolio, and PDF path
+       - resume: Structured Resume tab & printable HTML sections (Profile, Skills, Education, Languages)
        - rooms: Room titles, dock labels, and top-left banner subtitles
-       - projects: Study bookshelf & laptop IDE items (edit description & tech TODOs)
+       - projects: Study bookshelf & laptop IDE items (also reused in Resume)
        - skills: Kitchen spice jars
        - bedroomLearningLine & learning: Bedroom whiteboard items
-       - hackathons: Terrace constellation stars (badge: "gold" | "violet" | "teal")
+       - hackathons: Terrace constellation stars (also reused in Resume)
        ========================================================================== */
     const ROOM_CONFIG = {
       /* Edit personal info & external profile links here */
@@ -1713,8 +2030,37 @@
         email: "sultanarubina209@gmail.com", // <-- Edit email
         githubHandle: "rubbulu",
         githubUrl: "https://github.com/rubbulu", // <-- Edit GitHub URL
-        linkedinUrl: "https://www.linkedin.com/in/rubina-sultana-placeholder", // <-- Edit LinkedIn URL
-        resumeUrl: "#download-resume" // <-- Swap with PDF URL or keep "#download-resume"
+        linkedinUrl: "https://linkedin.com/in/rubina-sultana-b79b94413", // <-- Edit LinkedIn URL
+        portfolioUrl: "https://rubina.isonewho.codes", // <-- Edit Portfolio URL
+        resumeUrl: "/Rubina_Sultana_Resume.pdf" // <-- PDF path in public/ or root
+      },
+
+      /* Edit Resume tab & Normal View Resume sections here
+         Projects and Hackathons are reused automatically from ROOM_CONFIG.projects and ROOM_CONFIG.hackathons. */
+      resume: {
+        header: {
+          name: "Rubina Sultana",
+          degree: "B.Tech Computer Science / IT",
+          college: "Andhra University College of Engineering for Women",
+          email: "sultanarubina209@gmail.com",
+          githubUrl: "https://github.com/rubbulu",
+          linkedinUrl: "https://linkedin.com/in/rubina-sultana-b79b94413",
+          portfolioUrl: "https://rubina.isonewho.codes"
+        },
+        profile: "Third-year B.Tech student with hands-on frontend and backend web development skills. I build full projects, work in hackathon and lab teams, and have reached the later rounds of several national hackathons. Seeking a web development internship to apply my skills and keep growing as a developer.",
+        skills: [
+          { group: "Frontend", items: "HTML, CSS, JavaScript, React, Vite, Tailwind CSS" },
+          { group: "Backend", items: "Node.js, Express.js, SQL, FastAPI (Python)" },
+          { group: "Databases", items: "SQL, SQLite, MongoDB (learning)" },
+          { group: "AI tools", items: "Google Gemini API" },
+          { group: "Currently learning", items: "MongoDB, Data Structures and Algorithms in Java" }
+        ],
+        education: [
+          { program: "B.Tech CS/IT, AUCEW", detail: "3rd year, CGPA 7.76, SGPA 8.20" },
+          { program: "Intermediate (MPC), Sri Chaitanya Junior College", detail: "901/1000" },
+          { program: "10th, Jamia Umme Sulaim", detail: "499/600" }
+        ],
+        languages: ["English", "Hindi", "Urdu", "Telugu"]
       },
 
       /* Front Door Nameplate (cycles gently) */
@@ -1793,82 +2139,74 @@
         {
           id: "college-portal",
           title: "College Portal",
-          description: "TODO: edit",
-          tech: ["TODO"],
+          role: "2-person team",
+          description: "All-in-one digital campus portal for AUCEW with student records, face-recognition attendance, faculty course management, a hostel hub and an academic calendar.",
+          tech: ["React 19", "Vite", "Node.js", "Express", "MongoDB", "face-api.js"],
           repoUrl: "https://github.com/rubbulu/college-portal",
           liveUrl: "https://college-portal-psi.vercel.app/"
         },
         {
           id: "code-quality-evaluator",
           title: "Code Quality Evaluator",
-          description: "TODO: edit",
-          tech: ["TODO"],
+          role: "Team project (OOSE lab)",
+          description: "Paste code in the browser, click Analyze, and get a quality score, a grade, line-by-line issues, complexity and duplication metrics, a security scan and AI suggestions.",
+          tech: ["Node.js", "Express", "MongoDB", "Gemini API", "CodeMirror", "Chart.js"],
           repoUrl: "https://github.com/rubbulu/code-quality-evaluator",
           liveUrl: null
         },
         {
           id: "brandguard",
           title: "BrandGuard",
-          description: "TODO: edit",
-          tech: ["TODO"],
+          role: "Solo build (CodeStar 30, round 3)",
+          description: "Audits marketing copy and banners against brand guidelines before publication, explains each violation, suggests fixes and issues tamper-evident compliance certificates.",
+          tech: ["React", "Vite", "Tailwind CSS", "Node.js", "Express", "Gemini"],
           repoUrl: "https://github.com/rubbulu/brandguard",
           liveUrl: "https://brandguard-kbw7.onrender.com/"
         },
         {
           id: "proofboard",
           title: "ProofBoard",
-          description: "TODO: edit",
-          tech: ["TODO"],
+          role: "Team Vidyora (AV_062), teammate also contributed",
+          description: "Learners fix buggy code in the browser, automated tests score it, and the result becomes evidence a recruiter can verify only with the learner's consent.",
+          tech: ["React", "Tailwind CSS", "Web Workers", "Gemini (hints only)"],
           repoUrl: "https://github.com/rubbulu/proofboard",
           liveUrl: "https://ai.studio/apps/8eb52f44-3605-40ab-81ca-3dfc3f225a5c"
         },
         {
           id: "ecdat",
           title: "ecdat",
-          description: "TODO: edit",
-          tech: ["TODO"],
+          role: "Solo build (Threws Odyssey, Cybersecurity track)",
+          description: "Enterprise cryptographic discovery tool that finds cryptographic assets, generates a CycloneDX 1.6 CBOM, scores quantum risk with Mosca's inequality and builds NIST post-quantum migration roadmaps.",
+          tech: ["FastAPI", "Python", "React", "Vite", "Tailwind CSS", "Recharts"],
           repoUrl: "https://github.com/rubbulu/ecdat",
           liveUrl: "https://ecdat-rose.vercel.app/"
         },
         {
           id: "baton",
-          title: "Baton (knowledge handover)",
-          description: "TODO: edit",
-          tech: ["TODO"],
+          title: "Baton",
+          role: "Solo build (CodersInPune)",
+          description: "Turns project notes, team chat exports and task boards into verified handover claims, each backed by a verbatim source quote.",
+          tech: ["React", "Express", "SQLite", "Gemini", "Vite"],
           repoUrl: "https://github.com/rubbulu/baton-knowledge-handover",
           liveUrl: null
         },
         {
           id: "krishisaathi",
-          title: "KrishiSaathi (team project, still in progress)",
-          description: "TODO: edit",
-          tech: ["TODO"],
+          title: "KrishiSaathi",
+          role: "Team project, teammate also contributed; still in progress",
+          description: "Turns a Soil Health Card into a per-acre fertilizer plan and answers farmers' questions by text and voice in English, Telugu and Hindi, even offline.",
+          tech: ["React 19", "FastAPI", "SQLite", "Gemini 2.5 Flash", "PWA"],
           repoUrl: "https://github.com/mohankandula15/KrishiSaathi",
           liveUrl: "https://krishi-saathi-app-seven.vercel.app"
         },
         {
           id: "orbit",
           title: "Orbit",
-          description: "TODO: edit",
-          tech: ["TODO"],
+          role: "Solo build (Product Verse Agentic AI Hackathon)",
+          description: "Turns meeting transcripts into an interactive night-sky map of decisions and flags contradictions across meetings before teams ship broken commitments.",
+          tech: [],
           repoUrl: "https://github.com/rubbulu/orbit",
           liveUrl: "https://orbit-sk6n.onrender.com/"
-        },
-        {
-          id: "yatrasetu",
-          title: "YatraSetu (SIH internal round)",
-          description: "TODO: edit",
-          tech: ["TODO"],
-          repoUrl: null,
-          liveUrl: "https://yatrasetu-cyan.vercel.app/"
-        },
-        {
-          id: "civora",
-          title: "CIVORA (AL Foundation Hackathon)",
-          description: "TODO: edit",
-          tech: ["TODO"],
-          repoUrl: null,
-          liveUrl: "https://statuesque-treacle-a6b523.netlify.app"
         }
       ],
 
@@ -1935,12 +2273,13 @@
           name: "Smart India Hackathon (internal round)",
           shortName: "SIH (Internal)",
           accessibleName: "Smart India Hackathon (internal round), 6th of 103 teams (top 10)",
-          badge: "violet",
-          badgeLabel: "Violet · Shortlisted / Top Rank",
-          built: "Team entry: YatraSetu",
-          result: "My first hackathon, team entry YatraSetu. 6th of 103 teams (top 10).",
+          badge: "teal",
+          badgeLabel: "Teal · Participation / Learning",
+          result: "My first hackathon. I joined Team Travel Titans as a member to complete the team, and we placed 6th of 103 teams (top 10) with YatraSetu, an AI and verified-local travel platform.",
           certificate: "Recognition certificates.",
-          color: "#a78bfa",
+          liveUrl: "https://yatrasetu-cyan.vercel.app/",
+          liveLabel: "YatraSetu Live Demo",
+          color: "#2dd4bf",
           localPos: [-3.7, 2.25, -2.1]
         },
         {
@@ -1950,9 +2289,10 @@
           accessibleName: "Amazon ML Challenge, rank 4,222 of 89,394",
           badge: "teal",
           badgeLabel: "Teal · Participation / Learning",
-          built: "Highest Inference Score Achieved, public leaderboard score 0.796944 (Macro F0.5)",
           result: "72 hours, 89,394 registered participants. Highest Inference Score Achieved, public leaderboard score 0.796944 (Macro F0.5), rank 4,222.",
           certificate: "No certificate.",
+          liveUrl: null,
+          liveLabel: null,
           color: "#2dd4bf",
           localPos: [-2.75, 3.55, -2.5]
         },
@@ -1963,9 +2303,10 @@
           accessibleName: "AL Foundation Hackathon, did not place",
           badge: "teal",
           badgeLabel: "Teal · Participation / Learning",
-          built: "CIVORA (team, Education and Innovation track)",
-          result: "Did not place, and it taught me a lot.",
+          result: "Team entry, Education and Innovation track. Built CIVORA. Did not place, but I learned a lot.",
           certificate: "No certificate.",
+          liveUrl: "https://statuesque-treacle-a6b523.netlify.app",
+          liveLabel: "CIVORA Live Demo",
           color: "#2dd4bf",
           localPos: [-1.8, 2.15, 0.8]
         },
@@ -1976,9 +2317,10 @@
           accessibleName: "Samartha 24-hour Hackathon, top 30 of 203 teams",
           badge: "violet",
           badgeLabel: "Violet · Shortlisted / Top Rank",
-          built: "ProofBoard",
-          result: "203 teams registered for screening, 100 selected, we reached the top 30.",
+          result: "203 teams registered for screening, 100 selected, and we reached the top 30. Built ProofBoard.",
           certificate: "Participation certificate.",
+          liveUrl: null,
+          liveLabel: null,
           color: "#a78bfa",
           localPos: [-0.9, 4.15, -2.2]
         },
@@ -1989,9 +2331,10 @@
           accessibleName: "CodeStar 30 (We Code Coders), round 3 (top 50)",
           badge: "violet",
           badgeLabel: "Violet · Shortlisted / Top Rank",
-          built: "BrandGuard (solo entry)",
-          result: "Solo entry, 2000+ teams registered, I reached round 3 (top 50).",
+          result: "Solo entry, 2000+ teams registered, I reached round 3 (top 50). Built BrandGuard.",
           certificate: "Rank certificate expected on 21 Nov 2026.",
+          liveUrl: null,
+          liveLabel: null,
           color: "#a78bfa",
           localPos: [0.0, 2.95, -0.6]
         },
@@ -2002,9 +2345,10 @@
           accessibleName: "Product Verse Agentic AI Hackathon, participation",
           badge: "teal",
           badgeLabel: "Teal · Participation / Learning",
-          built: "Orbit",
           result: "Built Orbit.",
           certificate: "Participation certificate.",
+          liveUrl: null,
+          liveLabel: null,
           color: "#2dd4bf",
           localPos: [0.95, 4.15, -2.4]
         },
@@ -2015,9 +2359,10 @@
           accessibleName: "CodersInPune (We Code Coders), round 3 (top 50 teams)",
           badge: "violet",
           badgeLabel: "Violet · Shortlisted / Top Rank",
-          built: "Baton",
-          result: "Selected for round 3 (top 50 teams).",
+          result: "Selected for round 3 (top 50 teams). Built Baton.",
           certificate: "Not listed.",
+          liveUrl: null,
+          liveLabel: null,
           color: "#a78bfa",
           localPos: [1.85, 2.25, 0.9]
         },
@@ -2028,22 +2373,24 @@
           accessibleName: "Agritech Hackathon, 2nd position",
           badge: "gold",
           badgeLabel: "Gold · Podium",
-          built: "KrishiSaathi, which we are still building",
-          result: "45 teams registered, 15 pitched, 2nd position. Mentorship and investor connections offered.",
+          result: "45 teams registered, 15 pitched, and we took 2nd position. Built KrishiSaathi, which we are still building.",
           certificate: "Top performing certificate, with mentorship and investor connections offered.",
+          liveUrl: null,
+          liveLabel: null,
           color: "#fbbf24",
           localPos: [2.8, 3.65, -1.8]
         },
         {
-          id: "threws-odessy",
-          name: "Threws Odessy, cybersecurity track",
-          shortName: "Threws Odessy",
-          accessibleName: "Threws Odessy, cybersecurity track, did not place",
+          id: "threws-odyssey",
+          name: "Threws Odyssey, Cybersecurity track",
+          shortName: "Threws Odyssey",
+          accessibleName: "Threws Odyssey, Cybersecurity track, did not place",
           badge: "teal",
           badgeLabel: "Teal · Participation / Learning",
-          built: "ecdat",
-          result: "Did not place.",
+          result: "Did not place. Built ecdat.",
           certificate: "Not listed.",
+          liveUrl: null,
+          liveLabel: null,
           color: "#2dd4bf",
           localPos: [3.65, 2.45, -0.5]
         }
@@ -2110,7 +2457,8 @@
       panelCloseBtn: document.getElementById("panel-close-btn"),
       panelKicker: document.getElementById("panel-kicker"),
       panelTitle: document.getElementById("panel-title"),
-      panelBody: document.getElementById("panel-body")
+      panelBody: document.getElementById("panel-body"),
+      printResumeRoot: document.getElementById("print-resume-root")
     };
 
     const appState = {
@@ -2243,8 +2591,9 @@
         "",
         "PROJECTS",
         ...projects.map((p) => {
+          const tags = p.tech.length ? ` [${p.tech.join(", ")}]` : "";
           const links = [p.repoUrl ? `Code: ${p.repoUrl}` : null, p.liveUrl ? `Live: ${p.liveUrl}` : null].filter(Boolean).join(" | ");
-          return `- ${p.title}: ${p.description} [${p.tech.join(", ")}]${links ? ` (${links})` : ""}`;
+          return `- ${p.title} (${p.role}): ${p.description}${tags}${links ? ` (${links})` : ""}`;
         })
       ].join("\n");
 
@@ -2259,8 +2608,116 @@
       URL.revokeObjectURL(url);
     }
 
-    function openGlassPanel(kicker, title, renderFn, triggerEl) {
+    function buildResumeHtml() {
+      const { resume, projects, hackathons } = ROOM_CONFIG;
+      const h = resume.header;
+      return `
+        <article class="resume-doc" aria-label="Resume of ${h.name}">
+          <header class="resume-header">
+            <h3 class="resume-name">${h.name}</h3>
+            <p class="resume-sub">${h.degree} · ${h.college}</p>
+            <ul class="resume-links">
+              <li>Email: <a href="mailto:${h.email}">${h.email}</a></li>
+              <li>GitHub: <a href="${h.githubUrl}" target="_blank" rel="noopener noreferrer">${h.githubUrl}</a></li>
+              <li>LinkedIn: <a href="${h.linkedinUrl}" target="_blank" rel="noopener noreferrer">${h.linkedinUrl}</a></li>
+              <li>Portfolio: <a href="${h.portfolioUrl}" target="_blank" rel="noopener noreferrer">${h.portfolioUrl}</a></li>
+            </ul>
+          </header>
+
+          <section class="resume-section">
+            <h4 class="resume-section-title">Profile</h4>
+            <p class="resume-text">${resume.profile}</p>
+          </section>
+
+          <section class="resume-section">
+            <h4 class="resume-section-title">Skills</h4>
+            <ul class="resume-kv-list">
+              ${resume.skills.map((s) => `<li><strong>${s.group}:</strong> ${s.items}</li>`).join("")}
+            </ul>
+          </section>
+
+          <section class="resume-section">
+            <h4 class="resume-section-title">Education</h4>
+            <ul class="resume-kv-list">
+              ${resume.education.map((ed) => `<li><strong>${ed.program}</strong> — ${ed.detail}</li>`).join("")}
+            </ul>
+          </section>
+
+          <section class="resume-section">
+            <h4 class="resume-section-title">Languages</h4>
+            <p class="resume-text">${resume.languages.join(", ")}</p>
+          </section>
+
+          <section class="resume-section">
+            <h4 class="resume-section-title">Projects</h4>
+            <ul class="resume-compact-list">
+              ${projects.map((p) => {
+                const tags = p.tech.length ? ` · ${p.tech.join(", ")}` : "";
+                const links = [
+                  p.repoUrl ? `<a href="${p.repoUrl}" target="_blank" rel="noopener noreferrer">Code</a>` : "",
+                  p.liveUrl ? `<a href="${p.liveUrl}" target="_blank" rel="noopener noreferrer">Live</a>` : ""
+                ].filter(Boolean).join("");
+                return `
+                  <li class="resume-compact-item">
+                    <div class="resume-compact-top">
+                      <span class="resume-compact-title">${p.title}</span>
+                      <span class="resume-compact-meta">${p.role}</span>
+                    </div>
+                    <p class="resume-text resume-compact-desc">${p.description}${tags}</p>
+                    ${links ? `<div class="resume-compact-links">${links}</div>` : ""}
+                  </li>
+                `;
+              }).join("")}
+            </ul>
+          </section>
+
+          <section class="resume-section">
+            <h4 class="resume-section-title">Hackathons</h4>
+            <ul class="resume-compact-list">
+              ${hackathons.map((hk) => {
+                const liveLink = hk.liveUrl
+                  ? `<div class="resume-compact-links"><a href="${hk.liveUrl}" target="_blank" rel="noopener noreferrer">${hk.liveLabel || "Live demo"}</a></div>`
+                  : "";
+                return `
+                  <li class="resume-compact-item">
+                    <div class="resume-compact-top">
+                      <span class="resume-compact-title">${hk.name}</span>
+                      <span class="resume-compact-meta">${hk.badgeLabel}</span>
+                    </div>
+                    <p class="resume-text resume-compact-desc">${hk.result} Certificate: ${hk.certificate}</p>
+                    ${liveLink}
+                  </li>
+                `;
+              }).join("")}
+            </ul>
+          </section>
+        </article>
+      `;
+    }
+
+    function buildResumeActionsHtml() {
+      return `
+        <div class="panel-actions">
+          <a href="${ROOM_CONFIG.owner.resumeUrl}" download class="btn-primary">Download PDF</a>
+          <button type="button" class="btn-secondary" data-print-resume="true">Print</button>
+        </div>
+      `;
+    }
+
+    function syncPrintResumeSheet() {
+      if (els.printResumeRoot) {
+        els.printResumeRoot.innerHTML = buildResumeHtml();
+      }
+    }
+
+    function printResume() {
+      syncPrintResumeSheet();
+      window.print();
+    }
+
+    function openGlassPanel(kicker, title, renderFn, triggerEl, wide = false) {
       appState.lastFocusedEl = triggerEl || document.activeElement;
+      els.glassPanel.classList.toggle("glass-panel--wide", wide);
       els.panelKicker.textContent = kicker;
       els.panelTitle.textContent = title;
       els.panelBody.innerHTML = "";
@@ -2272,37 +2729,110 @@
     function closeGlassPanel() {
       if (els.panelBackdrop.hidden) return;
       els.panelBackdrop.hidden = true;
+      els.glassPanel.classList.remove("glass-panel--wide");
       if (appState.lastFocusedEl && typeof appState.lastFocusedEl.focus === "function") {
         appState.lastFocusedEl.focus();
       }
     }
 
-    function openAboutPanel(triggerEl) {
+    function openAboutPanel(triggerEl, initialTab = "about") {
       const { owner } = ROOM_CONFIG;
       openGlassPanel("HALL · ABOUT & RESUME", owner.name, (box) => {
-        box.innerHTML = `
+        const tablist = document.createElement("div");
+        tablist.className = "panel-tablist";
+        tablist.setAttribute("role", "tablist");
+        tablist.setAttribute("aria-label", "About and Resume");
+
+        const aboutTabBtn = document.createElement("button");
+        aboutTabBtn.type = "button";
+        aboutTabBtn.id = "hall-tab-about";
+        aboutTabBtn.className = "panel-tab";
+        aboutTabBtn.setAttribute("role", "tab");
+        aboutTabBtn.setAttribute("aria-controls", "hall-tabpanel-about");
+        aboutTabBtn.textContent = "About";
+
+        const resumeTabBtn = document.createElement("button");
+        resumeTabBtn.type = "button";
+        resumeTabBtn.id = "hall-tab-resume";
+        resumeTabBtn.className = "panel-tab";
+        resumeTabBtn.setAttribute("role", "tab");
+        resumeTabBtn.setAttribute("aria-controls", "hall-tabpanel-resume");
+        resumeTabBtn.textContent = "Resume";
+
+        tablist.append(aboutTabBtn, resumeTabBtn);
+
+        const aboutPanel = document.createElement("div");
+        aboutPanel.id = "hall-tabpanel-about";
+        aboutPanel.setAttribute("role", "tabpanel");
+        aboutPanel.setAttribute("aria-labelledby", "hall-tab-about");
+        aboutPanel.style.display = "flex";
+        aboutPanel.style.flexDirection = "column";
+        aboutPanel.style.gap = "12px";
+        aboutPanel.innerHTML = `
           <p style="margin:0; color:var(--accent-teal); font-weight:600;">${owner.role}</p>
           <p style="margin:0;">${owner.college}</p>
           <p style="margin:0;">${owner.about}</p>
+          <div class="panel-actions">
+            <button type="button" id="hall-switch-resume-btn" class="btn-primary">Open Resume Tab</button>
+            <a href="${owner.githubUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">GitHub (@${owner.githubHandle})</a>
+            <a href="${owner.linkedinUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">LinkedIn</a>
+          </div>
         `;
-        const actions = document.createElement("div");
-        actions.className = "panel-actions";
-        const resBtn = document.createElement("button");
-        resBtn.type = "button";
-        resBtn.className = "btn-primary";
-        resBtn.textContent = "Download Resume";
-        resBtn.addEventListener("click", handleResumeDownload);
 
-        const ghLink = document.createElement("a");
-        ghLink.href = owner.githubUrl;
-        ghLink.target = "_blank";
-        ghLink.rel = "noopener noreferrer";
-        ghLink.className = "btn-secondary";
-        ghLink.textContent = `GitHub (@${owner.githubHandle})`;
+        const resumePanel = document.createElement("div");
+        resumePanel.id = "hall-tabpanel-resume";
+        resumePanel.setAttribute("role", "tabpanel");
+        resumePanel.setAttribute("aria-labelledby", "hall-tab-resume");
+        resumePanel.style.display = "flex";
+        resumePanel.style.flexDirection = "column";
+        resumePanel.style.gap = "12px";
+        resumePanel.innerHTML = `${buildResumeActionsHtml()}${buildResumeHtml()}`;
 
-        actions.append(resBtn, ghLink);
-        box.appendChild(actions);
-      }, triggerEl);
+        const selectHallTab = (which, moveFocus = false) => {
+          const isAbout = which === "about";
+          aboutTabBtn.setAttribute("aria-selected", String(isAbout));
+          aboutTabBtn.tabIndex = isAbout ? 0 : -1;
+          resumeTabBtn.setAttribute("aria-selected", String(!isAbout));
+          resumeTabBtn.tabIndex = isAbout ? -1 : 0;
+          aboutPanel.hidden = !isAbout;
+          aboutPanel.style.display = isAbout ? "flex" : "none";
+          resumePanel.hidden = isAbout;
+          resumePanel.style.display = isAbout ? "none" : "flex";
+          if (moveFocus) {
+            (isAbout ? aboutTabBtn : resumeTabBtn).focus();
+          }
+        };
+
+        aboutTabBtn.addEventListener("click", () => selectHallTab("about", false));
+        resumeTabBtn.addEventListener("click", () => selectHallTab("resume", false));
+        [aboutTabBtn, resumeTabBtn].forEach((btn, idx) => {
+          btn.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+              e.preventDefault();
+              selectHallTab(idx === 0 ? "resume" : "about", true);
+            } else if (e.key === "Home") {
+              e.preventDefault();
+              selectHallTab("about", true);
+            } else if (e.key === "End") {
+              e.preventDefault();
+              selectHallTab("resume", true);
+            }
+          });
+        });
+
+        box.append(tablist, aboutPanel, resumePanel);
+
+        const switchBtn = aboutPanel.querySelector("#hall-switch-resume-btn");
+        if (switchBtn) {
+          switchBtn.addEventListener("click", () => selectHallTab("resume", true));
+        }
+        const printBtn = resumePanel.querySelector('[data-print-resume="true"]');
+        if (printBtn) {
+          printBtn.addEventListener("click", printResume);
+        }
+
+        selectHallTab(initialTab, false);
+      }, triggerEl, true);
     }
 
     function selectLaptopProject(idx, focusTab = false) {
@@ -2385,6 +2915,13 @@
         ? `<a href="${proj.liveUrl}" target="_blank" rel="noopener noreferrer" class="vscode-btn-secondary">Live</a>`
         : "";
 
+      const techBlockHtml = proj.tech.length
+        ? `<div>
+            <p class="vscode-section-lbl">Tech Stack</p>
+            <ul class="vscode-tech-list">${proj.tech.map((t) => `<li class="vscode-tech-tag">${t}</li>`).join("")}</ul>
+          </div>`
+        : "";
+
       const lineNums = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).join("<br>");
       els.vscodeEditorPanel.setAttribute("aria-labelledby", `vscode-tab-${proj.id}`);
       els.vscodeEditorPanel.innerHTML = `
@@ -2392,11 +2929,12 @@
         <article class="vscode-content">
           <p class="vscode-code-comment">// Project ${projIdxStr} of ${projTotStr} · ${proj.id}.ts</p>
           <h2 class="vscode-proj-title">${proj.title}</h2>
-          <p class="vscode-proj-desc">${proj.description}</p>
-          <div>
-            <p class="vscode-section-lbl">Tech Stack</p>
-            <ul class="vscode-tech-list">${proj.tech.map((t) => `<li class="vscode-tech-tag">${t}</li>`).join("")}</ul>
+          <div class="vscode-team-card">
+            <span class="vscode-team-label">Role</span>
+            <span class="vscode-team-value">${proj.role}</span>
           </div>
+          <p class="vscode-proj-desc">${proj.description}</p>
+          ${techBlockHtml}
           <div class="vscode-actions">
             ${codeLinkHtml}
             ${liveLinkHtml}
@@ -2416,9 +2954,12 @@
 
     function openProjectsPanel(triggerEl = null) {
       openGlassPanel("STUDY · BOOKSHELF PROJECTS", "Projects", (box) => {
-        ROOM_CONFIG.projects.forEach((p, idx) => {
+        ROOM_CONFIG.projects.forEach((p) => {
           const card = document.createElement("article");
           card.className = "panel-item";
+          const techHtml = p.tech.length
+            ? `<ul class="chip-list">${p.tech.map((t) => `<li class="tech-chip">${t}</li>`).join("")}</ul>`
+            : "";
           const codeBtn = p.repoUrl
             ? `<a href="${p.repoUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary">Code</a>`
             : "";
@@ -2426,10 +2967,10 @@
             ? `<a href="${p.liveUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Live</a>`
             : "";
           card.innerHTML = `
-            <p class="panel-item-sub">Project ${String(idx + 1).padStart(2, "0")} of ${String(ROOM_CONFIG.projects.length).padStart(2, "0")}</p>
+            <p class="panel-item-sub">${p.role}</p>
             <h3 class="panel-item-title">${p.title}</h3>
             <p class="panel-item-desc">${p.description}</p>
-            <ul class="chip-list">${p.tech.map((t) => `<li class="tech-chip">${t}</li>`).join("")}</ul>
+            ${techHtml}
             <div class="panel-actions">${codeBtn}${liveBtn}</div>
           `;
           box.appendChild(card);
@@ -2504,12 +3045,15 @@
           const card = document.createElement("article");
           card.className = "panel-item";
           card.setAttribute("aria-label", h.accessibleName);
+          const liveAction = h.liveUrl
+            ? `<div class="panel-actions"><a href="${h.liveUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">${h.liveLabel || "Live demo"}</a></div>`
+            : "";
           card.innerHTML = `
             <span class="result-badge result-badge--${h.badge}">${h.badgeLabel}</span>
             <h3 class="panel-item-title">${h.name}</h3>
-            <p class="panel-item-desc"><strong>What I built:</strong> ${h.built}</p>
             <p class="panel-item-desc"><strong>Result:</strong> ${h.result}</p>
             <p class="panel-item-desc"><strong>Certificate status:</strong> ${h.certificate}</p>
+            ${liveAction}
           `;
           box.appendChild(card);
         });
@@ -2543,6 +3087,7 @@
        ========================================================================== */
     function renderNormalView() {
       const { owner, doorFullLine, projects, skills, bedroomLearningLine, learning, hackathons, contact } = ROOM_CONFIG;
+      syncPrintResumeSheet();
       els.normalView.innerHTML = `
         <section class="nv-card" aria-labelledby="nv-hall-title">
           <p class="panel-kicker" style="padding-right:0;">HALL · ABOUT</p>
@@ -2551,9 +3096,19 @@
           <p style="margin:0 0 8px; font-weight:600; color:var(--text-light);">${owner.role}</p>
           <p style="margin:0 0 18px; color:var(--text-muted); max-width:65ch;">${owner.college}. ${owner.about}</p>
           <div class="panel-actions">
-            <button type="button" id="nv-resume-btn" class="btn-primary">Download Resume</button>
+            <a href="#nv-resume-section" class="btn-primary">Jump to Resume</a>
             <a href="${owner.githubUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">GitHub (@${owner.githubHandle})</a>
+            <a href="${owner.linkedinUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">LinkedIn</a>
           </div>
+        </section>
+
+        <section id="nv-resume-section" class="nv-card" aria-labelledby="nv-resume-title">
+          <p class="panel-kicker" style="padding-right:0;">HALL · RESUME</p>
+          <h2 id="nv-resume-title" class="nv-section-title">Resume</h2>
+          <div style="margin-bottom:14px;">
+            ${buildResumeActionsHtml()}
+          </div>
+          ${buildResumeHtml()}
         </section>
 
         <section aria-labelledby="nv-study-title">
@@ -2561,6 +3116,9 @@
           <h2 id="nv-study-title" class="nv-section-title" style="color:${appState.isNightMode ? "#f8fafc" : "#0f172a"};">Projects</h2>
           <div class="nv-grid">
             ${projects.map((p) => {
+              const techHtml = p.tech.length
+                ? `<ul class="chip-list">${p.tech.map((t) => `<li class="tech-chip">${t}</li>`).join("")}</ul>`
+                : "";
               const codeBtn = p.repoUrl
                 ? `<a href="${p.repoUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary">Code</a>`
                 : "";
@@ -2569,9 +3127,10 @@
                 : "";
               return `
                 <article class="panel-item" style="background:var(--hud-surface);">
+                  <p class="panel-item-sub">${p.role}</p>
                   <h3 class="panel-item-title">${p.title}</h3>
                   <p class="panel-item-desc">${p.description}</p>
-                  <ul class="chip-list">${p.tech.map((t) => `<li class="tech-chip">${t}</li>`).join("")}</ul>
+                  ${techHtml}
                   <div class="panel-actions" style="margin-top:auto; padding-top:6px;">
                     ${codeBtn}
                     ${liveBtn}
@@ -2629,21 +3188,26 @@
           <p class="panel-kicker" style="padding-right:0; color:${appState.isNightMode ? "#5eead4" : "#6d28d9"};">TERRACE · CONSTELLATION</p>
           <h2 id="nv-terrace-title" class="nv-section-title" style="color:${appState.isNightMode ? "#f8fafc" : "#0f172a"};">Hackathons</h2>
           <div class="nv-grid">
-            ${hackathons.map((h) => `
-              <article class="panel-item" style="background:var(--hud-surface);" aria-label="${h.accessibleName}">
-                <span class="result-badge result-badge--${h.badge}">${h.badgeLabel}</span>
-                <h3 class="panel-item-title">${h.name}</h3>
-                <p class="panel-item-desc"><strong>What I built:</strong> ${h.built}</p>
-                <p class="panel-item-desc"><strong>Result:</strong> ${h.result}</p>
-                <p class="panel-item-desc"><strong>Certificate status:</strong> ${h.certificate}</p>
-              </article>
-            `).join("")}
+            ${hackathons.map((h) => {
+              const liveAction = h.liveUrl
+                ? `<div class="panel-actions" style="margin-top:auto; padding-top:6px;"><a href="${h.liveUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">${h.liveLabel || "Live demo"}</a></div>`
+                : "";
+              return `
+                <article class="panel-item" style="background:var(--hud-surface);" aria-label="${h.accessibleName}">
+                  <span class="result-badge result-badge--${h.badge}">${h.badgeLabel}</span>
+                  <h3 class="panel-item-title">${h.name}</h3>
+                  <p class="panel-item-desc"><strong>Result:</strong> ${h.result}</p>
+                  <p class="panel-item-desc"><strong>Certificate status:</strong> ${h.certificate}</p>
+                  ${liveAction}
+                </article>
+              `;
+            }).join("")}
           </div>
         </section>
       `;
 
-      const resBtn = document.getElementById("nv-resume-btn");
-      if (resBtn) resBtn.addEventListener("click", handleResumeDownload);
+      const printBtn = els.normalView.querySelector('[data-print-resume="true"]');
+      if (printBtn) printBtn.addEventListener("click", printResume);
     }
 
     function isWebGLAvailable() {
@@ -7052,6 +7616,8 @@
     });
 
     (async function boot() {
+      syncPrintResumeSheet();
+      window.addEventListener("beforeprint", syncPrintResumeSheet);
       const minLoad = new Promise((r) => setTimeout(r, 420));
       if (shouldFallbackToNormalView()) {
         activateNormalView();
