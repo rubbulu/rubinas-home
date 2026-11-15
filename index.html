@@ -79,8 +79,14 @@
       height: 100dvh;
     }
 
-    [hidden] {
+    [hidden],
+    .panel-backdrop[hidden],
+    .cert-lightbox-backdrop[hidden],
+    .warm-fade-veil[hidden],
+    .loader-overlay[hidden],
+    .dock-more-menu[hidden] {
       display: none !important;
+      pointer-events: none !important;
     }
 
     a, button {
@@ -267,6 +273,10 @@
     }
 
     .now-playing-tag {
+      position: fixed;
+      top: 56px;
+      right: 14px;
+      z-index: 205;
       pointer-events: auto;
       padding: 4px 12px;
       border-radius: 999px;
@@ -276,6 +286,18 @@
       font-family: var(--font-mono);
       font-size: 0.74rem;
       box-shadow: 0 6px 18px rgba(2, 6, 23, 0.35);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     /* ==========================================================================
@@ -376,7 +398,7 @@
       inset: 0;
       z-index: 2;
       pointer-events: none;
-      background: radial-gradient(circle at 50% 48%, rgba(0, 0, 0, 0) 56%, rgba(6, 8, 22, 0.26) 100%);
+      background: radial-gradient(circle at 50% 48%, rgba(0, 0, 0, 0) 64%, rgba(6, 8, 22, 0.08) 100%);
     }
 
     .house-stage {
@@ -396,6 +418,7 @@
       position: fixed;
       inset: 0;
       z-index: 150;
+      display: none;
       pointer-events: none;
       background: radial-gradient(circle at 50% 48%, #fffdf5 0%, #fef3c7 55%, #fff7ed 100%);
       opacity: 0;
@@ -522,21 +545,36 @@
       box-shadow: 0 10px 24px rgba(2, 6, 23, 0.45);
     }
 
+    @keyframes speechBubblePop {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -112%) scale(0.92);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, -125%) scale(1);
+      }
+    }
+
     .speech-bubble {
       position: fixed;
       z-index: 210;
       pointer-events: none;
+      max-width: min(320px, calc(100vw - 24px));
       padding: 9px 14px;
       border-radius: 12px;
       background: #ffffff;
       color: #0f172a;
       border: 2px solid var(--accent-violet);
       font-family: var(--font-display);
-      font-size: 0.94rem;
+      font-size: 0.92rem;
       font-weight: 700;
-      white-space: nowrap;
+      line-height: 1.32;
+      text-align: center;
+      white-space: normal;
       transform: translate(-50%, -125%);
       box-shadow: 0 12px 28px rgba(15, 23, 42, 0.25);
+      animation: speechBubblePop 0.2s var(--ease-out);
     }
 
     /* ==========================================================================
@@ -1752,6 +1790,238 @@
     }
 
     /* ==========================================================================
+       CERTIFICATES GALLERY GRID & ACCESSIBLE LIGHTBOX
+       ========================================================================== */
+    .cert-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+    }
+
+    .cert-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(18, 26, 56, 0.88);
+      border: 1px solid var(--hud-border);
+      color: var(--text-light);
+      text-align: left;
+      width: 100%;
+      transition: border-color 0.16s var(--ease-out), transform 0.16s var(--ease-out), box-shadow 0.16s var(--ease-out);
+    }
+
+    .cert-card:hover,
+    .cert-card:focus-visible {
+      border-color: var(--accent-teal);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 26px rgba(2, 6, 23, 0.45);
+    }
+
+    .cert-thumb-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(9, 13, 30, 0.94);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .cert-thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .cert-thumb-img[hidden] {
+      display: none;
+    }
+
+    .cert-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 12px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(76, 29, 149, 0.68), rgba(15, 118, 110, 0.56));
+      color: #f8fafc;
+    }
+
+    .cert-placeholder[hidden] {
+      display: none;
+    }
+
+    .cert-placeholder__icon {
+      color: #fde68a;
+      flex-shrink: 0;
+    }
+
+    .cert-placeholder__title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.25;
+    }
+
+    .cert-placeholder__event {
+      margin: 0;
+      font-size: 0.78rem;
+      color: #e2e8f0;
+      line-height: 1.3;
+    }
+
+    .cert-placeholder__path {
+      margin: 2px 0 0;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(10, 14, 34, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      font-family: var(--font-mono);
+      font-size: 0.69rem;
+      color: #99f6e4;
+      word-break: break-all;
+    }
+
+    .cert-card__body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cert-card__title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-light);
+      line-height: 1.25;
+    }
+
+    .cert-card__result {
+      margin: 0;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+    }
+
+    .cert-card__cta {
+      margin: 2px 0 0;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--accent-teal);
+    }
+
+    .cert-lightbox-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 460;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(3, 6, 18, 0.88);
+    }
+
+    .cert-lightbox-backdrop[hidden] {
+      display: none !important;
+      pointer-events: none !important;
+    }
+
+    .cert-lightbox {
+      position: relative;
+      width: min(880px, 100%);
+      max-height: 92dvh;
+      overflow-y: auto;
+      padding: 22px 24px 24px;
+      border-radius: 16px;
+      background: rgba(11, 15, 34, 0.98);
+      border: 1px solid rgba(45, 212, 191, 0.52);
+      box-shadow: 0 30px 80px rgba(2, 6, 23, 0.86);
+      color: var(--text-light);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      animation: panelPop 0.2s var(--ease-out);
+    }
+
+    .cert-lightbox__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .cert-lightbox__stage {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(8, 12, 28, 0.96);
+      border: 1px solid var(--hud-border);
+    }
+
+    .cert-lightbox__stage .cert-thumb-wrap {
+      aspect-ratio: 16 / 10;
+      max-height: 60dvh;
+      border: 0;
+      border-radius: 0;
+    }
+
+    .cert-lightbox__stage .cert-thumb-img {
+      object-fit: contain;
+      background: #070b1a;
+    }
+
+    .cert-lightbox__stage .cert-placeholder__title {
+      font-size: 1.28rem;
+    }
+
+    .cert-lightbox__stage .cert-placeholder__event {
+      font-size: 0.95rem;
+    }
+
+    .cert-lightbox__footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .cert-lightbox__meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .cert-lightbox__meta-title {
+      margin: 0;
+      font-weight: 700;
+      color: var(--text-light);
+      font-size: 0.96rem;
+    }
+
+    .cert-lightbox__meta-sub {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.86rem;
+    }
+
+    .cert-lightbox__nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ==========================================================================
        CLEAN SCROLLING HTML NORMAL VIEW / FALLBACK
        ========================================================================== */
     .normal-view {
@@ -1830,6 +2100,11 @@
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+      }
+
+      .speech-bubble {
+        animation: none !important;
+        transition: none !important;
       }
     }
 
@@ -1979,6 +2254,8 @@
       <button id="whole-house-btn" type="button" class="hud-btn" aria-pressed="false">Whole house</button>
       <button id="go-outside-btn" type="button" class="hud-btn">Go outside</button>
       <button id="day-night-btn" type="button" class="hud-btn">Day / Night</button>
+      <button id="music-toggle-btn" type="button" class="hud-btn" aria-pressed="false" aria-label="Music: off">Music</button>
+      <button id="voice-toggle-btn" type="button" class="hud-btn" aria-pressed="false" aria-label="Voice: off">Voice</button>
       <button id="toggle-view-btn" type="button" class="hud-btn">Skip to normal view</button>
       <a id="top-github-link" href="https://github.com/rubbulu" target="_blank" rel="noopener noreferrer" class="hud-btn hide-sm" aria-label="Visit Rubina Sultana on GitHub">GitHub</a>
     </div>
@@ -1997,7 +2274,7 @@
     </div>
     <div id="house-stage" class="house-stage" aria-label="Interactive 3D connected home portfolio. Knock on the front door to enter and walk between Hall, Study, Kitchen, Bedroom, and Terrace."></div>
     <div id="stage-vignette" class="stage-vignette" aria-hidden="true"></div>
-    <div id="warm-fade-veil" class="warm-fade-veil" aria-hidden="true"></div>
+    <div id="warm-fade-veil" class="warm-fade-veil" aria-hidden="true" hidden></div>
 
     <!-- Compact Top-Left Room Title Chip (Auto-fades after 4s, reappears on hover or room change) -->
     <aside id="room-banner" class="room-banner" aria-live="polite" tabindex="0" hidden>
@@ -2012,8 +2289,12 @@
       <p class="knock-sub">Click the door, press Enter, or tap Knock</p>
     </div>
 
+    <button id="now-playing-tag" type="button" class="now-playing-tag" role="status" aria-live="polite">
+      Tap to enable sound
+    </button>
     <div id="hover-tooltip" class="hover-tooltip" hidden></div>
     <div id="speech-bubble" class="speech-bubble" role="status" aria-live="polite" hidden>Come in!</div>
+    <div id="speech-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
     <nav id="terrace-star-a11y" class="terrace-star-a11y" aria-label="Terrace constellation stars" hidden></nav>
 
     <!-- Laptop Focus Exit Trigger & Projected 3D Screen VS Code Editor -->
@@ -2062,14 +2343,9 @@
 
     <!-- Compact Single-Row Bottom Navigation Dock -->
     <div id="bottom-dock-wrap" class="bottom-dock-wrap" hidden>
-      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center;">
-        <div id="now-playing-tag" class="now-playing-tag" role="status" aria-live="polite" hidden>
-          Now Playing · Bedroom Vinyl Loop
-        </div>
-        <button id="dock-toggle-btn" type="button" class="dock-toggle-btn" aria-expanded="true" aria-controls="bottom-dock">
-          <span id="dock-toggle-label">Hide Controls</span>
-        </button>
-      </div>
+      <button id="dock-toggle-btn" type="button" class="dock-toggle-btn" aria-expanded="true" aria-controls="bottom-dock">
+        <span id="dock-toggle-label">Hide Controls</span>
+      </button>
 
       <nav id="bottom-dock" class="bottom-dock" aria-label="Room navigation">
         <div class="dock-nav-row">
@@ -2088,6 +2364,7 @@
           <span class="dock-divider" aria-hidden="true"></span>
 
           <button id="room-action-btn" type="button" class="hud-btn hud-btn--teal">Open Room Panel</button>
+          <button id="certificates-btn" type="button" class="hud-btn">Certificates</button>
 
           <div class="dock-more-wrap">
             <button id="dock-more-btn" type="button" class="hud-btn" aria-haspopup="true" aria-expanded="false" aria-controls="dock-more-menu">
@@ -2120,6 +2397,29 @@
     </div>
   </div>
 
+  <!-- Accessible Certificates Lightbox Dialog -->
+  <div id="cert-lightbox-backdrop" class="cert-lightbox-backdrop" hidden>
+    <div id="cert-lightbox" class="cert-lightbox" role="dialog" aria-modal="true" aria-labelledby="cert-lb-title" aria-describedby="cert-lb-meta">
+      <div class="cert-lightbox__header">
+        <div>
+          <p id="cert-lb-kicker" class="panel-kicker" style="padding-right:0; margin-bottom:4px;"></p>
+          <h2 id="cert-lb-title" class="panel-title" style="margin-bottom:0;"></h2>
+        </div>
+        <button id="cert-lb-close-btn" type="button" class="panel-close-btn" aria-label="Close certificate lightbox">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div id="cert-lb-stage" class="cert-lightbox__stage"></div>
+      <div class="cert-lightbox__footer">
+        <div id="cert-lb-meta" class="cert-lightbox__meta"></div>
+        <div class="cert-lightbox__nav">
+          <button id="cert-lb-prev-btn" type="button" class="btn-secondary" aria-label="Previous certificate">&#8592; Previous</button>
+          <button id="cert-lb-next-btn" type="button" class="btn-secondary" aria-label="Next certificate">Next &#8594;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Dedicated Single-Page Print Resume Container -->
   <div id="print-resume-root" class="print-resume-root" aria-hidden="true"></div>
 
@@ -2133,6 +2433,7 @@
        - skills: Kitchen spice jars
        - bedroomLearningLine & learning: Bedroom whiteboard items
        - hackathons: Terrace constellation stars (also reused in Resume)
+       - CERTIFICATES: Hall side-wall frames, Certificates gallery modal, lightbox & Normal View grid
        ========================================================================== */
     const ROOM_CONFIG = {
       /* Edit personal info & external profile links here */
@@ -2192,7 +2493,7 @@
           id: "hall",
           name: "Hall",
           bannerTitle: "Hall: About",
-          bannerSub: "Click the wall frame for About & Resume, or click the floor to walk.",
+          bannerSub: "Click the wall frame for About & Resume, back-wall certificates, or floor to walk.",
           actionLabel: "Open About & Resume",
           overviewPos: [-5.1, 0, 5.1]
         },
@@ -2200,7 +2501,7 @@
           id: "study",
           name: "Study",
           bannerTitle: "Study: Projects",
-          bannerSub: "Bookshelf & Laptop: Projects · Lamp: Day/Night.",
+          bannerSub: "Bookshelf & Laptop: Projects · Desk Lamp: Toggle Study light.",
           actionLabel: "Open Projects",
           overviewPos: [-5.1, 0, -5.1]
         },
@@ -2514,7 +2815,49 @@
       contact: {
         heading: "Let's talk over chai",
         description: "Have an internship opportunity or project idea? Let's connect over chai via Email, GitHub, or LinkedIn."
-      }
+      },
+
+      /* Edit Hall Certificates Gallery here (shown on Hall side-wall frames, Certificates button, and Normal View).
+         Place certificate image files under public/certificates/ or update each image path below.
+         Each entry requires: title, event, result, image (and optional alt, accent). */
+      CERTIFICATES: [
+        {
+          id: "sih-cert",
+          title: "Recognition Certificate",
+          event: "Smart India Hackathon (internal round)",
+          result: "Recognition certificate",
+          image: "/certificates/sih.jpg",
+          alt: "Smart India Hackathon (internal round) recognition certificate",
+          accent: "#2dd4bf"
+        },
+        {
+          id: "samartha-cert",
+          title: "Participation Certificate",
+          event: "Samartha 24-hour Hackathon",
+          result: "Participation certificate",
+          image: "/certificates/samartha.jpg",
+          alt: "Samartha 24-hour Hackathon participation certificate",
+          accent: "#a78bfa"
+        },
+        {
+          id: "hackap-cert",
+          title: "Top Performing Certificate",
+          event: "Agritech Hackathon (HackAP)",
+          result: "Top performing certificate, 2nd position",
+          image: "/certificates/hackap.jpg",
+          alt: "Agritech Hackathon top performing certificate",
+          accent: "#fbbf24"
+        },
+        {
+          id: "productverse-cert",
+          title: "Participation Certificate",
+          event: "Product Verse Agentic AI Hackathon",
+          result: "Participation certificate",
+          image: "/certificates/productverse.jpg",
+          alt: "Product Verse Agentic AI Hackathon participation certificate",
+          accent: "#38bdf8"
+        }
+      ]
     };
 
     /* ==========================================================================
@@ -2543,6 +2886,7 @@
       knockBtn: document.getElementById("knock-btn"),
       hoverTooltip: document.getElementById("hover-tooltip"),
       speechBubble: document.getElementById("speech-bubble"),
+      speechLive: document.getElementById("speech-live"),
       terraceStarA11y: document.getElementById("terrace-star-a11y"),
       leaveLaptopBtn: document.getElementById("leave-laptop-btn"),
       laptopScreenOverlay: document.getElementById("laptop-screen-overlay"),
@@ -2563,8 +2907,11 @@
       roomTabs: document.getElementById("room-tabs"),
       dockMoreBtn: document.getElementById("dock-more-btn"),
       dockMoreMenu: document.getElementById("dock-more-menu"),
+      musicToggleBtn: document.getElementById("music-toggle-btn"),
+      voiceToggleBtn: document.getElementById("voice-toggle-btn"),
       waveBtn: document.getElementById("wave-btn"),
       roomActionBtn: document.getElementById("room-action-btn"),
+      certificatesBtn: document.getElementById("certificates-btn"),
 
       normalView: document.getElementById("normal-view"),
       panelBackdrop: document.getElementById("panel-backdrop"),
@@ -2573,6 +2920,15 @@
       panelKicker: document.getElementById("panel-kicker"),
       panelTitle: document.getElementById("panel-title"),
       panelBody: document.getElementById("panel-body"),
+      certLightboxBackdrop: document.getElementById("cert-lightbox-backdrop"),
+      certLightbox: document.getElementById("cert-lightbox"),
+      certLbKicker: document.getElementById("cert-lb-kicker"),
+      certLbTitle: document.getElementById("cert-lb-title"),
+      certLbCloseBtn: document.getElementById("cert-lb-close-btn"),
+      certLbStage: document.getElementById("cert-lb-stage"),
+      certLbMeta: document.getElementById("cert-lb-meta"),
+      certLbPrevBtn: document.getElementById("cert-lb-prev-btn"),
+      certLbNextBtn: document.getElementById("cert-lb-next-btn"),
       printResumeRoot: document.getElementById("print-resume-root")
     };
 
@@ -2584,6 +2940,9 @@
       activeProjectIdx: 0,
       isNightMode: false,
       musicOn: false,
+      musicPausedByVisibility: false,
+      soundUnlocked: false,
+      voiceOn: false,
       lastFocusedEl: null,
       threeCleanup: null,
       sceneApi: null
@@ -2592,88 +2951,426 @@
     els.topGithubLink.href = ROOM_CONFIG.owner.githubUrl;
 
     /* ==========================================================================
-       WEB AUDIO HELPERS (Soft Optional Knock + Vinyl Synth OFF by default)
+       WEB AUDIO & SPEECH HELPERS (First-Tap Unlock, Lo-Fi Piano/Pad, SpeechSynthesis)
        ========================================================================== */
+    const ROOM_SPEECH_LINES = {
+      hall: "Welcome to my home! I'm Rubina. Look around and click anything.",
+      study: "This is where I build my projects. Open my laptop to see them.",
+      kitchen: "Skills are cooking here. Pick a jar or have a cup of chai with me.",
+      bedroom: "I'm learning MongoDB and DSA in Java. Try the whiteboard.",
+      terrace: "My hackathon journey is up here. Every star is an event."
+    };
+    const AVATAR_GREETINGS = ["Hi!", "Hello!", "Namaste!", "Salaam!", "Namaskaram!"];
+
     let audioCtx = null;
     let musicInterval = null;
     let masterGain = null;
+    let lofiFilter = null;
+    let musicFadeTimer = 0;
+
+    function setVeilOpacity(alpha) {
+      const clamped = Math.max(0, Math.min(1, Number(alpha) || 0));
+      if (clamped <= 0.002) {
+        els.warmFadeVeil.style.opacity = "0";
+        els.warmFadeVeil.style.display = "none";
+        els.warmFadeVeil.style.pointerEvents = "none";
+        els.warmFadeVeil.hidden = true;
+      } else {
+        els.warmFadeVeil.hidden = false;
+        els.warmFadeVeil.style.display = "block";
+        els.warmFadeVeil.style.pointerEvents = "none";
+        els.warmFadeVeil.style.opacity = clamped.toFixed(3);
+      }
+    }
+    setVeilOpacity(0);
+
+    function updateVoiceUI() {
+      if (!els.voiceToggleBtn) return;
+      els.voiceToggleBtn.textContent = "Voice";
+      els.voiceToggleBtn.classList.toggle("is-active", appState.voiceOn);
+      els.voiceToggleBtn.setAttribute("aria-pressed", String(appState.voiceOn));
+      els.voiceToggleBtn.setAttribute("aria-label", appState.voiceOn ? "Voice: on" : "Voice: off");
+      els.voiceToggleBtn.title = appState.voiceOn ? "Voice: on" : "Voice: off";
+    }
+
+    function cancelSpeech() {
+      try {
+        if ("speechSynthesis" in window && window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+      } catch (err) {
+        console.error("Speech synthesis cancel failed:", err);
+      }
+    }
+
+    function getEnglishVoice() {
+      try {
+        if (!("speechSynthesis" in window) || !window.speechSynthesis) return null;
+        const voices = window.speechSynthesis.getVoices() || [];
+        return (
+          voices.find((v) => /^en[-_]/i.test(v.lang) && /natural|google|samantha|victoria|karen|serena|female/i.test(v.name)) ||
+          voices.find((v) => /^en[-_]/i.test(v.lang)) ||
+          voices.find((v) => /^en/i.test(v.lang)) ||
+          null
+        );
+      } catch (err) {
+        console.error("Failed to query speech voices:", err);
+        return null;
+      }
+    }
+
+    function speakBubbleText(text) {
+      try {
+        if (!appState.voiceOn || !text) return;
+        if (!("speechSynthesis" in window) || !window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance(text);
+        const enVoice = getEnglishVoice();
+        if (enVoice) utt.voice = enVoice;
+        utt.lang = enVoice ? enVoice.lang : "en-US";
+        utt.rate = 0.95;
+        utt.pitch = 1.04;
+        window.speechSynthesis.speak(utt);
+      } catch (err) {
+        console.error("Speech synthesis speak failed:", err);
+      }
+    }
+
+    function announceSpeechLive(text) {
+      try {
+        if (!els.speechLive || !text) return;
+        els.speechLive.textContent = "";
+        requestAnimationFrame(() => {
+          if (els.speechLive) els.speechLive.textContent = text;
+        });
+      } catch (err) {
+        console.error("Live region announcement failed:", err);
+      }
+    }
+
+    function toggleVoice() {
+      try {
+        appState.voiceOn = !appState.voiceOn;
+        updateVoiceUI();
+        if (!appState.voiceOn) {
+          cancelSpeech();
+        } else if (!els.speechBubble.hidden && els.speechBubble.textContent) {
+          speakBubbleText(els.speechBubble.textContent);
+        }
+      } catch (err) {
+        console.error("Voice toggle failed:", err);
+      }
+    }
+
+    function updateMusicUI() {
+      if (els.musicToggleBtn) {
+        els.musicToggleBtn.textContent = "Music";
+        els.musicToggleBtn.classList.toggle("is-active", appState.musicOn);
+        els.musicToggleBtn.setAttribute("aria-pressed", String(appState.musicOn));
+        els.musicToggleBtn.setAttribute("aria-label", appState.musicOn ? "Music: on" : "Music: off");
+        els.musicToggleBtn.title = appState.musicOn ? "Music: on" : "Music: off";
+      }
+      if (!appState.soundUnlocked) {
+        els.nowPlayingTag.textContent = "Tap to enable sound";
+        els.nowPlayingTag.hidden = false;
+      } else if (appState.musicOn && !appState.musicPausedByVisibility) {
+        els.nowPlayingTag.textContent = "Now Playing · Bedroom Vinyl Loop";
+        els.nowPlayingTag.hidden = false;
+      } else {
+        els.nowPlayingTag.hidden = true;
+      }
+    }
+
+    function ensureAudioContext() {
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        if (!audioCtx) audioCtx = new AC();
+        if (audioCtx.state === "running") {
+          if (!appState.soundUnlocked) {
+            appState.soundUnlocked = true;
+            updateMusicUI();
+          }
+        } else if (audioCtx.state === "suspended") {
+          audioCtx.resume().then(() => {
+            if (audioCtx && audioCtx.state === "running") {
+              appState.soundUnlocked = true;
+              if (appState.musicOn && !appState.musicPausedByVisibility && !musicInterval) {
+                beginLofiScheduler(audioCtx);
+              }
+              updateMusicUI();
+            }
+          }).catch((err) => {
+            console.error("AudioContext resume failed:", err);
+          });
+        }
+        return audioCtx;
+      } catch (err) {
+        console.error("AudioContext initialization failed:", err);
+        return null;
+      }
+    }
+
+    function unlockAudioOnFirstGesture() {
+      try {
+        if (appState.soundUnlocked && audioCtx && audioCtx.state === "running") return;
+        ensureAudioContext();
+      } catch (err) {
+        console.error("First-gesture audio unlock failed:", err);
+      }
+    }
+    document.addEventListener("pointerdown", unlockAudioOnFirstGesture, { passive: true });
+    document.addEventListener("keydown", unlockAudioOnFirstGesture, { passive: true });
 
     function playKnockSound() {
       try {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (!AC) return;
-        if (!audioCtx) audioCtx = new AC();
-        if (audioCtx.state === "suspended") audioCtx.resume();
+        const ctx = ensureAudioContext();
+        if (!ctx) return;
         [0, 0.2, 0.4].forEach((delay) => {
-          const t = audioCtx.currentTime + delay;
-          const osc = audioCtx.createOscillator();
-          const g = audioCtx.createGain();
+          const t = ctx.currentTime + delay;
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
           osc.type = "sine";
           osc.frequency.setValueAtTime(160, t);
           osc.frequency.exponentialRampToValueAtTime(65, t + 0.08);
           g.gain.setValueAtTime(0.12, t);
           g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
           osc.connect(g);
-          g.connect(audioCtx.destination);
+          g.connect(ctx.destination);
           osc.start(t);
           osc.stop(t + 0.1);
         });
-      } catch {
-        /* Silently ignore if browser blocks audio */
+      } catch (err) {
+        console.error("Knock sound error:", err);
+      }
+    }
+
+    function fadeOutMusicNodes() {
+      if (musicFadeTimer) {
+        clearTimeout(musicFadeTimer);
+        musicFadeTimer = 0;
+      }
+      if (musicInterval) {
+        clearInterval(musicInterval);
+        musicInterval = null;
+      }
+      if (masterGain && audioCtx) {
+        try {
+          const now = audioCtx.currentTime;
+          masterGain.gain.cancelScheduledValues(now);
+          masterGain.gain.setValueAtTime(Math.max(0.0001, masterGain.gain.value), now);
+          masterGain.gain.linearRampToValueAtTime(0.0001, now + 0.75);
+        } catch (err) {
+          console.error("Music fade-out failed:", err);
+        }
+      }
+    }
+
+    function stopVinylMusic() {
+      try {
+        appState.musicOn = false;
+        appState.musicPausedByVisibility = false;
+        fadeOutMusicNodes();
+        updateMusicUI();
+      } catch (err) {
+        console.error("stopVinylMusic failed:", err);
+      }
+    }
+
+    function pauseMusicForVisibility() {
+      try {
+        if (!appState.musicOn || appState.musicPausedByVisibility) return;
+        appState.musicPausedByVisibility = true;
+        fadeOutMusicNodes();
+        if (audioCtx && audioCtx.state === "running") {
+          musicFadeTimer = window.setTimeout(() => {
+            if (document.hidden && audioCtx && audioCtx.state === "running") {
+              audioCtx.suspend().catch(() => {});
+            }
+          }, 760);
+        }
+        updateMusicUI();
+      } catch (err) {
+        console.error("pauseMusicForVisibility failed:", err);
+      }
+    }
+
+    function resumeMusicFromVisibility() {
+      try {
+        if (!appState.musicOn || !appState.musicPausedByVisibility) return;
+        appState.musicPausedByVisibility = false;
+        const ctx = ensureAudioContext();
+        if (ctx && ctx.state === "running") {
+          beginLofiScheduler(ctx);
+        }
+        updateMusicUI();
+      } catch (err) {
+        console.error("resumeMusicFromVisibility failed:", err);
+      }
+    }
+
+    function beginLofiScheduler(ctx) {
+      if (musicFadeTimer) {
+        clearTimeout(musicFadeTimer);
+        musicFadeTimer = 0;
+      }
+      if (musicInterval) {
+        clearInterval(musicInterval);
+        musicInterval = null;
+      }
+      if (!lofiFilter) {
+        lofiFilter = ctx.createBiquadFilter();
+        lofiFilter.type = "lowpass";
+        lofiFilter.frequency.setValueAtTime(1380, ctx.currentTime);
+        lofiFilter.Q.setValueAtTime(0.65, ctx.currentTime);
+      }
+      if (!masterGain) {
+        masterGain = ctx.createGain();
+        lofiFilter.connect(masterGain);
+        masterGain.connect(ctx.destination);
+      }
+      const now = ctx.currentTime;
+      masterGain.gain.cancelScheduledValues(now);
+      masterGain.gain.setValueAtTime(0.0001, now);
+      masterGain.gain.linearRampToValueAtTime(0.12, now + 1.25);
+
+      /* Slow C Major / A Minor Pentatonic Felt-Piano Pattern + Quiet Sustained Pad */
+      const pads = [
+        [174.61, 220.00, 261.63, 329.63], // Fmaj7
+        [196.00, 246.94, 293.66, 329.63], // G6
+        [220.00, 261.63, 329.63, 392.00], // Am7
+        [130.81, 196.00, 246.94, 329.63]  // Cmaj7
+      ];
+      const melodySteps = [
+        523.25, null, 440.00, null, 392.00, 329.63, null, 293.66,
+        329.63, null, 392.00, null, 440.00, null, 392.00, 329.63,
+        293.66, null, 329.63, null, 440.00, 523.25, null, 440.00,
+        392.00, null, 329.63, null, 293.66, null, 261.63, null
+      ];
+
+      let step = 0;
+      const playStep = () => {
+        if (!appState.musicOn || appState.musicPausedByVisibility || !audioCtx || !lofiFilter || audioCtx.state !== "running") return;
+        const t = audioCtx.currentTime;
+
+        /* Quiet soft pad every 8 steps (~4.16s) */
+        if (step % 8 === 0) {
+          const padChord = pads[Math.floor(step / 8) % pads.length];
+          padChord.forEach((freq) => {
+            const pOsc = audioCtx.createOscillator();
+            const pGain = audioCtx.createGain();
+            pOsc.type = "sine";
+            pOsc.frequency.setValueAtTime(freq, t);
+            pGain.gain.setValueAtTime(0.0008, t);
+            pGain.gain.linearRampToValueAtTime(0.085, t + 0.85);
+            pGain.gain.exponentialRampToValueAtTime(0.0008, t + 4.05);
+            pOsc.connect(pGain);
+            pGain.connect(lofiFilter);
+            pOsc.start(t);
+            pOsc.stop(t + 4.15);
+          });
+        }
+
+        /* Soft piano-like pentatonic note */
+        const noteFreq = melodySteps[step % melodySteps.length];
+        if (noteFreq) {
+          const mOsc1 = audioCtx.createOscillator();
+          const mOsc2 = audioCtx.createOscillator();
+          const mGain = audioCtx.createGain();
+          mOsc1.type = "triangle";
+          mOsc1.frequency.setValueAtTime(noteFreq, t);
+          mOsc2.type = "sine";
+          mOsc2.frequency.setValueAtTime(noteFreq * 2, t);
+          const overtoneGain = audioCtx.createGain();
+          overtoneGain.gain.setValueAtTime(0.18, t);
+          mGain.gain.setValueAtTime(0.0008, t);
+          mGain.gain.linearRampToValueAtTime(0.26, t + 0.025);
+          mGain.gain.exponentialRampToValueAtTime(0.0008, t + 1.22);
+          mOsc1.connect(mGain);
+          mOsc2.connect(overtoneGain);
+          overtoneGain.connect(mGain);
+          mGain.connect(lofiFilter);
+          mOsc1.start(t);
+          mOsc2.start(t);
+          mOsc1.stop(t + 1.28);
+          mOsc2.stop(t + 1.28);
+        }
+
+        step = (step + 1) % melodySteps.length;
+      };
+
+      playStep();
+      musicInterval = setInterval(playStep, 520);
+    }
+
+    function startVinylMusic() {
+      try {
+        appState.musicOn = true;
+        appState.musicPausedByVisibility = false;
+        const ctx = ensureAudioContext();
+        if (!ctx) {
+          appState.musicOn = false;
+          updateMusicUI();
+          return;
+        }
+        if (ctx.state === "running") {
+          appState.soundUnlocked = true;
+          beginLofiScheduler(ctx);
+          updateMusicUI();
+        } else {
+          updateMusicUI();
+          ctx.resume().then(() => {
+            if (ctx.state === "running" && appState.musicOn && !appState.musicPausedByVisibility && !document.hidden) {
+              appState.soundUnlocked = true;
+              beginLofiScheduler(ctx);
+              updateMusicUI();
+            }
+          }).catch((err) => {
+            console.error("Failed to resume audio for vinyl music:", err);
+          });
+        }
+      } catch (err) {
+        console.error("startVinylMusic failed:", err);
+        appState.musicOn = false;
+        updateMusicUI();
       }
     }
 
     function toggleVinylMusic() {
-      appState.musicOn = !appState.musicOn;
-      els.nowPlayingTag.hidden = !appState.musicOn;
-      if (appState.musicOn) {
-        try {
-          const AC = window.AudioContext || window.webkitAudioContext;
-          if (!audioCtx) audioCtx = new AC();
-          if (audioCtx.state === "suspended") audioCtx.resume();
-          masterGain = audioCtx.createGain();
-          masterGain.gain.value = 0.04;
-          masterGain.connect(audioCtx.destination);
-
-          const chords = [
-            [261.63, 329.63, 392.0, 493.88],
-            [220.0, 261.63, 329.63, 392.0],
-            [174.61, 220.0, 261.63, 329.63],
-            [196.0, 246.94, 293.66, 392.0]
-          ];
-          let step = 0;
-          const playChord = () => {
-            if (!appState.musicOn || !audioCtx || !masterGain) return;
-            const now = audioCtx.currentTime;
-            const chord = chords[step % chords.length];
-            step++;
-            chord.forEach((f) => {
-              const osc = audioCtx.createOscillator();
-              const g = audioCtx.createGain();
-              osc.type = "triangle";
-              osc.frequency.setValueAtTime(f, now);
-              g.gain.setValueAtTime(0.001, now);
-              g.gain.linearRampToValueAtTime(0.24, now + 0.16);
-              g.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
-              osc.connect(g);
-              g.connect(masterGain);
-              osc.start(now);
-              osc.stop(now + 1.55);
-            });
-          };
-          playChord();
-          musicInterval = setInterval(playChord, 1650);
-        } catch {
-          /* Ignore audio errors */
+      try {
+        if (appState.musicOn) {
+          stopVinylMusic();
+        } else {
+          startVinylMusic();
         }
-      } else {
-        clearInterval(musicInterval);
-        musicInterval = null;
-        if (masterGain && audioCtx) {
-          masterGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-        }
+      } catch (err) {
+        console.error("toggleVinylMusic failed:", err);
       }
     }
+
+    els.nowPlayingTag.addEventListener("click", () => {
+      try {
+        ensureAudioContext();
+      } catch (err) {
+        console.error("Sound hint click failed:", err);
+      }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      try {
+        if (document.hidden) {
+          pauseMusicForVisibility();
+          cancelSpeech();
+        } else {
+          resumeMusicFromVisibility();
+        }
+      } catch (err) {
+        console.error("Visibility change handler failed:", err);
+      }
+    });
+
+    updateMusicUI();
+    updateVoiceUI();
 
     /* ==========================================================================
        RESUME DOWNLOAD & ACCESSIBLE GLASS PANELS
@@ -2831,14 +3528,21 @@
     }
 
     function openGlassPanel(kicker, title, renderFn, triggerEl, wide = false) {
-      appState.lastFocusedEl = triggerEl || document.activeElement;
-      els.glassPanel.classList.toggle("glass-panel--wide", wide);
-      els.panelKicker.textContent = kicker;
-      els.panelTitle.textContent = title;
-      els.panelBody.innerHTML = "";
-      renderFn(els.panelBody);
-      els.panelBackdrop.hidden = false;
-      els.panelCloseBtn.focus();
+      try {
+        appState.lastFocusedEl = triggerEl || document.activeElement;
+        els.glassPanel.classList.toggle("glass-panel--wide", wide);
+        els.panelKicker.textContent = kicker;
+        els.panelTitle.textContent = title;
+        els.panelBody.innerHTML = "";
+        renderFn(els.panelBody);
+        els.panelBackdrop.hidden = false;
+        els.panelCloseBtn.focus();
+        if (appState.mode === "3d" && appState.sceneApi && typeof appState.sceneApi.showSpeech === "function") {
+          appState.sceneApi.showSpeech("Let me show you!", 2.4);
+        }
+      } catch (err) {
+        console.error("openGlassPanel failed:", err);
+      }
     }
 
     function closeGlassPanel() {
@@ -3298,6 +4002,134 @@
       }, triggerEl);
     }
 
+    function createCertificateMediaEl(cert) {
+      const wrap = document.createElement("div");
+      wrap.className = "cert-thumb-wrap";
+
+      const img = document.createElement("img");
+      img.className = "cert-thumb-img";
+      img.loading = "lazy";
+      img.src = cert.image;
+      img.alt = cert.alt || `${cert.event} ${cert.result}`;
+
+      const placeholder = document.createElement("div");
+      placeholder.className = "cert-placeholder";
+      placeholder.hidden = true;
+      placeholder.innerHTML = `
+        <svg class="cert-placeholder__icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="14" rx="2"/>
+          <path d="M7 9h10M7 13h6"/>
+          <circle cx="17" cy="14" r="2.2"/>
+        </svg>
+        <p class="cert-placeholder__title">${cert.event}</p>
+        <p class="cert-placeholder__event">${cert.result}</p>
+        <span class="cert-placeholder__path">${cert.image}</span>
+      `;
+
+      const showFallback = () => {
+        img.hidden = true;
+        placeholder.hidden = false;
+      };
+      img.addEventListener("error", showFallback);
+      img.addEventListener("load", () => {
+        if (img.naturalWidth === 0) showFallback();
+      });
+      if (img.complete && img.naturalWidth === 0) {
+        showFallback();
+      }
+
+      wrap.append(img, placeholder);
+      return wrap;
+    }
+
+    function createCertificateCard(cert, idx) {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "cert-card";
+      card.setAttribute("aria-label", `View ${cert.event} (${cert.result}) in lightbox`);
+
+      const media = createCertificateMediaEl(cert);
+      const body = document.createElement("div");
+      body.className = "cert-card__body";
+      body.innerHTML = `
+        <p class="panel-item-sub">${cert.title}</p>
+        <h3 class="cert-card__title">${cert.event}</h3>
+        <p class="cert-card__result">${cert.result}</p>
+        <p class="cert-card__cta">Open large view &#8599;</p>
+      `;
+
+      card.append(media, body);
+      card.addEventListener("click", () => openCertificateLightbox(idx, card));
+      return card;
+    }
+
+    let activeCertLightboxIdx = 0;
+    let lastCertLightboxTrigger = null;
+
+    function renderCertificateLightbox() {
+      const certs = ROOM_CONFIG.CERTIFICATES || [];
+      if (certs.length === 0) return;
+      activeCertLightboxIdx = ((activeCertLightboxIdx % certs.length) + certs.length) % certs.length;
+      const cert = certs[activeCertLightboxIdx];
+      els.certLbKicker.textContent = `CERTIFICATE · ${activeCertLightboxIdx + 1} / ${certs.length} · ${cert.title.toUpperCase()}`;
+      els.certLbTitle.textContent = cert.event;
+      els.certLbStage.innerHTML = "";
+      els.certLbStage.appendChild(createCertificateMediaEl(cert));
+      els.certLbMeta.innerHTML = `
+        <p class="cert-lightbox__meta-title">${cert.title}</p>
+        <p class="cert-lightbox__meta-sub">${cert.result}</p>
+      `;
+    }
+
+    function openCertificateLightbox(idx = 0, triggerEl = null) {
+      const certs = ROOM_CONFIG.CERTIFICATES || [];
+      if (certs.length === 0) return;
+      lastCertLightboxTrigger = triggerEl || document.activeElement;
+      activeCertLightboxIdx = ((idx % certs.length) + certs.length) % certs.length;
+      renderCertificateLightbox();
+      els.certLightboxBackdrop.hidden = false;
+      els.certLbCloseBtn.focus();
+    }
+
+    function closeCertificateLightbox() {
+      if (els.certLightboxBackdrop.hidden) return;
+      els.certLightboxBackdrop.hidden = true;
+      els.certLbStage.innerHTML = "";
+      if (lastCertLightboxTrigger && typeof lastCertLightboxTrigger.focus === "function") {
+        lastCertLightboxTrigger.focus();
+      }
+      lastCertLightboxTrigger = null;
+    }
+
+    function stepCertificateLightbox(delta) {
+      const certs = ROOM_CONFIG.CERTIFICATES || [];
+      if (certs.length === 0) return;
+      activeCertLightboxIdx = (activeCertLightboxIdx + delta + certs.length) % certs.length;
+      renderCertificateLightbox();
+    }
+
+    function openCertificatesPanel(triggerEl = null) {
+      const certs = ROOM_CONFIG.CERTIFICATES || [];
+      openGlassPanel("HALL · CERTIFICATES GALLERY", "Certificates", (box) => {
+        const intro = document.createElement("p");
+        intro.style.margin = "0";
+        intro.textContent = "Select any certificate thumbnail to open the full lightbox viewer (use Left/Right arrows or Esc).";
+        const grid = document.createElement("div");
+        grid.className = "cert-grid";
+        certs.forEach((cert, idx) => {
+          grid.appendChild(createCertificateCard(cert, idx));
+        });
+        box.append(intro, grid);
+      }, triggerEl, true);
+    }
+
+    els.certLbCloseBtn.addEventListener("click", closeCertificateLightbox);
+    els.certLbPrevBtn.addEventListener("click", () => stepCertificateLightbox(-1));
+    els.certLbNextBtn.addEventListener("click", () => stepCertificateLightbox(1));
+    els.certLightboxBackdrop.addEventListener("click", (e) => {
+      if (e.target === els.certLightboxBackdrop) closeCertificateLightbox();
+    });
+
     els.panelCloseBtn.addEventListener("click", closeGlassPanel);
     els.panelBackdrop.addEventListener("click", (e) => {
       if (e.target === els.panelBackdrop) closeGlassPanel();
@@ -3307,7 +4139,7 @@
        NORMAL VIEW / ACCESSIBLE HTML FALLBACK
        ========================================================================== */
     function renderNormalView() {
-      const { owner, doorFullLine, projects, skills, bedroomLearningLine, learning, hackathons, contact } = ROOM_CONFIG;
+      const { owner, doorFullLine, projects, skills, bedroomLearningLine, learning, hackathons, contact, CERTIFICATES } = ROOM_CONFIG;
       syncPrintResumeSheet();
       els.normalView.innerHTML = `
         <section class="nv-card" aria-labelledby="nv-hall-title">
@@ -3318,6 +4150,7 @@
           <p style="margin:0 0 18px; color:var(--text-muted); max-width:65ch;">${owner.college}. ${owner.about}</p>
           <div class="panel-actions">
             <a href="#nv-resume-section" class="btn-primary">Jump to Resume</a>
+            <a href="#nv-certificates-section" class="btn-secondary">Certificates</a>
             <a href="${owner.githubUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">GitHub (@${owner.githubHandle})</a>
             <a href="${owner.linkedinUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">LinkedIn</a>
           </div>
@@ -3330,6 +4163,12 @@
             ${buildResumeActionsHtml()}
           </div>
           ${buildResumeHtml()}
+        </section>
+
+        <section id="nv-certificates-section" class="nv-card" aria-labelledby="nv-cert-title">
+          <p class="panel-kicker" style="padding-right:0;">HALL · CERTIFICATES GALLERY</p>
+          <h2 id="nv-cert-title" class="nv-section-title">Certificates</h2>
+          <div id="nv-cert-grid" class="cert-grid"></div>
         </section>
 
         <section aria-labelledby="nv-study-title">
@@ -3427,6 +4266,13 @@
         </section>
       `;
 
+      const nvCertGrid = els.normalView.querySelector("#nv-cert-grid");
+      if (nvCertGrid && Array.isArray(CERTIFICATES)) {
+        CERTIFICATES.forEach((cert, idx) => {
+          nvCertGrid.appendChild(createCertificateCard(cert, idx));
+        });
+      }
+
       const printBtn = els.normalView.querySelector('[data-print-resume="true"]');
       if (printBtn) printBtn.addEventListener("click", printResume);
     }
@@ -3458,7 +4304,9 @@
       els.wholeHouseBtn.hidden = true;
       els.goOutsideBtn.hidden = true;
       els.dayNightBtn.hidden = true;
-      els.warmFadeVeil.style.opacity = "0";
+      els.voiceToggleBtn.hidden = true;
+      cancelSpeech();
+      setVeilOpacity(0);
       els.terraceStarA11y.hidden = true;
       els.normalView.hidden = false;
       renderNormalView();
@@ -3495,6 +4343,7 @@
       els.wholeHouseBtn.hidden = false;
       els.goOutsideBtn.hidden = false;
       els.dayNightBtn.hidden = false;
+      els.voiceToggleBtn.hidden = false;
       els.toggleViewBtn.hidden = false;
       els.toggleViewBtn.textContent = "Skip to normal view";
 
@@ -3601,7 +4450,7 @@
 
       /* Camera stay-inside-room bounds (pulled back and leveled so entire back wall & posters stay inside viewport) */
       const ROOM_CAM_BOUNDS = [
-        { minX: -11.85, maxX: -4.45, minZ: -3.45, maxZ: 3.62, minY: 2.35, maxY: 4.25, centerX: -8.4, centerZ: -1.1, floorY: GROUND_Y, horiz: 6.2, pitch: 0.16, az: 0.28 },
+        { minX: -11.85, maxX: -4.45, minZ: -3.45, maxZ: 3.74, minY: 2.35, maxY: 4.25, centerX: -8.4, centerZ: -1.25, floorY: GROUND_Y, horiz: 6.2, pitch: 0.16, az: 0.04 },
         { minX: -3.95, maxX: 3.95, minZ: -3.45, maxZ: 3.62, minY: 2.35, maxY: 4.25, centerX: 0.0, centerZ: -1.1, floorY: GROUND_Y, horiz: 6.2, pitch: 0.16, az: 0.28 },
         { minX: 4.45, maxX: 12.25, minZ: -3.45, maxZ: 3.62, minY: 2.35, maxY: 4.25, centerX: 8.4, centerZ: -1.1, floorY: GROUND_Y, horiz: 6.2, pitch: 0.16, az: 0.28 },
         { minX: -1.9, maxX: 12.1, minZ: -3.45, maxZ: 3.35, minY: BEDROOM_Y + 2.25, maxY: TERRACE_Y - 0.45, centerX: 5.1, centerZ: -1.2, floorY: BEDROOM_Y, horiz: 6.5, pitch: 0.15, az: 0.16 },
@@ -3618,7 +4467,7 @@
       renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.08;
+      renderer.toneMappingExposure = 1.18;
       renderer.shadowMap.enabled = !isSoftwareGl;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -3645,7 +4494,7 @@
 
       function enableShadows(group, cast = true, receive = true) {
         group.traverse((obj) => {
-          if (obj.isMesh) {
+          if (obj.isMesh && !(obj.userData && obj.userData.isPriorityHitBox)) {
             obj.castShadow = cast;
             obj.receiveShadow = receive;
           }
@@ -3813,11 +4662,11 @@
         }
       }
 
-      /* Lighting (Capped shadow map <= 1024, 512 on mobile, + warm interior fill light) */
-      const hemiLight = new THREE.HemisphereLight(0xf3e8ff, 0x334155, 0.96);
+      /* Lighting (Capped shadow map <= 1024, 512 on mobile, + full-brightness Day fill light) */
+      const hemiLight = new THREE.HemisphereLight(0xf3e8ff, 0x334155, 1.15);
       scene.add(hemiLight);
 
-      const sunLight = new THREE.DirectionalLight(0xfff4e6, 1.42);
+      const sunLight = new THREE.DirectionalLight(0xfff4e6, 1.62);
       sunLight.position.set(16, 28, 18);
       sunLight.target.position.set(1, 3, -1);
       scene.add(sunLight.target);
@@ -3834,7 +4683,7 @@
       sunLight.shadow.normalBias = 0.02;
       scene.add(sunLight);
 
-      const roomFillLight = new THREE.PointLight(0xffe8cc, 3.6, 22, 1.15);
+      const roomFillLight = new THREE.PointLight(0xfff6eb, 4.4, 24, 1.12);
       roomFillLight.position.set(-8.4, 4.1, 0);
       roomFillLight.visible = false;
       scene.add(roomFillLight);
@@ -4393,7 +5242,8 @@
       const X_HALL_LEFT = -12.6;
       const X_HALL_INNER = X_HALL_LEFT + WALL_T; // -12.3
 
-      const deskLampLight = new THREE.PointLight(0xffdfb0, 1.8, 16, 1.35);
+      const deskLampLight = new THREE.PointLight(0xffe4b8, 9.5, 9.5, 1.45);
+      const bedLampLight = new THREE.PointLight(0xffdfb0, 9.0, 9.5, 1.45);
       const houseGroup = new THREE.Group();
       houseGroup.visible = false;
       scene.add(houseGroup);
@@ -5089,6 +5939,60 @@
         return pg;
       }
 
+      const priorityHitTargets = [];
+
+      function attachPriorityHitBox(itemGroup, roomIdx, scaleFactor = 1.5) {
+        try {
+          itemGroup.updateMatrixWorld(true);
+          const localBox = new THREE.Box3();
+          const invRoot = new THREE.Matrix4().copy(itemGroup.matrixWorld).invert();
+          const childMat = new THREE.Matrix4();
+          const childBox = new THREE.Box3();
+          itemGroup.traverse((c) => {
+            if (c.isMesh && c.geometry && !(c.userData && c.userData.isPriorityHitBox)) {
+              if (!c.geometry.boundingBox) c.geometry.computeBoundingBox();
+              if (c.geometry.boundingBox) {
+                childBox.copy(c.geometry.boundingBox);
+                childMat.multiplyMatrices(invRoot, c.matrixWorld);
+                childBox.applyMatrix4(childMat);
+                localBox.union(childBox);
+              }
+            }
+          });
+          const size = new THREE.Vector3(0.8, 0.8, 0.8);
+          const center = new THREE.Vector3(0, 0.4, 0);
+          if (!localBox.isEmpty()) {
+            localBox.getSize(size);
+            localBox.getCenter(center);
+          }
+          const hitMesh = new THREE.Mesh(
+            trackGeo(new THREE.BoxGeometry(
+              Math.max(0.55, size.x * scaleFactor),
+              Math.max(0.55, size.y * scaleFactor),
+              Math.max(0.55, size.z * scaleFactor)
+            )),
+            trackMat(new THREE.MeshBasicMaterial({
+              transparent: true,
+              opacity: 0,
+              depthWrite: false,
+              colorWrite: false
+            }))
+          );
+          hitMesh.position.copy(center);
+          hitMesh.castShadow = false;
+          hitMesh.receiveShadow = false;
+          hitMesh.userData.isPriorityHitBox = true;
+          hitMesh.userData.priorityRoot = itemGroup;
+          hitMesh.userData.roomIdx = roomIdx;
+          itemGroup.add(hitMesh);
+          priorityHitTargets.push(hitMesh);
+          return hitMesh;
+        } catch (err) {
+          console.error("attachPriorityHitBox failed:", err);
+          return null;
+        }
+      }
+
       function registerRoomItem(roomIdx, itemGroup, cfg) {
         if (cfg.scale) itemGroup.scale.setScalar(cfg.scale);
         itemGroup.userData = {
@@ -5104,10 +6008,11 @@
           isCounterTop: !!cfg.isCounterTop,
           gesture: cfg.gesture || "point",
           onClick: cfg.onClick || null,
+          immediateToggle: !!cfg.immediateToggle,
           emissiveMaterials: []
         };
         itemGroup.traverse((c) => {
-          if (c.isMesh && c.material && c.material.emissive) {
+          if (c.isMesh && c.material && c.material.emissive && !(c.userData && c.userData.isPriorityHitBox)) {
             itemGroup.userData.emissiveMaterials.push({
               mat: c.material,
               baseIntensity: c.material.emissiveIntensity || 0
@@ -5120,6 +6025,14 @@
         roomGroups[roomIdx].add(itemGroup);
         roomInteractiveItems[roomIdx].push(itemGroup);
         return itemGroup;
+      }
+
+      function syncItemEmissiveBase(itemGroup, mat, baseIntensity) {
+        if (mat) mat.emissiveIntensity = baseIntensity;
+        if (itemGroup && itemGroup.userData && itemGroup.userData.emissiveMaterials) {
+          const rec = itemGroup.userData.emissiveMaterials.find((e) => e.mat === mat);
+          if (rec) rec.baseIntensity = baseIntensity;
+        }
       }
 
       /* ---------------- ROOM 0: HALL (ABOUT — 6 main items: 1 rug, 1 plant, 1 wall art + door, wallframe, sofa, coffeetable, shoerack) ---------------- */
@@ -5146,7 +6059,7 @@
       roomGroups[0].add(hallDoor);
 
       addRoomWindowAt(0, X_HALL_INNER + 0.05, 2.85, -1.35, Math.PI / 2, 2.1, 1.8);
-      addWallArtAt(0, -10.55, 2.75, Z_BACK_INNER + 0.04, 0, 1.45, 1.1, 0x312e81, 0x2dd4bf);
+      addWallArtAt(0, -11.16, 2.85, Z_BACK_INNER + 0.04, 0, 1.15, 0.9, 0x312e81, 0x2dd4bf);
       addRoomRugAt(0, -7.8, GROUND_Y, 0.15, 3.8, 2.8, 0x4c1d95, 0x0f766e);
 
       /* Sofa (centered directly in front of the left-wall window, facing +X into the Hall) */
@@ -5214,7 +6127,7 @@
       registerRoomItem(0, shoeRack, {
         id: "shoerack",
         tooltip: "Shoe Rack",
-        pos: [-10.55, GROUND_Y, -3.45],
+        pos: [-11.05, GROUND_Y, -3.45],
         scale: 1.12
       });
 
@@ -5225,7 +6138,7 @@
         pos: [-5.45, GROUND_Y, -3.25]
       });
 
-      /* Wall Frame -> About & Resume (scaled cleanly inside back wall with > 0.5 margin on every side) */
+      /* Wall Frame -> About & Resume (cleanly inside back wall beside certificate frames) */
       const wallFrame = new THREE.Group();
       const wfBox = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.75, 1.35, 0.1)), stdMat(0x1e293b, 0.4, 0.4));
       wfBox.position.y = 0.68;
@@ -5238,12 +6151,96 @@
       registerRoomItem(0, wallFrame, {
         id: "wallframe",
         tooltip: "Wall Frame: About & Resume",
-        pos: [-7.4, 2.05, Z_BACK_INNER + 0.05],
-        fixedY: 2.05,
-        standPos: [-7.4, GROUND_Y, -1.65],
+        pos: [-9.38, 2.08, Z_BACK_INNER + 0.05],
+        fixedY: 2.08,
+        standPos: [-9.38, GROUND_Y, -1.75],
         scale: 1.0,
         gesture: "point",
         onClick: () => openAboutPanel(els.roomActionBtn)
+      });
+
+      /* Three ~2x Framed Certificate Posters on Hall Back Wall beside About & Resume (>= 0.5 margin inside X ∈ [-12.30, -4.31]) */
+      function createCertificateFrameTexture(cert) {
+        const c = document.createElement("canvas");
+        c.width = 768;
+        c.height = 576;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fdfbf7";
+        ctx.fillRect(0, 0, 768, 576);
+
+        ctx.strokeStyle = cert.accent || "#2dd4bf";
+        ctx.lineWidth = 14;
+        ctx.strokeRect(24, 24, 720, 528);
+
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(46, 46, 676, 484);
+
+        ctx.fillStyle = cert.accent || "#2dd4bf";
+        ctx.beginPath();
+        ctx.arc(384, 126, 36, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#0f172a";
+        ctx.font = "700 30px Outfit, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("★", 384, 128);
+
+        ctx.fillStyle = "#475569";
+        ctx.font = "700 26px 'JetBrains Mono', monospace";
+        ctx.fillText(cert.title.toUpperCase(), 384, 206, 620);
+
+        ctx.fillStyle = "#0f172a";
+        ctx.font = "800 38px Outfit, sans-serif";
+        ctx.fillText(cert.event, 384, 288, 620);
+
+        ctx.fillStyle = "#334155";
+        ctx.font = "600 28px 'Plus Jakarta Sans', sans-serif";
+        ctx.fillText(cert.result, 384, 368, 620);
+
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillRect(234, 456, 300, 5);
+
+        const tex = trackTex(new THREE.CanvasTexture(c));
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = maxAniso;
+        return tex;
+      }
+
+      const certWallXs = [-7.65, -6.48, -5.31];
+      const certMatPaper = stdMat(0xf8fafc, 0.72, 0.02);
+      const certMatFrame = stdMat(0x1e293b, 0.42, 0.35);
+      const certMatBrass = stdMat(0xd97706, 0.35, 0.65);
+      certWallXs.forEach((cx, idx) => {
+        const cert = ROOM_CONFIG.CERTIFICATES[idx];
+        if (!cert) return;
+        const cGroup = new THREE.Group();
+        const outerBox = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.0, 0.8, 0.06)), certMatFrame);
+        const matBoard = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.88, 0.68, 0.016)), certMatPaper);
+        matBoard.position.z = 0.03;
+        const plaqueBar = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.34, 0.052, 0.026)), certMatBrass);
+        plaqueBar.position.set(0, -0.435, 0.025);
+        const artFace = new THREE.Mesh(
+          trackGeo(new THREE.PlaneGeometry(0.8, 0.6)),
+          trackMat(new THREE.MeshBasicMaterial({
+            map: createCertificateFrameTexture(cert),
+            polygonOffset: true,
+            polygonOffsetFactor: -1,
+            polygonOffsetUnits: -1
+          }))
+        );
+        artFace.position.z = 0.042;
+        cGroup.add(outerBox, matBoard, plaqueBar, artFace);
+        registerRoomItem(0, cGroup, {
+          id: `certframe-${idx}`,
+          tooltip: `Certificate: ${cert.event}`,
+          pos: [cx, 2.75, Z_BACK_INNER + 0.05],
+          rotY: 0,
+          fixedY: 2.75,
+          standPos: [cx, GROUND_Y, -2.05],
+          gesture: "point",
+          onClick: () => openCertificatesPanel(els.certificatesBtn)
+        });
       });
 
       /* ---------------- ROOM 1: STUDY (PROJECTS — 7 main items: 1 rug, 1 plant, 1 wall art + bookshelf, desk, chair, laptop, lamp) ---------------- */
@@ -5345,47 +6342,61 @@
         onClick: () => enterLaptopFocus(els.roomActionBtn)
       });
 
+      let studyLampOn = true;
+      let bedLampOn = true;
+
       const lampGroup = new THREE.Group();
       const lmBase = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.17, 0.2, 0.06, 12)), stdMat(0x1e293b, 0.35, 0.7));
       lmBase.position.y = 0.03;
       const lmArm = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.03, 0.03, 0.58, 8)), stdMat(0x94a3b8, 0.3, 0.8));
       lmArm.position.set(-0.04, 0.31, 0);
       lmArm.rotation.z = -0.18;
-      const lmShade = new THREE.Mesh(trackGeo(new THREE.ConeGeometry(0.19, 0.22, 12, 1, true)), stdMat(0x2dd4bf, 0.4, 0.25, { side: THREE.DoubleSide }));
+      const lmShadeMat = stdMat(0x2dd4bf, 0.38, 0.15, { side: THREE.DoubleSide, emissive: 0x14b8a6, emissiveIntensity: 0.55 });
+      const lmShade = new THREE.Mesh(trackGeo(new THREE.ConeGeometry(0.19, 0.22, 12, 1, true)), lmShadeMat);
       lmShade.position.set(0.08, 0.58, 0.04);
       lmShade.rotation.z = 0.45;
-      const lmBulbMat = stdMat(0xfef08a, 0.2, 0.1, { emissive: 0xfde047, emissiveIntensity: 0.75 });
+      const lmBulbMat = stdMat(0xfef08a, 0.2, 0.1, { emissive: 0xfde047, emissiveIntensity: 1.5 });
       const lmBulb = new THREE.Mesh(trackGeo(new THREE.SphereGeometry(0.085, 10, 8)), lmBulbMat);
       lmBulb.position.set(0.1, 0.52, 0.04);
       lampGroup.add(lmBase, lmArm, lmShade, lmBulb, deskLampLight);
       deskLampLight.position.set(0.12, 0.55, 0.06);
 
-      function toggleDayNight() {
-        appState.isNightMode = !appState.isNightMode;
-        document.body.classList.toggle("is-night-mode", appState.isNightMode);
-        els.dayNightBtn.classList.toggle("is-active", appState.isNightMode);
-        els.dayNightBtn.setAttribute("aria-pressed", String(appState.isNightMode));
-        dayNightUpdaters.forEach((fn) => fn(appState.isNightMode));
-        sunLight.intensity = appState.isNightMode ? 0.35 : 1.42;
-        hemiLight.intensity = appState.isNightMode ? 0.48 : 0.96;
-        deskLampLight.intensity = appState.isNightMode ? 15.0 : 1.8;
-        lmBulbMat.emissiveIntensity = appState.isNightMode ? 2.2 : 0.75;
-        winGlowMat.emissiveIntensity = appState.isNightMode ? 1.5 : 0.75;
-        violetLight.intensity = appState.isNightMode ? 10.5 : 5.5;
-        tealLight.intensity = appState.isNightMode ? 9.0 : 5.2;
-        stringBulbMats.forEach((m) => { m.emissiveIntensity = appState.isNightMode ? 2.1 : 0.95; });
+      function updateStudyLampVisuals() {
+        try {
+          deskLampLight.intensity = studyLampOn ? (appState.isNightMode ? 16.0 : 9.5) : 0;
+          lmShadeMat.color.setHex(studyLampOn ? 0x5eead4 : 0x134e4a);
+          lmShadeMat.emissive.setHex(studyLampOn ? 0x14b8a6 : 0x000000);
+          lmBulbMat.color.setHex(studyLampOn ? 0xfef08a : 0x475569);
+          lmBulbMat.emissive.setHex(studyLampOn ? 0xfde047 : 0x000000);
+          syncItemEmissiveBase(lampGroup, lmShadeMat, studyLampOn ? (appState.isNightMode ? 0.9 : 0.55) : 0);
+          syncItemEmissiveBase(lampGroup, lmBulbMat, studyLampOn ? (appState.isNightMode ? 2.2 : 1.5) : 0);
+        } catch (err) {
+          console.error("updateStudyLampVisuals failed:", err);
+        }
+      }
+
+      function toggleStudyLamp() {
+        try {
+          studyLampOn = !studyLampOn;
+          updateStudyLampVisuals();
+        } catch (err) {
+          console.error("toggleStudyLamp failed:", err);
+        }
       }
 
       registerRoomItem(1, lampGroup, {
         id: "lamp",
-        tooltip: "Desk Lamp: Toggle Day / Night",
+        tooltip: "Lamp",
         pos: [0.08, STUDY_DESK_Y, -3.22],
         standPos: [0.2, GROUND_Y, -1.8],
         scale: 1.35,
         isDeskTop: true,
-        gesture: "wave",
-        onClick: toggleDayNight
+        immediateToggle: true,
+        gesture: "point",
+        onClick: toggleStudyLamp
       });
+      attachPriorityHitBox(lampGroup, 1, 1.5);
+      updateStudyLampVisuals();
 
       /* 1 Study Plant (clear of X = +4.2 doorway) */
       registerRoomItem(1, createPottedPlant(1.38), {
@@ -5569,21 +6580,69 @@
         scale: 1.24
       });
 
-      /* Nightstand with Lamp */
+      /* Nightstand with Clickable Bedside Lamp */
       const nightStand = new THREE.Group();
       const nsBody = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.68, 0.62, 0.62)), stdMat(0x9a6b48, 0.65, 0.05));
       nsBody.position.y = 0.31;
       const nsLampBase = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.11, 0.14, 0.08, 10)), stdMat(0x1e293b, 0.4, 0.5));
       nsLampBase.position.y = 0.66;
-      const nsLampShade = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.12, 0.19, 0.22, 12)), stdMat(0xfef08a, 0.35, 0.05, { emissive: 0xfbbf24, emissiveIntensity: 0.55 }));
-      nsLampShade.position.y = 0.85;
-      nightStand.add(nsBody, nsLampBase, nsLampShade);
+      const nsLampStem = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.028, 0.028, 0.14, 8)), stdMat(0x94a3b8, 0.35, 0.65));
+      nsLampStem.position.y = 0.73;
+      const nsLampShadeMat = stdMat(0xfef3c7, 0.32, 0.05, { emissive: 0xfbbf24, emissiveIntensity: 0.95 });
+      const nsLampShade = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.13, 0.2, 0.24, 12)), nsLampShadeMat);
+      nsLampShade.position.y = 0.87;
+      bedLampLight.position.set(0, 0.92, 0.04);
+      nightStand.add(nsBody, nsLampBase, nsLampStem, nsLampShade, bedLampLight);
+
+      function updateBedroomLampVisuals() {
+        try {
+          bedLampLight.intensity = bedLampOn ? (appState.isNightMode ? 15.0 : 9.0) : 0;
+          nsLampShadeMat.color.setHex(bedLampOn ? 0xfef3c7 : 0x64748b);
+          nsLampShadeMat.emissive.setHex(bedLampOn ? 0xfbbf24 : 0x000000);
+          syncItemEmissiveBase(nightStand, nsLampShadeMat, bedLampOn ? (appState.isNightMode ? 1.55 : 0.95) : 0);
+        } catch (err) {
+          console.error("updateBedroomLampVisuals failed:", err);
+        }
+      }
+
+      function toggleBedroomLamp() {
+        try {
+          bedLampOn = !bedLampOn;
+          updateBedroomLampVisuals();
+        } catch (err) {
+          console.error("toggleBedroomLamp failed:", err);
+        }
+      }
+
+      function toggleDayNight() {
+        appState.isNightMode = !appState.isNightMode;
+        document.body.classList.toggle("is-night-mode", appState.isNightMode);
+        els.dayNightBtn.classList.toggle("is-active", appState.isNightMode);
+        els.dayNightBtn.setAttribute("aria-pressed", String(appState.isNightMode));
+        dayNightUpdaters.forEach((fn) => fn(appState.isNightMode));
+        renderer.toneMappingExposure = appState.isNightMode ? 1.02 : 1.18;
+        sunLight.intensity = appState.isNightMode ? 0.35 : 1.62;
+        hemiLight.intensity = appState.isNightMode ? 0.48 : 1.15;
+        updateStudyLampVisuals();
+        updateBedroomLampVisuals();
+        winGlowMat.emissiveIntensity = appState.isNightMode ? 1.5 : 0.75;
+        violetLight.intensity = appState.isNightMode ? 10.5 : 5.5;
+        tealLight.intensity = appState.isNightMode ? 9.0 : 5.2;
+        stringBulbMats.forEach((m) => { m.emissiveIntensity = appState.isNightMode ? 2.1 : 0.95; });
+      }
+
       registerRoomItem(3, nightStand, {
         id: "nightstand",
-        tooltip: "Bedside Lamp",
+        tooltip: "Lamp",
         pos: [2.05, BEDROOM_Y, -3.4],
-        scale: 1.3
+        standPos: [2.05, BEDROOM_Y, -2.05],
+        scale: 1.3,
+        immediateToggle: true,
+        gesture: "point",
+        onClick: toggleBedroomLamp
       });
+      attachPriorityHitBox(nightStand, 3, 1.5);
+      updateBedroomLampVisuals();
 
       /* 1 Bedroom Rug (raised 0.02 above floor with polygonOffset + non-overlapping layers) */
       const rugGroup = new THREE.Group();
@@ -5621,13 +6680,15 @@
       vinylGroup.add(vStand, vPlinth, vDiscGroup);
       registerRoomItem(3, vinylGroup, {
         id: "vinyl",
-        tooltip: "Vinyl Player: Toggle Music",
+        tooltip: "Vinyl player",
         pos: [8.1, BEDROOM_Y, -2.35],
         standPos: [7.1, BEDROOM_Y, -1.6],
         scale: 1.25,
+        immediateToggle: true,
         gesture: "wave",
         onClick: toggleVinylMusic
       });
+      attachPriorityHitBox(vinylGroup, 3, 1.5);
 
       /* 1 Bedroom Plant */
       registerRoomItem(3, createPottedPlant(1.28), {
@@ -6113,12 +7174,61 @@
         blinkTimer: 2.5
       };
 
-      function showSpeech(text, duration = 2.4) {
-        els.speechBubble.textContent = text;
-        els.speechBubble.hidden = false;
-        avatarState.speechTimer = duration;
-        avatarState.gestureType = "wave";
-        avatarState.gestureTimer = prefersReducedMotion ? 0 : 1.9;
+      let avatarGreetingIdx = 0;
+      let lastSpokenRoomIdx = -1;
+
+      function positionSpeechBubble() {
+        try {
+          if (els.speechBubble.hidden || !avatarGroup.visible) return;
+          avatarGroup.getWorldPosition(_speechWorld);
+          _speechWorld.y += exteriorGroup.visible ? 2.68 * EXTERIOR_SCALE : 2.68;
+          _speechWorld.project(camera);
+          const vw = Math.max(320, window.innerWidth);
+          const vh = Math.max(320, window.innerHeight);
+          const rawX = ((_speechWorld.x + 1) / 2) * vw;
+          const rawY = ((-_speechWorld.y + 1) / 2) * vh;
+          const padX = Math.min(165, vw * 0.42);
+          els.speechBubble.style.left = `${THREE.MathUtils.clamp(rawX, padX, vw - padX).toFixed(1)}px`;
+          els.speechBubble.style.top = `${THREE.MathUtils.clamp(rawY, 96, vh - 96).toFixed(1)}px`;
+        } catch (err) {
+          console.error("positionSpeechBubble failed:", err);
+        }
+      }
+
+      function showSpeech(text, duration = 4.0) {
+        try {
+          if (!text) return;
+          els.speechBubble.textContent = text;
+          els.speechBubble.hidden = false;
+          avatarState.speechTimer = duration;
+          avatarState.gestureType = "wave";
+          avatarState.gestureTimer = prefersReducedMotion ? 0 : 1.9;
+          positionSpeechBubble();
+          announceSpeechLive(text);
+          speakBubbleText(text);
+        } catch (err) {
+          console.error("showSpeech failed:", err);
+        }
+      }
+
+      function clearRoomSpeech() {
+        avatarState.speechTimer = 0;
+        els.speechBubble.hidden = true;
+        cancelSpeech();
+      }
+
+      function speakRoomGreeting(roomIdx) {
+        const rm = ROOM_CONFIG.rooms[roomIdx];
+        if (!rm) return;
+        const line = ROOM_SPEECH_LINES[rm.id];
+        lastSpokenRoomIdx = roomIdx;
+        if (line) showSpeech(line, 4.0);
+      }
+
+      function speakNextAvatarGreeting() {
+        const line = AVATAR_GREETINGS[avatarGreetingIdx % AVATAR_GREETINGS.length];
+        avatarGreetingIdx = (avatarGreetingIdx + 1) % AVATAR_GREETINGS.length;
+        showSpeech(line, 3.0);
       }
 
       /* Full-screen Per-Room Themed Backdrop Switcher */
@@ -6336,8 +7446,7 @@
         isOrbitDragging = false;
         hoveredItem = null;
         els.hoverTooltip.hidden = true;
-        els.speechBubble.hidden = true;
-        avatarState.speechTimer = 0;
+        showSpeech("Let me show you!", 2.4);
         document.body.style.cursor = "default";
 
         document.body.classList.add("is-laptop-focused");
@@ -6495,6 +7604,7 @@
         els.wholeHouseBtn.setAttribute("aria-pressed", "false");
         updateRoomUI(roomIdx);
         syncRoomCameraGoal(true);
+        speakRoomGreeting(roomIdx);
       }
 
       function getDoorwayEntryWaypoint(fromRoomIdx, toRoomIdx) {
@@ -6505,7 +7615,7 @@
         return WAYPOINTS[15];
       }
 
-      function walkToTarget(targetRoomIdx, finalStandPos = null, faceTarget = null, onArrive = null, waveOnArrive = true) {
+      function walkToTarget(targetRoomIdx, finalStandPos = null, faceTarget = null, onArrive = null, waveOnArrive = true, preserveSpeech = false) {
         if (appState.scenePhase === "exterior" || appState.scenePhase === "opening") return;
 
         const prevRoomIdx = appState.activeRoomIdx;
@@ -6517,11 +7627,12 @@
 
         els.hoverTooltip.hidden = true;
         hoveredItem = null;
-        avatarState.speechTimer = 0;
-        els.speechBubble.hidden = true;
         document.body.style.cursor = "default";
 
         const wrapped = (targetRoomIdx + ROOM_CONFIG.rooms.length) % ROOM_CONFIG.rooms.length;
+        if (wrapped !== prevRoomIdx || !preserveSpeech) {
+          clearRoomSpeech();
+        }
         let clampedStand = null;
         if (finalStandPos) {
           const cl = clampWalkPos(wrapped, finalStandPos.x, finalStandPos.z);
@@ -6550,7 +7661,11 @@
           }
           updateRoomUI(wrapped);
           syncRoomCameraGoal(true);
-          if (onArrive) onArrive();
+          if (onArrive) {
+            onArrive();
+          } else if (!preserveSpeech && (wrapped !== prevRoomIdx || lastSpokenRoomIdx !== wrapped)) {
+            speakRoomGreeting(wrapped);
+          }
           return;
         }
 
@@ -6571,6 +7686,8 @@
           }
           if (onArrive) {
             window.setTimeout(onArrive, 160);
+          } else if (!preserveSpeech && (wrapped !== prevRoomIdx || lastSpokenRoomIdx !== wrapped)) {
+            speakRoomGreeting(wrapped);
           }
           return;
         }
@@ -6596,6 +7713,7 @@
       function enterHallFromExterior() {
         appState.scenePhase = "room";
         appState.activeRoomIdx = 0;
+        lastSpokenRoomIdx = -1;
         walkState.active = false;
         exteriorGroup.visible = false;
         houseGroup.visible = true;
@@ -6606,8 +7724,7 @@
         camOrbit.targetPitch = 0;
         camOrbit.curPitch = 0;
 
-        avatarState.speechTimer = 0;
-        els.speechBubble.hidden = true;
+        clearRoomSpeech();
         const homeWp = WAYPOINTS[ROOM_HOME_WP[0]];
         avatarGroup.scale.setScalar(INTERIOR_AVATAR_SCALE);
         avatarGroup.position.set(homeWp.x, homeWp.y, homeWp.z);
@@ -6628,6 +7745,7 @@
         els.wholeHouseBtn.setAttribute("aria-pressed", "false");
         updateRoomUI(0);
         syncRoomCameraGoal(true);
+        speakRoomGreeting(0);
 
         veilFade.active = true;
         veilFade.elapsed = 0;
@@ -6677,8 +7795,8 @@
         walkState.active = false;
         veilFade.active = false;
         clearTimeout(bannerFadeTimer);
-        avatarState.speechTimer = 0;
-        els.speechBubble.hidden = true;
+        lastSpokenRoomIdx = -1;
+        clearRoomSpeech();
         els.hoverTooltip.hidden = true;
         hoveredItem = null;
         document.body.classList.remove("controls-hidden", "is-laptop-focused");
@@ -6691,7 +7809,7 @@
           exitAnim.active = false;
           appState.scenePhase = "exterior";
           updateStageBackdrop("exterior");
-          els.warmFadeVeil.style.opacity = immediate ? "0" : (prefersReducedMotion && !exteriorGroup.visible ? "0.75" : "0");
+          setVeilOpacity(immediate ? 0 : (prefersReducedMotion && !exteriorGroup.visible ? 0.75 : 0));
 
           houseGroup.visible = false;
           nightSkyDome.visible = false;
@@ -6851,170 +7969,229 @@
         }
       }
 
-      function onPointerDown(e) {
-        if (!els.panelBackdrop.hidden || appState.scenePhase === "laptop") return;
-        if (e.pointerType === "touch" && !e.isPrimary) return;
-        updateNDC(e);
-        downScreen = { x: e.clientX, y: e.clientY };
-        pointerDownTarget = null;
-        pointerDownJar = null;
-        isOrbitDragging = false;
-        orbitMoved = false;
-
-        const targets = getCurrentTargets();
-        if (targets.length > 0) {
+      function findPriorityAndTargetHit() {
+        try {
           raycaster.setFromCamera(pointerNDC, camera);
-          const hits = raycaster.intersectObjects(targets, true);
-          if (hits.length > 0) {
-            const item = getRootTarget(hits[0].object, targets);
-            if (item) {
-              if (appState.scenePhase === "exterior") {
-                if (item === doorPivot) {
-                  startKnockSequence();
-                } else if (item === avatarGroup) {
-                  showSpeech("Knock on the door!", 2.2);
-                }
-                return;
+          // 1. Check 1.5x invisible hit boxes (Study lamp, Bedroom lamp, Vinyl player) BEFORE walls, floors, and furniture
+          if ((appState.scenePhase === "room" || appState.scenePhase === "overview") && !exitAnim.active) {
+            const activePriority = priorityHitTargets.filter((hb) => {
+              if (!hb || !hb.userData || !hb.userData.priorityRoot) return false;
+              if (appState.scenePhase === "room" && hb.userData.roomIdx !== appState.activeRoomIdx) return false;
+              return isMeshHierarchyVisible(hb);
+            });
+            if (activePriority.length > 0) {
+              const pHits = raycaster.intersectObjects(activePriority, false);
+              if (pHits.length > 0) {
+                return { item: pHits[0].object.userData.priorityRoot, jar: null };
               }
-              pointerDownTarget = item;
-              pointerDownJar = jarHitTargets.includes(hits[0].object) ? hits[0].object : null;
-              return;
             }
           }
-        }
 
-        if (appState.scenePhase === "room" || appState.scenePhase === "overview") {
-          isOrbitDragging = true;
-          orbitStartScreen = { x: e.clientX, y: e.clientY };
-          orbitStartYaw = camOrbit.targetYaw;
-          orbitStartPitch = camOrbit.targetPitch;
+          // 2. Check regular room targets & avatar
+          const targets = getCurrentTargets();
+          if (targets.length === 0) return null;
+          const hits = raycaster.intersectObjects(targets, true);
+          if (hits.length === 0) return null;
+          const item = getRootTarget(hits[0].object, targets);
+          if (!item) return null;
+          const jar = jarHitTargets.includes(hits[0].object) ? hits[0].object : null;
+          return { item, jar };
+        } catch (err) {
+          console.error("findPriorityAndTargetHit failed:", err);
+          return null;
+        }
+      }
+
+      function onPointerDown(e) {
+        try {
+          if (!els.panelBackdrop.hidden || !els.certLightboxBackdrop.hidden || appState.scenePhase === "laptop") return;
+          if (e.pointerType === "touch" && !e.isPrimary) return;
+          updateNDC(e);
+          downScreen = { x: e.clientX, y: e.clientY };
+          pointerDownTarget = null;
+          pointerDownJar = null;
+          isOrbitDragging = false;
+          orbitMoved = false;
+
+          const hitRes = findPriorityAndTargetHit();
+          if (hitRes && hitRes.item) {
+            const { item, jar } = hitRes;
+            if (appState.scenePhase === "exterior") {
+              if (item === doorPivot) {
+                startKnockSequence();
+              } else if (item === avatarGroup) {
+                speakNextAvatarGreeting();
+              }
+              return;
+            }
+            pointerDownTarget = item;
+            pointerDownJar = jar;
+            return;
+          }
+
+          if (appState.scenePhase === "room" || appState.scenePhase === "overview") {
+            isOrbitDragging = true;
+            orbitStartScreen = { x: e.clientX, y: e.clientY };
+            orbitStartYaw = camOrbit.targetYaw;
+            orbitStartPitch = camOrbit.targetPitch;
+          }
+        } catch (err) {
+          console.error("onPointerDown failed:", err);
         }
       }
 
       function onPointerMove(e) {
-        if (!els.panelBackdrop.hidden || appState.scenePhase === "laptop") return;
-        updateNDC(e);
+        try {
+          if (!els.panelBackdrop.hidden || !els.certLightboxBackdrop.hidden || appState.scenePhase === "laptop") return;
+          updateNDC(e);
 
-        if (isOrbitDragging) {
-          const dx = e.clientX - orbitStartScreen.x;
-          const dy = e.clientY - orbitStartScreen.y;
-          if (!orbitMoved && Math.hypot(dx, dy) > 6) {
-            orbitMoved = true;
+          if (isOrbitDragging) {
+            const dx = e.clientX - orbitStartScreen.x;
+            const dy = e.clientY - orbitStartScreen.y;
+            if (!orbitMoved && Math.hypot(dx, dy) > 6) {
+              orbitMoved = true;
+              els.hoverTooltip.hidden = true;
+              document.body.style.cursor = "grabbing";
+            }
+            if (orbitMoved) {
+              const vw = Math.max(320, window.innerWidth);
+              const vh = Math.max(320, window.innerHeight);
+              camOrbit.targetYaw = THREE.MathUtils.clamp(
+                orbitStartYaw - (dx / vw) * (MAX_ORBIT_YAW * 2.2),
+                -MAX_ORBIT_YAW,
+                MAX_ORBIT_YAW
+              );
+              camOrbit.targetPitch = THREE.MathUtils.clamp(
+                orbitStartPitch + (dy / vh) * ((MAX_ORBIT_PITCH - MIN_ORBIT_PITCH) * 1.8),
+                MIN_ORBIT_PITCH,
+                MAX_ORBIT_PITCH
+              );
+            }
+            return;
+          }
+
+          /* Gentle camera parallax on mouse movement only */
+          if (e.pointerType === "mouse" && !prefersReducedMotion) {
+            parallax.targetX = pointerNDC.x;
+            parallax.targetY = pointerNDC.y;
+          }
+
+          const now = performance.now();
+          if (now - lastHoverCheck < 45) return;
+          lastHoverCheck = now;
+
+          const hitRes = findPriorityAndTargetHit();
+          const nextHover = hitRes ? hitRes.item : null;
+          const jarHit = hitRes ? hitRes.jar : null;
+
+          if (hoveredItem && hoveredItem !== nextHover) {
+            setHighlight(hoveredItem, false);
+            hoveredItem = null;
             els.hoverTooltip.hidden = true;
-            document.body.style.cursor = "grabbing";
+            document.body.style.cursor = "default";
           }
-          if (orbitMoved) {
-            const vw = Math.max(320, window.innerWidth);
-            const vh = Math.max(320, window.innerHeight);
-            camOrbit.targetYaw = THREE.MathUtils.clamp(
-              orbitStartYaw - (dx / vw) * (MAX_ORBIT_YAW * 2.2),
-              -MAX_ORBIT_YAW,
-              MAX_ORBIT_YAW
-            );
-            camOrbit.targetPitch = THREE.MathUtils.clamp(
-              orbitStartPitch + (dy / vh) * ((MAX_ORBIT_PITCH - MIN_ORBIT_PITCH) * 1.8),
-              MIN_ORBIT_PITCH,
-              MAX_ORBIT_PITCH
-            );
+
+          if (nextHover) {
+            hoveredItem = nextHover;
+            setHighlight(nextHover, true);
+            els.hoverTooltip.textContent = nextHover === doorPivot
+              ? "Front Door: Knock to enter"
+              : (nextHover === avatarGroup
+                ? "Rubina (Click to say hi)"
+                : (jarHit ? `Spice Jar · ${jarHit.userData.skill.name}` : nextHover.userData.tooltip));
+            els.hoverTooltip.style.left = `${e.clientX}px`;
+            els.hoverTooltip.style.top = `${e.clientY}px`;
+            els.hoverTooltip.hidden = false;
+            document.body.style.cursor = (nextHover === doorPivot || nextHover === avatarGroup || nextHover.userData.onClick) ? "pointer" : "default";
           }
-          return;
-        }
-
-        /* Gentle camera parallax on mouse movement only */
-        if (e.pointerType === "mouse" && !prefersReducedMotion) {
-          parallax.targetX = pointerNDC.x;
-          parallax.targetY = pointerNDC.y;
-        }
-
-        const now = performance.now();
-        if (now - lastHoverCheck < 45) return;
-        lastHoverCheck = now;
-
-        const targets = getCurrentTargets();
-        if (targets.length === 0) return;
-
-        raycaster.setFromCamera(pointerNDC, camera);
-        const hits = raycaster.intersectObjects(targets, true);
-        const nextHover = hits.length > 0 ? getRootTarget(hits[0].object, targets) : null;
-        const jarHit = hits.length > 0 && jarHitTargets.includes(hits[0].object) ? hits[0].object : null;
-
-        if (hoveredItem && hoveredItem !== nextHover) {
-          setHighlight(hoveredItem, false);
-          hoveredItem = null;
-          els.hoverTooltip.hidden = true;
-          document.body.style.cursor = "default";
-        }
-
-        if (nextHover) {
-          hoveredItem = nextHover;
-          setHighlight(nextHover, true);
-          els.hoverTooltip.textContent = nextHover === doorPivot
-            ? "Front Door: Knock to enter"
-            : (nextHover === avatarGroup
-              ? "Rubina (Click to wave)"
-              : (jarHit ? `Spice Jar · ${jarHit.userData.skill.name}` : nextHover.userData.tooltip));
-          els.hoverTooltip.style.left = `${e.clientX}px`;
-          els.hoverTooltip.style.top = `${e.clientY}px`;
-          els.hoverTooltip.hidden = false;
-          document.body.style.cursor = (nextHover === doorPivot || nextHover === avatarGroup || nextHover.userData.onClick) ? "pointer" : "default";
+        } catch (err) {
+          console.error("onPointerMove failed:", err);
         }
       }
 
       function onPointerUp(e) {
-        if (isOrbitDragging) {
-          const wasOrbit = orbitMoved;
-          isOrbitDragging = false;
-          orbitMoved = false;
-          document.body.style.cursor = "default";
-          if (!wasOrbit && e && e.type === "pointerup") {
-            updateNDC(e);
-            raycaster.setFromCamera(pointerNDC, camera);
-            walkAvatarToClickPoint(raycaster);
-          }
-          return;
-        }
-
-        const item = pointerDownTarget;
-        const jar = pointerDownJar;
-        pointerDownTarget = null;
-        pointerDownJar = null;
-        if (!item) return;
-
-        const moved = e ? Math.hypot(e.clientX - downScreen.x, e.clientY - downScreen.y) : 999;
-        if (moved > 10) return;
-
-        if (item === avatarGroup) {
-          showSpeech("Hi, I'm Rubina!", 2.4);
-          return;
-        }
-
-        if (item.userData.onClick) {
-          const targetRoom = item.userData.roomIdx;
-          const standPos = item.userData.standPos
-            ? item.userData.standPos.clone()
-            : (() => {
-              const cl = clampWalkPos(targetRoom, item.position.x, item.position.z + 1.15);
-              return new THREE.Vector3(cl.x, cl.y, cl.z);
-            })();
-          walkToTarget(targetRoom, standPos, item.position, () => {
-            if (!prefersReducedMotion) {
-              avatarState.gestureType = item.userData.gesture;
-              avatarState.gestureTimer = 0.75;
+        try {
+          if (isOrbitDragging) {
+            const wasOrbit = orbitMoved;
+            isOrbitDragging = false;
+            orbitMoved = false;
+            document.body.style.cursor = "default";
+            if (!wasOrbit && e && e.type === "pointerup") {
+              updateNDC(e);
+              raycaster.setFromCamera(pointerNDC, camera);
+              walkAvatarToClickPoint(raycaster);
             }
-            item.userData.onClick(jar);
-          }, false);
-        } else if (appState.scenePhase === "room" || appState.scenePhase === "overview") {
-          const targetRoom = item.userData.roomIdx;
-          const cl = clampWalkPos(targetRoom, item.position.x, item.position.z + 1.15);
-          walkToTarget(targetRoom, new THREE.Vector3(cl.x, cl.y, cl.z), item.position, null, false);
+            return;
+          }
+
+          const item = pointerDownTarget;
+          const jar = pointerDownJar;
+          pointerDownTarget = null;
+          pointerDownJar = null;
+          if (!item) return;
+
+          const moved = e ? Math.hypot(e.clientX - downScreen.x, e.clientY - downScreen.y) : 999;
+          if (moved > 10) return;
+
+          if (item === avatarGroup) {
+            speakNextAvatarGreeting();
+            return;
+          }
+
+          if (item.userData.onClick) {
+            if (item.userData.id === "vinyl") {
+              ensureAudioContext();
+            }
+            const targetRoom = item.userData.roomIdx;
+            const standPos = item.userData.standPos
+              ? item.userData.standPos.clone()
+              : (() => {
+                const cl = clampWalkPos(targetRoom, item.position.x, item.position.z + 1.15);
+                return new THREE.Vector3(cl.x, cl.y, cl.z);
+              })();
+
+            if (item.userData.immediateToggle) {
+              item.userData.onClick(jar);
+              showSpeech("Let me show you!", 2.4);
+              walkToTarget(targetRoom, standPos, item.position, null, false, true);
+              if (!prefersReducedMotion) {
+                avatarState.gestureType = item.userData.gesture;
+                avatarState.gestureTimer = 0.8;
+              }
+            } else {
+              walkToTarget(targetRoom, standPos, item.position, () => {
+                try {
+                  if (!prefersReducedMotion) {
+                    avatarState.gestureType = item.userData.gesture;
+                    avatarState.gestureTimer = 0.75;
+                  }
+                  showSpeech("Let me show you!", 2.4);
+                  item.userData.onClick(jar);
+                } catch (err) {
+                  console.error("Interactive item onClick failed:", item.userData.id, err);
+                }
+              }, false, true);
+            }
+          } else if (appState.scenePhase === "room" || appState.scenePhase === "overview") {
+            const targetRoom = item.userData.roomIdx;
+            const cl = clampWalkPos(targetRoom, item.position.x, item.position.z + 1.15);
+            walkToTarget(targetRoom, new THREE.Vector3(cl.x, cl.y, cl.z), item.position, null, false);
+          }
+        } catch (err) {
+          console.error("onPointerUp failed:", err);
         }
       }
 
       function onMouseLeave() {
-        parallax.targetX = 0;
-        parallax.targetY = 0;
+        try {
+          parallax.targetX = 0;
+          parallax.targetY = 0;
+        } catch (err) {
+          console.error("onMouseLeave failed:", err);
+        }
       }
 
+      /* Attached strictly after all room items & priority hitboxes are created */
       renderer.domElement.addEventListener("pointerdown", onPointerDown);
       window.addEventListener("pointermove", onPointerMove);
       window.addEventListener("pointerup", onPointerUp);
@@ -7217,7 +8394,7 @@
           knockAnim.timer += delta;
           if (knockAnim.stage === "reducedFadeOut") {
             const p = Math.min(1, knockAnim.timer / 0.22);
-            els.warmFadeVeil.style.opacity = p.toFixed(3);
+            setVeilOpacity(p);
             if (p >= 1) {
               knockAnim.active = false;
               showConnectedHouseImmediate(0, false);
@@ -7250,7 +8427,7 @@
             } else if (knockAnim.stage === "dolly") {
               const p = Math.min(1, knockAnim.timer / 0.68);
               const veilAlpha = p * p;
-              els.warmFadeVeil.style.opacity = veilAlpha.toFixed(3);
+              setVeilOpacity(veilAlpha);
               if (p > 0.4 && avatarState.speechTimer > 0) {
                 avatarState.speechTimer = 0;
                 els.speechBubble.hidden = true;
@@ -7267,7 +8444,7 @@
           exitAnim.timer += delta;
           if (exitAnim.stage === "toVeil") {
             const p = Math.min(1, exitAnim.timer / 0.36);
-            els.warmFadeVeil.style.opacity = (p * 0.92).toFixed(3);
+            setVeilOpacity(p * 0.92);
             if (p >= 1) {
               houseGroup.visible = false;
               nightSkyDome.visible = false;
@@ -7299,13 +8476,13 @@
           } else if (exitAnim.stage === "fromVeil") {
             const p = Math.min(1, exitAnim.timer / 0.58);
             const ease = 1 - Math.pow(1 - p, 3);
-            els.warmFadeVeil.style.opacity = (0.92 * (1 - p)).toFixed(3);
+            setVeilOpacity(0.92 * (1 - p));
             doorPivot.rotation.y = THREE.MathUtils.lerp(-1.75, 0, ease);
             doorSpillLight.intensity = THREE.MathUtils.lerp(10, 0, ease);
             lightSpillMat.opacity = THREE.MathUtils.lerp(0.42, 0, ease);
             if (p >= 1) {
               exitAnim.active = false;
-              els.warmFadeVeil.style.opacity = "0";
+              setVeilOpacity(0);
               doorPivot.rotation.y = 0;
               doorSpillLight.intensity = 0;
               lightSpillMat.opacity = 0;
@@ -7318,10 +8495,10 @@
           veilFade.elapsed += delta;
           const p = Math.min(1, veilFade.elapsed / veilFade.duration);
           const ease = 1 - Math.pow(1 - p, 2);
-          els.warmFadeVeil.style.opacity = THREE.MathUtils.lerp(veilFade.from, veilFade.to, ease).toFixed(3);
+          setVeilOpacity(THREE.MathUtils.lerp(veilFade.from, veilFade.to, ease));
           if (p >= 1) {
             veilFade.active = false;
-            els.warmFadeVeil.style.opacity = String(veilFade.to);
+            setVeilOpacity(veilFade.to);
           }
         }
 
@@ -7369,6 +8546,8 @@
                 const cb = walkState.onArrive;
                 walkState.onArrive = null;
                 cb();
+              } else if (lastSpokenRoomIdx !== walkState.targetRoomIdx && walkState.waveOnArrive) {
+                speakRoomGreeting(walkState.targetRoomIdx);
               }
             }
           } else {
@@ -7392,6 +8571,7 @@
 
             const zone = detectZoneAt(avatarGroup.position, true, walkState.targetRoomIdx);
             if (zone.roomIdx !== appState.activeRoomIdx) {
+              cancelSpeech();
               appState.activeRoomIdx = zone.roomIdx;
               updateRoomUI(zone.roomIdx);
             }
@@ -7422,7 +8602,7 @@
             roomFillLight.position.y = THREE.MathUtils.lerp(roomFillLight.position.y, fillTargetY, ld);
             roomFillLight.position.z = THREE.MathUtils.lerp(roomFillLight.position.z, rcb.centerZ, ld);
           }
-          roomFillLight.intensity = appState.isNightMode ? 5.2 : 3.2;
+          roomFillLight.intensity = appState.isNightMode ? 5.2 : 4.4;
         }
 
         const shadowMode = (appState.scenePhase === "room" || appState.scenePhase === "laptop") ? "room" : "wide";
@@ -7563,7 +8743,7 @@
               s.mesh.scale.setScalar(0.6 + c * 0.75);
             });
 
-            if (appState.musicOn) {
+            if (appState.musicOn && !appState.musicPausedByVisibility) {
               vDiscGroup.rotation.y += delta * 2.2;
             }
 
@@ -7629,11 +8809,7 @@
 
           if (avatarState.speechTimer > 0) {
             avatarState.speechTimer -= delta;
-            avatarGroup.getWorldPosition(_speechWorld);
-            _speechWorld.y += exteriorGroup.visible ? 2.68 * EXTERIOR_SCALE : 2.68;
-            _speechWorld.project(camera);
-            els.speechBubble.style.left = `${((_speechWorld.x + 1) / 2) * window.innerWidth}px`;
-            els.speechBubble.style.top = `${((-_speechWorld.y + 1) / 2) * window.innerHeight}px`;
+            positionSpeechBubble();
             if (avatarState.speechTimer <= 0) {
               els.speechBubble.hidden = true;
             }
@@ -7655,6 +8831,7 @@
         focusLaptopProjects,
         leaveLaptopFocus,
         showSpeech,
+        greetAvatar: speakNextAvatarGreeting,
         refitCamera: () => refitCurrentPhase(false)
       };
 
@@ -7685,7 +8862,7 @@
         envTex.dispose();
         renderer.dispose();
         els.houseStage.innerHTML = "";
-        els.warmFadeVeil.style.opacity = "0";
+        setVeilOpacity(0);
         document.body.style.cursor = "default";
       };
     }
@@ -7760,9 +8937,30 @@
       if (appState.sceneApi) appState.sceneApi.goToRoom(appState.activeRoomIdx + 1);
     });
 
+    els.certificatesBtn.addEventListener("click", () => {
+      closeMoreMenu();
+      openCertificatesPanel(els.certificatesBtn);
+    });
+
+    els.musicToggleBtn.addEventListener("click", () => {
+      try {
+        toggleVinylMusic();
+      } catch (err) {
+        console.error("Music toggle button failed:", err);
+      }
+    });
+
+    els.voiceToggleBtn.addEventListener("click", () => {
+      try {
+        toggleVoice();
+      } catch (err) {
+        console.error("Voice toggle button failed:", err);
+      }
+    });
+
     els.waveBtn.addEventListener("click", () => {
       closeMoreMenu();
-      if (appState.sceneApi) appState.sceneApi.showSpeech("Hi, I'm Rubina!", 2.4);
+      if (appState.sceneApi) appState.sceneApi.greetAvatar();
     });
 
     els.toggleViewBtn.addEventListener("click", () => {
@@ -7788,6 +8986,40 @@
     });
 
     document.addEventListener("keydown", (e) => {
+      if (!els.certLightboxBackdrop.hidden) {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          closeCertificateLightbox();
+          return;
+        }
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          stepCertificateLightbox(-1);
+          return;
+        }
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          stepCertificateLightbox(1);
+          return;
+        }
+        if (e.key === "Tab") {
+          const focusables = Array.from(
+            els.certLightbox.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+          );
+          if (focusables.length === 0) return;
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+        return;
+      }
+
       if (!els.panelBackdrop.hidden) {
         if (e.key === "Escape") {
           e.preventDefault();
