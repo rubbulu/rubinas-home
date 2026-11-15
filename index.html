@@ -285,7 +285,7 @@
       position: absolute;
       inset: 0;
       opacity: 0;
-      transition: opacity 0.45s var(--ease-out);
+      transition: opacity 0.65s var(--ease-out);
     }
 
     .backdrop-layer.is-active {
@@ -983,7 +983,7 @@
       <div class="backdrop-layer" data-theme="terrace"></div>
       <div class="backdrop-layer" data-theme="overview"></div>
     </div>
-    <div id="house-stage" class="house-stage" aria-label="Interactive 3D home portfolio. Knock on the front door to enter and explore rooms one at a time."></div>
+    <div id="house-stage" class="house-stage" aria-label="Interactive 3D connected home portfolio. Knock on the front door to enter and walk between Hall, Study, Kitchen, Bedroom, and Terrace."></div>
     <div id="stage-vignette" class="stage-vignette" aria-hidden="true"></div>
     <div id="warm-fade-veil" class="warm-fade-veil" aria-hidden="true"></div>
 
@@ -1812,7 +1812,7 @@
     }
 
     /* ==========================================================================
-       3D EXTERIOR + ONE-ROOM-AT-A-TIME HOUSE ENGINE (Three.js CDN, Primitives)
+       3D EXTERIOR + CONNECTED 3-LEVEL CUTAWAY HOUSE ENGINE (Three.js CDN)
        ========================================================================== */
     async function initThreeExperience() {
       const threeSpec = "three";
@@ -1836,13 +1836,14 @@
 
       const scene = new THREE.Scene();
 
-      /* Fixed Isometric Orthographic Camera */
-      const ISO_DIR = new THREE.Vector3(1, 0.76, 1).normalize();
+      /* Fixed Isometric Orthographic Camera (+ upward Terrace tilt state) */
+      const ISO_BASE_DIR = new THREE.Vector3(1, 0.72, 1).normalize();
+      const TERRACE_ISO_DIR = new THREE.Vector3(1, 0.45, 1).normalize();
       const SCREEN_RIGHT = new THREE.Vector3(1, 0, -1).normalize();
-      const ISO_DIST = 28;
+      const ISO_DIST = 34;
 
-      const camera = new THREE.OrthographicCamera(-6, 6, 6, -6, 0.5, 110);
-      camera.position.copy(ISO_DIR).multiplyScalar(ISO_DIST);
+      const camera = new THREE.OrthographicCamera(-6, 6, 6, -6, 0.5, 130);
+      camera.position.copy(ISO_BASE_DIR).multiplyScalar(ISO_DIST);
       camera.lookAt(0, 1.5, 0);
 
       const EXTERIOR_BOX = new THREE.Box3(
@@ -1853,14 +1854,33 @@
         new THREE.Vector3(-1.45, 0.25, 1.45),
         new THREE.Vector3(1.45, 2.55, 3.65)
       );
-      const ROOM_BOX = new THREE.Box3(
-        new THREE.Vector3(-4.95, -0.46, -4.95),
-        new THREE.Vector3(4.95, 5.28, 4.95)
+      const WHOLE_HOUSE_BOX = new THREE.Box3(
+        new THREE.Vector3(-12.8, -0.6, -4.4),
+        new THREE.Vector3(14.8, 14.3, 4.4)
       );
-      const OVERVIEW_BOX = new THREE.Box3(
-        new THREE.Vector3(-10.1, -0.5, -10.1),
-        new THREE.Vector3(10.1, 11.2, 10.1)
-      );
+
+      /* Continuous 3-level house spatial constants (Equal 8.4u ground rooms) */
+      const GROUND_Y = 0;
+      const BEDROOM_Y = 5.4;
+      const TERRACE_Y = 10.2;
+      const STAIR1_STEPS = 11;
+      const STAIR2_STEPS = 10;
+
+      const ROOM_FIT_BOXES = [
+        new THREE.Box3(new THREE.Vector3(-12.6, -0.4, -4.2), new THREE.Vector3(-4.2, 4.8, 4.2)),  // 0 Hall (8.4 x 8.4)
+        new THREE.Box3(new THREE.Vector3(-4.2, -0.4, -4.2), new THREE.Vector3(4.2, 4.8, 4.2)),    // 1 Study (8.4 x 8.4)
+        new THREE.Box3(new THREE.Vector3(4.2, -0.4, -4.2), new THREE.Vector3(12.6, 4.8, 4.2)),    // 2 Kitchen (8.4 x 8.4)
+        new THREE.Box3(new THREE.Vector3(-2.4, 5.1, -4.2), new THREE.Vector3(12.6, 9.8, 1.2)),    // 3 Bedroom
+        new THREE.Box3(new THREE.Vector3(-0.4, 9.9, -4.2), new THREE.Vector3(10.8, 14.2, 1.0))    // 4 Terrace
+      ];
+
+      const ROOM_BOUNDS = [
+        { minX: -11.75, maxX: -5.3, minZ: -3.55, maxZ: 3.55, floorY: GROUND_Y },
+        { minX: -3.15, maxX: 3.15, minZ: -3.55, maxZ: 3.55, floorY: GROUND_Y },
+        { minX: 5.3, maxX: 11.75, minZ: -3.55, maxZ: 3.55, floorY: GROUND_Y },
+        { minX: -1.75, maxX: 10.4, minZ: -3.55, maxZ: 0.65, floorY: BEDROOM_Y },
+        { minX: 0.45, maxX: 9.9, minZ: -3.55, maxZ: 0.55, floorY: TERRACE_Y }
+      ];
 
       const renderer = new THREE.WebGLRenderer({
         antialias: !isSoftwareGl && !isMobileViewport,
@@ -1891,41 +1911,9 @@
       const stdMat = (color, roughness = 0.65, metalness = 0.1, extra = {}) =>
         trackMat(new THREE.MeshStandardMaterial({ color, roughness, metalness, ...extra }));
 
-      /* Per-room material tracking for smooth 600ms opacity fades */
-      const roomMaterials = [[], [], [], [], []];
       const dayNightUpdaters = [];
       const stringBulbMats = [];
       const roomWindowMats = [];
-
-      function trackRoomMat(roomIdx, mat) {
-        if (!mat.userData.fadeTracked) {
-          mat.userData.fadeTracked = true;
-          mat.userData.baseOpacity = mat.opacity !== undefined ? mat.opacity : 1;
-          mat.userData.baseTransparent = !!mat.transparent;
-          mat.userData.baseDepthWrite = mat.depthWrite !== false;
-          roomMaterials[roomIdx].push(mat);
-        }
-        return mat;
-      }
-
-      function roomStdMat(roomIdx, color, roughness = 0.65, metalness = 0.1, extra = {}) {
-        return trackRoomMat(roomIdx, stdMat(color, roughness, metalness, extra));
-      }
-
-      function roomBasicMat(roomIdx, opts = {}) {
-        return trackRoomMat(roomIdx, trackMat(new THREE.MeshBasicMaterial(opts)));
-      }
-
-      function setRoomAlpha(roomIdx, alpha) {
-        const clamped = Math.max(0, Math.min(1, alpha));
-        const fading = clamped < 0.999;
-        roomMaterials[roomIdx].forEach((m) => {
-          const baseOp = m.userData.baseOpacity !== undefined ? m.userData.baseOpacity : 1;
-          m.opacity = baseOp * clamped;
-          m.transparent = fading ? true : !!m.userData.baseTransparent;
-          m.depthWrite = fading ? false : m.userData.baseDepthWrite;
-        });
-      }
 
       function enableShadows(group) {
         group.traverse((obj) => {
@@ -1936,17 +1924,17 @@
         });
       }
 
-      /* Camera auto-fit helper & gentle mouse-only parallax */
-      const _isoUp = new THREE.Vector3().crossVectors(SCREEN_RIGHT, ISO_DIR).normalize();
+      /* Camera auto-fit & gentle mouse-only parallax */
+      const _isoUp = new THREE.Vector3();
+      const _camSide = new THREE.Vector3();
       const _parallaxCamPos = new THREE.Vector3();
       const parallax = { targetX: 0, targetY: 0, curX: 0, curY: 0 };
 
       const camFitState = {
         active: false,
-        currentBox: EXTERIOR_BOX,
-        pos: ISO_DIR.clone().multiplyScalar(ISO_DIST),
+        curDir: ISO_BASE_DIR.clone(),
+        targetDir: ISO_BASE_DIR.clone(),
         lookAt: new THREE.Vector3(0, 1.8, 0.5),
-        targetPos: ISO_DIR.clone().multiplyScalar(ISO_DIST),
         targetLookAt: new THREE.Vector3(0, 1.8, 0.5),
         left: -6, right: 6, top: 6, bottom: -6,
         targetLeft: -6, targetRight: 6, targetTop: 6, targetBottom: -6
@@ -1955,11 +1943,9 @@
       const _fitProbeCam = new THREE.PerspectiveCamera();
       const _fitCorner = new THREE.Vector3();
       const _fitCenter = new THREE.Vector3();
-      const _roomMeasureBox = new THREE.Box3();
-      const _roomOffset = new THREE.Vector3();
-      const roomShells = [];
+      const _roomFloorCenter = new THREE.Vector3();
 
-      function computeSafeFitParams(box, isRoomFit = false) {
+      function computeSafeFitParams(box, isRoomFit = false, dir = ISO_BASE_DIR, customLookAt = null) {
         const vw = Math.max(320, window.innerWidth);
         const vh = Math.max(320, window.innerHeight);
 
@@ -1980,8 +1966,12 @@
         const safeW = Math.max(220, vw - (vw < 720 ? 10 : 28));
         const safeCenterY = (safeTop + safeBottom) * 0.5;
 
-        box.getCenter(_fitCenter);
-        _fitProbeCam.position.copy(_fitCenter).addScaledVector(ISO_DIR, ISO_DIST);
+        if (customLookAt) {
+          _fitCenter.copy(customLookAt);
+        } else {
+          box.getCenter(_fitCenter);
+        }
+        _fitProbeCam.position.copy(_fitCenter).addScaledVector(dir, ISO_DIST);
         _fitProbeCam.lookAt(_fitCenter);
         _fitProbeCam.updateMatrixWorld(true);
         _fitProbeCam.matrixWorldInverse.copy(_fitProbeCam.matrixWorld).invert();
@@ -2007,16 +1997,14 @@
 
         let worldPerPx;
         if (isRoomFit) {
-          const roomFillW = isPortraitMobile ? 0.92 : 0.90;
-          const roomFillH = 0.90;
           if (isPortraitMobile) {
-            worldPerPx = Math.max(projW / (safeW * roomFillW), projH / (safeH * 0.98));
+            worldPerPx = Math.max(projW / (safeW * 0.74), projH / (safeH * 0.72));
           } else {
-            worldPerPx = Math.max(projW / (safeW * roomFillW), projH / (safeH * roomFillH));
+            worldPerPx = Math.max(projW / (safeW * 0.70), projH / (safeH * 0.70));
           }
         } else {
-          const fillW = vw < 720 ? 0.86 : 0.80;
-          const fillH = vw < 720 ? 0.84 : 0.81;
+          const fillW = vw < 720 ? 0.88 : 0.84;
+          const fillH = vw < 720 ? 0.84 : 0.84;
           worldPerPx = Math.max(projW / (safeW * fillW), projH / (safeH * fillH));
         }
 
@@ -2031,7 +2019,7 @@
         const shiftY = midCamY - yNdcTarget * halfH;
 
         return {
-          pos: _fitProbeCam.position.clone(),
+          dir: dir.clone(),
           lookAt: _fitCenter.clone(),
           left: -halfW + midCamX,
           right: halfW + midCamX,
@@ -2041,14 +2029,20 @@
       }
 
       function applyFitImmediate(fit) {
-        camFitState.pos.copy(fit.pos);
+        camFitState.curDir.copy(fit.dir);
+        camFitState.targetDir.copy(fit.dir);
         camFitState.lookAt.copy(fit.lookAt);
+        camFitState.targetLookAt.copy(fit.lookAt);
         camFitState.left = fit.left;
         camFitState.right = fit.right;
         camFitState.top = fit.top;
         camFitState.bottom = fit.bottom;
+        camFitState.targetLeft = fit.left;
+        camFitState.targetRight = fit.right;
+        camFitState.targetTop = fit.top;
+        camFitState.targetBottom = fit.bottom;
 
-        camera.position.copy(fit.pos);
+        camera.position.copy(fit.lookAt).addScaledVector(fit.dir, ISO_DIST);
         camera.lookAt(fit.lookAt);
         camera.left = fit.left;
         camera.right = fit.right;
@@ -2059,10 +2053,9 @@
         camFitState.active = false;
       }
 
-      function fitIsoCamera(box, immediate = false, isRoomFit = false) {
-        camFitState.currentBox = box;
-        const fit = computeSafeFitParams(box, isRoomFit);
-        camFitState.targetPos.copy(fit.pos);
+      function fitIsoCamera(box, immediate = false, isRoomFit = false, dir = ISO_BASE_DIR, customLookAt = null) {
+        const fit = computeSafeFitParams(box, isRoomFit, dir, customLookAt);
+        camFitState.targetDir.copy(fit.dir);
         camFitState.targetLookAt.copy(fit.lookAt);
         camFitState.targetLeft = fit.left;
         camFitState.targetRight = fit.right;
@@ -2076,58 +2069,60 @@
         }
       }
 
-      function fitRoomToViewport(roomIdx = appState.activeRoomIdx, immediate = false) {
-        const shell = roomShells[roomIdx];
-        const roomGroup = roomGroups[roomIdx];
-        if (shell && roomGroup) {
-          roomGroup.updateMatrixWorld(true);
-          _roomMeasureBox.setFromObject(shell);
-          _roomOffset.copy(roomGroup.position).negate();
-          _roomMeasureBox.translate(_roomOffset);
-          fitIsoCamera(_roomMeasureBox, immediate, true);
-        } else {
-          fitIsoCamera(ROOM_BOX, immediate, true);
-        }
+      function getTargetDirForRoom(roomIdx) {
+        return roomIdx === 4 ? TERRACE_ISO_DIR : ISO_BASE_DIR;
       }
 
-      fitIsoCamera(EXTERIOR_BOX, true, false);
+      function fitRoomToViewport(roomIdx = appState.activeRoomIdx, immediate = false) {
+        const box = ROOM_FIT_BOXES[roomIdx] || ROOM_FIT_BOXES[0];
+        const dir = getTargetDirForRoom(roomIdx);
+        box.getCenter(_roomFloorCenter);
+        _roomFloorCenter.y = (ROOM_BOUNDS[roomIdx]?.floorY ?? 0) + (roomIdx === 4 ? 1.85 : 1.55);
+        fitIsoCamera(box, immediate, true, dir, _roomFloorCenter);
+      }
 
-      /* Lighting */
-      const hemiLight = new THREE.HemisphereLight(0xf3e8ff, 0x334155, 0.94);
+      fitIsoCamera(EXTERIOR_BOX, true, false, ISO_BASE_DIR);
+
+      /* Lighting (Capped shadow map <= 1024, 512 on mobile) */
+      const hemiLight = new THREE.HemisphereLight(0xf3e8ff, 0x334155, 0.96);
       scene.add(hemiLight);
 
       const sunLight = new THREE.DirectionalLight(0xfff4e6, 1.42);
-      sunLight.position.set(14, 24, 16);
+      sunLight.position.set(16, 28, 18);
+      sunLight.target.position.set(1, 3, -1);
+      scene.add(sunLight.target);
       sunLight.castShadow = !isSoftwareGl;
       const shSize = isMobileViewport ? 512 : 1024;
       sunLight.shadow.mapSize.set(shSize, shSize);
       sunLight.shadow.camera.near = 2;
-      sunLight.shadow.camera.far = 62;
-      sunLight.shadow.camera.left = -15;
-      sunLight.shadow.camera.right = 15;
-      sunLight.shadow.camera.top = 15;
-      sunLight.shadow.camera.bottom = -15;
+      sunLight.shadow.camera.far = 75;
+      sunLight.shadow.camera.left = -22;
+      sunLight.shadow.camera.right = 22;
+      sunLight.shadow.camera.top = 18;
+      sunLight.shadow.camera.bottom = -18;
       sunLight.shadow.bias = -0.0006;
       sunLight.shadow.normalBias = 0.02;
       scene.add(sunLight);
 
-      const violetLight = new THREE.PointLight(0x8b5cf6, 5.2, 32, 1.35);
-      violetLight.position.set(-5, 6.5, -4);
+      const violetLight = new THREE.PointLight(0x8b5cf6, 5.5, 42, 1.2);
+      violetLight.position.set(-7, 7, -3);
       scene.add(violetLight);
 
-      const tealLight = new THREE.PointLight(0x2dd4bf, 4.8, 32, 1.35);
-      tealLight.position.set(5, 5.5, 5);
+      const tealLight = new THREE.PointLight(0x2dd4bf, 5.2, 42, 1.2);
+      tealLight.position.set(9, 8, 5);
       scene.add(tealLight);
 
-      /* Drifting Sky Clouds (Exterior Intro) */
+      /* Drifting Sky Clouds (Exterior Intro Only) */
       const cloudsGroup = new THREE.Group();
       scene.add(cloudsGroup);
       const cloudMat = stdMat(0xffffff, 0.95, 0, { transparent: true, opacity: 0.82 });
       const clouds = [];
+      const sharedCloudGeoSm = trackGeo(new THREE.IcosahedronGeometry(0.5, 1));
+      const sharedCloudGeoLg = trackGeo(new THREE.IcosahedronGeometry(0.7, 1));
       for (let c = 0; c < (isMobileViewport ? 3 : 5); c++) {
         const cl = new THREE.Group();
-        [[-0.65, 0, 0, 0.52], [0, 0.22, 0, 0.7], [0.65, -0.04, 0, 0.48]].forEach(([cx, cy, cz, r]) => {
-          const puff = new THREE.Mesh(trackGeo(new THREE.IcosahedronGeometry(r, 1)), cloudMat);
+        [[-0.65, 0, 0, false], [0, 0.22, 0, true], [0.65, -0.04, 0, false]].forEach(([cx, cy, cz, big]) => {
+          const puff = new THREE.Mesh(big ? sharedCloudGeoLg : sharedCloudGeoSm, cloudMat);
           puff.position.set(cx, cy, cz);
           cl.add(puff);
         });
@@ -2611,230 +2606,463 @@
       }
 
       /* ======================================================================
-         3. FIVE 1.4x IMMERSIVE DIORAMA ROOMS (9.6 × 9.6 floor, 5.2 tall walls)
+         3. ONE CONNECTED 3-LEVEL CUTAWAY HOUSE (Ground: Hall/Study/Kitchen,
+            Staircase 1 -> Upper: Bedroom, Staircase 2 -> Top: Terrace)
          ====================================================================== */
-      const ROOM_SIZE = 9.6;
-      const ROOM_HALF = 4.8;
-      const WALL_H = 5.2;
-      const WALL_T = 0.32;
-      const WALL_POS = ROOM_HALF - WALL_T * 0.5;   // 4.64
-      const INNER_WALL = ROOM_HALF - WALL_T;       // 4.48
+      const WALL_T = 0.3;
+      const Z_BACK = -4.2;
+      const Z_BACK_INNER = Z_BACK + WALL_T; // -3.9
+      const X_HALL_LEFT = -12.6;
+      const X_HALL_INNER = X_HALL_LEFT + WALL_T; // -12.3
 
       const deskLampLight = new THREE.PointLight(0xffdfb0, 1.8, 16, 1.35);
+      const houseGroup = new THREE.Group();
+      houseGroup.visible = false;
+      scene.add(houseGroup);
+
       const roomGroups = [];
+      for (let i = 0; i < 5; i++) {
+        const rg = new THREE.Group();
+        houseGroup.add(rg);
+        roomGroups.push(rg);
+      }
       const roomInteractiveItems = [[], [], [], [], []];
+      const houseWalkSurfaces = [];
 
-      function createDioramaRoomShell(roomIdx, isTerrace = false) {
-        const g = new THREE.Group();
-        const shell = new THREE.Group();
-        g.add(shell);
-        roomShells[roomIdx] = shell;
+      /* Shared + Per-Room Architectural Materials (Distinct Floor & Wall Tints, Day/Night aware) */
+      const hPlinthMat = stdMat(0x1e293b, 0.6, 0.25);
+      const hCapMat = stdMat(0x94a3b8, 0.55, 0.15);
+      const hBaseMat = stdMat(0xcbd5e1, 0.6, 0.08);
+      const hRailMat = stdMat(0x5eead4, 0.35, 0.45);
+      const hTrimMat = stdMat(0x64748b, 0.5, 0.25);
+      const hStripMat = stdMat(0x2dd4bf, 0.32, 0.22, { emissive: 0x0f766e, emissiveIntensity: 0.35 });
 
-        const floorMat = roomStdMat(
-          roomIdx,
-          isTerrace ? ROOM_CONFIG.colors.terraceDay : ROOM_CONFIG.colors.floorDay,
-          isTerrace ? 0.82 : 0.74,
-          isTerrace ? 0.08 : 0.04
+      /* Room 0: Hall (Cream) | Room 1: Study (Navy) | Room 2: Kitchen (Warm Yellow) */
+      const hallFloorMat = stdMat(0xf5efe0, 0.78, 0.03);
+      const hallWallMat = stdMat(0xfaf5e8, 0.86, 0.02);
+      const studyFloorMat = stdMat(0x1d2b52, 0.74, 0.05);
+      const studyWallMat = stdMat(0x243563, 0.84, 0.04);
+      const kitchenFloorMat = stdMat(0xf4da92, 0.76, 0.03);
+      const kitchenWallMat = stdMat(0xfbeab8, 0.86, 0.02);
+
+      /* Room 3: Bedroom (Lavender) | Room 4: Terrace (Dark Night Blue) */
+      const bedFloorMat = stdMat(0xdad0fa, 0.78, 0.04);
+      const bedWallMat = stdMat(0xe8e1ff, 0.86, 0.02);
+      const hTerraceMat = stdMat(0x131c3d, 0.82, 0.08);
+      const tAlcoveWallMat = stdMat(0x1a2652, 0.78, 0.1);
+
+      /* Lighter, High-Visibility Staircase Materials */
+      const hStairTreadMat = stdMat(0xf5d6a4, 0.52, 0.04);
+      const hStairNosingMat = stdMat(0x5eead4, 0.3, 0.15, { emissive: 0x2dd4bf, emissiveIntensity: 0.28 });
+      const hStairRiserMat = stdMat(0xe2e8f0, 0.65, 0.06);
+      const hStairFrameMat = stdMat(0x94a3b8, 0.45, 0.28);
+
+      dayNightUpdaters.push((night) => {
+        hallFloorMat.color.setHex(night ? 0x352f42 : 0xf5efe0);
+        hallWallMat.color.setHex(night ? 0x413a52 : 0xfaf5e8);
+        studyFloorMat.color.setHex(night ? 0x111a36 : 0x1d2b52);
+        studyWallMat.color.setHex(night ? 0x172347 : 0x243563);
+        kitchenFloorMat.color.setHex(night ? 0x3f3622 : 0xf4da92);
+        kitchenWallMat.color.setHex(night ? 0x4b4129 : 0xfbeab8);
+        bedFloorMat.color.setHex(night ? 0x282147 : 0xdad0fa);
+        bedWallMat.color.setHex(night ? 0x332a59 : 0xe8e1ff);
+        hTerraceMat.color.setHex(night ? 0x0b1026 : 0x131c3d);
+        tAlcoveWallMat.color.setHex(night ? 0x101736 : 0x1a2652);
+        hPlinthMat.color.setHex(night ? 0x090f24 : 0x1e293b);
+        hCapMat.color.setHex(night ? 0x475569 : 0x94a3b8);
+        hBaseMat.color.setHex(night ? 0x334155 : 0xcbd5e1);
+        hStairTreadMat.color.setHex(night ? 0xe7c18a : 0xf5d6a4);
+        hStairRiserMat.color.setHex(night ? 0x64748b : 0xe2e8f0);
+        hStairFrameMat.color.setHex(night ? 0x64748b : 0x94a3b8);
+      });
+
+      const houseShell = new THREE.Group();
+      houseGroup.add(houseShell);
+
+      function addWalkSurface(w, d, x, y, z, meta, rotX = 0) {
+        const surf = new THREE.Mesh(
+          trackGeo(new THREE.PlaneGeometry(w, d)),
+          trackMat(new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide }))
         );
-        dayNightUpdaters.push((night) => {
-          floorMat.color.setHex(
-            isTerrace
-              ? (night ? ROOM_CONFIG.colors.terraceNight : ROOM_CONFIG.colors.terraceDay)
-              : (night ? ROOM_CONFIG.colors.floorNight : ROOM_CONFIG.colors.floorDay)
-          );
-        });
-
-        /* Complete 9.6 × 9.6 square floor slab with 0.42 thickness (top at y = 0) */
-        const floorSlab = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(ROOM_SIZE, 0.42, ROOM_SIZE)), floorMat);
-        floorSlab.position.set(0, -0.21, 0);
-        floorSlab.receiveShadow = true;
-        shell.add(floorSlab);
-
-        /* Visible plinth / edge trim around the floor slab */
-        const plinthMat = roomStdMat(roomIdx, 0x1e293b, 0.6, 0.25);
-        dayNightUpdaters.push((night) => plinthMat.color.setHex(night ? 0x090f24 : 0x1e293b));
-        const plinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(ROOM_SIZE + 0.22, 0.16, ROOM_SIZE + 0.22)), plinthMat);
-        plinth.position.set(0, -0.35, 0);
-        plinth.receiveShadow = true;
-        shell.add(plinth);
-
-        const edgeMat = roomStdMat(roomIdx, isTerrace ? 0x2dd4bf : 0x475569, 0.5, 0.25);
-        const frontTrim = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(ROOM_SIZE + 0.1, 0.1, 0.1)), edgeMat);
-        frontTrim.position.set(0, -0.02, ROOM_HALF);
-        const rightTrim = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.1, 0.1, ROOM_SIZE + 0.1)), edgeMat);
-        rightTrim.position.set(ROOM_HALF, -0.02, 0);
-        shell.add(frontTrim, rightTrim);
-
-        if (!isTerrace) {
-          const wallMat = roomStdMat(roomIdx, ROOM_CONFIG.colors.wallDay, 0.85, 0.03);
-          dayNightUpdaters.push((night) => wallMat.color.setHex(night ? ROOM_CONFIG.colors.wallNight : ROOM_CONFIG.colors.wallDay));
-
-          /* Full-height 5.2 back & left walls flush to the 9.6 × 9.6 floor */
-          const backW = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(ROOM_SIZE, WALL_H, WALL_T)), wallMat);
-          backW.position.set(0, WALL_H * 0.5, -WALL_POS);
-          backW.receiveShadow = true;
-          backW.castShadow = true;
-
-          const leftW = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, WALL_H, ROOM_SIZE)), wallMat);
-          leftW.position.set(-WALL_POS, WALL_H * 0.5, 0);
-          leftW.receiveShadow = true;
-          leftW.castShadow = true;
-
-          /* Wall top trim caps */
-          const capMat = roomStdMat(roomIdx, 0x94a3b8, 0.55, 0.15);
-          dayNightUpdaters.push((night) => capMat.color.setHex(night ? 0x334155 : 0x94a3b8));
-          const backCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(ROOM_SIZE + 0.06, 0.1, WALL_T + 0.06)), capMat);
-          backCap.position.set(0, WALL_H + 0.05, -WALL_POS);
-          const leftCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T + 0.06, 0.1, ROOM_SIZE + 0.06)), capMat);
-          leftCap.position.set(-WALL_POS, WALL_H + 0.05, 0);
-
-          /* Baseboards along back & left walls */
-          const baseMat = roomStdMat(roomIdx, 0xcbd5e1, 0.6, 0.08);
-          dayNightUpdaters.push((night) => baseMat.color.setHex(night ? 0x283252 : 0xcbd5e1));
-          const backBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(ROOM_SIZE - WALL_T, 0.24, 0.08)), baseMat);
-          backBase.position.set(WALL_T * 0.5, 0.12, -INNER_WALL + 0.03);
-          const leftBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.08, 0.24, ROOM_SIZE - WALL_T)), baseMat);
-          leftBase.position.set(-INNER_WALL + 0.03, 0.12, WALL_T * 0.5);
-
-          shell.add(backW, leftW, backCap, leftCap, backBase, leftBase);
-        } else {
-          /* Terrace: Night-sky backdrop walls + cozy corner trellis alcove for window & wall art */
-          const skyWallMat = roomBasicMat(roomIdx, { map: nightSkyTex });
-          const skyFrameMat = roomStdMat(roomIdx, 0x0f172a, 0.55, 0.35);
-
-          const backBackdrop = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(ROOM_SIZE, WALL_H, 0.18)), skyFrameMat);
-          backBackdrop.position.set(0, WALL_H * 0.5, -ROOM_HALF + 0.09);
-          const backSkyFace = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(ROOM_SIZE - 0.25, WALL_H - 0.25)), skyWallMat);
-          backSkyFace.position.set(0, WALL_H * 0.5, -ROOM_HALF + 0.19);
-
-          const leftBackdrop = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.18, WALL_H, ROOM_SIZE)), skyFrameMat);
-          leftBackdrop.position.set(-ROOM_HALF + 0.09, WALL_H * 0.5, 0);
-          const leftSkyFace = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(ROOM_SIZE - 0.25, WALL_H - 0.25)), skyWallMat);
-          leftSkyFace.rotation.y = Math.PI / 2;
-          leftSkyFace.position.set(-ROOM_HALF + 0.19, WALL_H * 0.5, 0);
-
-          shell.add(backBackdrop, backSkyFace, leftBackdrop, leftSkyFace);
-
-          /* Railing around platform edges (with small doorway gap on front-left) */
-          const railMat = roomStdMat(roomIdx, 0x2dd4bf, 0.35, 0.55);
-          const postGeo = trackGeo(new THREE.CylinderGeometry(0.06, 0.06, 1.15, 8));
-          const railPositions = [
-            [-4.55, -4.42], [-1.5, -4.42], [1.5, -4.42], [4.55, -4.42],
-            [-4.55, -1.45], [-4.55, 1.45], [-4.55, 4.48],
-            [4.55, -1.45], [4.55, 1.45], [4.55, 4.48],
-            [-0.55, 4.55], [2.05, 4.55]
-          ];
-          railPositions.forEach(([rx, rz]) => {
-            const p = new THREE.Mesh(postGeo, railMat);
-            p.position.set(rx, 0.575, rz);
-            p.castShadow = true;
-            shell.add(p);
-          });
-          const addRailBar = (w, d, x, y, z) => {
-            const bar = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w, 0.07, d)), railMat);
-            bar.position.set(x, y, z);
-            shell.add(bar);
-          };
-          [1.15, 0.6].forEach((ry) => {
-            addRailBar(9.16, 0.07, 0, ry, -4.42);
-            addRailBar(0.07, 8.96, -4.55, ry, 0.03);
-            addRailBar(0.07, 8.96, 4.55, ry, 0.03);
-            addRailBar(5.16, 0.07, 2.0, ry, 4.55);
-          });
-        }
-
-        g.visible = false;
-        scene.add(g);
-        return g;
+        surf.rotation.x = -Math.PI / 2 + rotX;
+        surf.position.set(x, y, z);
+        surf.userData.walkMeta = meta;
+        houseGroup.add(surf);
+        houseWalkSurfaces.push(surf);
+        return surf;
       }
 
-      /* Shared architectural furnishing helpers (tracked per-room for opacity fade) */
-      function addRoomWindow(roomIdx, wallSide, along, cy, w, h) {
-        const wg = new THREE.Group();
-        const frameMat = roomStdMat(roomIdx, 0x334155, 0.5, 0.25);
-        const paneMat = roomStdMat(roomIdx, 0xbae6fd, 0.15, 0.1, {
-          emissive: 0x38bdf8,
-          emissiveIntensity: 0.35
+      /* ---------- GROUND FLOOR CONTINUOUS SLAB (Equal 8.4-wide Hall | Study | Kitchen + Stair 1 Bay) ---------- */
+      /* Base slab spans X ∈ [-12.6, +14.6] (27.2), Z ∈ [-4.2, +4.2] (8.4), topped flush at Y = 0 by room-colored floor tiles */
+      const groundSlab = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(27.2, 0.4, 8.4)), hPlinthMat);
+      groundSlab.position.set(1.0, -0.22, 0);
+      groundSlab.receiveShadow = true;
+
+      const hallFloorTile = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, 0.02, 8.4)), hallFloorMat);
+      hallFloorTile.position.set(-8.4, -0.01, 0);
+      hallFloorTile.receiveShadow = true;
+
+      const studyFloorTile = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, 0.02, 8.4)), studyFloorMat);
+      studyFloorTile.position.set(0.0, -0.01, 0);
+      studyFloorTile.receiveShadow = true;
+
+      const kitchenFloorTile = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(10.4, 0.02, 8.4)), kitchenFloorMat);
+      kitchenFloorTile.position.set(9.4, -0.01, 0);
+      kitchenFloorTile.receiveShadow = true;
+
+      const groundPlinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(27.46, 0.16, 8.66)), hPlinthMat);
+      groundPlinth.position.set(1.0, -0.35, 0);
+      groundPlinth.receiveShadow = true;
+      const groundFrontTrim = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(27.3, 0.08, 0.08)), hTrimMat);
+      groundFrontTrim.position.set(1.0, -0.02, 4.2);
+      const groundRightTrim = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.08, 0.08, 8.5)), hTrimMat);
+      groundRightTrim.position.set(14.6, -0.02, 0);
+      houseShell.add(groundSlab, hallFloorTile, studyFloorTile, kitchenFloorTile, groundPlinth, groundFrontTrim, groundRightTrim);
+
+      /* Full-height Ground Back Wall (color-blocked per room) & Hall Left Wall (Front & Right cut away) */
+      const gBackWallHall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, BEDROOM_Y, WALL_T)), hallWallMat);
+      gBackWallHall.position.set(-8.4, BEDROOM_Y * 0.5, Z_BACK + WALL_T * 0.5);
+      gBackWallHall.receiveShadow = true;
+      gBackWallHall.castShadow = true;
+
+      const gBackWallStudy = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, BEDROOM_Y, WALL_T)), studyWallMat);
+      gBackWallStudy.position.set(0.0, BEDROOM_Y * 0.5, Z_BACK + WALL_T * 0.5);
+      gBackWallStudy.receiveShadow = true;
+      gBackWallStudy.castShadow = true;
+
+      const gBackWallKitchen = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(10.4, BEDROOM_Y, WALL_T)), kitchenWallMat);
+      gBackWallKitchen.position.set(9.4, BEDROOM_Y * 0.5, Z_BACK + WALL_T * 0.5);
+      gBackWallKitchen.receiveShadow = true;
+      gBackWallKitchen.castShadow = true;
+
+      const gLeftWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, BEDROOM_Y, 8.4)), hallWallMat);
+      gLeftWall.position.set(X_HALL_LEFT + WALL_T * 0.5, BEDROOM_Y * 0.5, 0);
+      gLeftWall.receiveShadow = true;
+      gLeftWall.castShadow = true;
+
+      const gLeftCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T + 0.05, 0.08, 8.44)), hCapMat);
+      gLeftCap.position.set(X_HALL_LEFT + WALL_T * 0.5, BEDROOM_Y + 0.04, 0);
+      const gBackHallCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(10.2, 0.08, WALL_T + 0.05)), hCapMat);
+      gBackHallCap.position.set(-7.5, BEDROOM_Y + 0.04, Z_BACK + WALL_T * 0.5);
+
+      const gBackBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(26.9, 0.18, 0.06)), hBaseMat);
+      gBackBase.position.set(1.15, 0.09, Z_BACK_INNER + 0.02);
+      const gLeftBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.06, 0.18, 8.1)), hBaseMat);
+      gLeftBase.position.set(X_HALL_INNER + 0.02, 0.09, 0.15);
+      houseShell.add(gBackWallHall, gBackWallStudy, gBackWallKitchen, gLeftWall, gLeftCap, gBackHallCap, gBackBase, gLeftBase);
+
+      /* Small Crisp Room-Name Doorway Signs */
+      function createDoorwaySignTexture(text, accentHex = "#2dd4bf") {
+        const c = document.createElement("canvas");
+        c.width = 512;
+        c.height = 128;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(0, 0, 512, 128);
+        ctx.fillStyle = accentHex;
+        ctx.fillRect(10, 10, 492, 10);
+        ctx.strokeStyle = "rgba(255,255,255,0.28)";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(8, 8, 496, 112);
+        ctx.fillStyle = "#f8fafc";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "700 34px 'Plus Jakarta Sans', Outfit, sans-serif";
+        ctx.fillText(text, 256, 72, 468);
+        const tex = trackTex(new THREE.CanvasTexture(c));
+        tex.colorSpace = THREE.SRGBColorSpace;
+        return tex;
+      }
+
+      function addDoorwaySign(label, accentHex, x, y, z, rotY = 0) {
+        const sg = new THREE.Group();
+        const plaque = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.18, 0.34, 0.06)), hPlinthMat);
+        const face = new THREE.Mesh(
+          trackGeo(new THREE.PlaneGeometry(1.12, 0.28)),
+          trackMat(new THREE.MeshBasicMaterial({ map: createDoorwaySignTexture(label, accentHex) }))
+        );
+        face.position.z = 0.034;
+        sg.add(plaque, face);
+        sg.position.set(x, y, z);
+        sg.rotation.y = rotY;
+        houseShell.add(sg);
+      }
+
+      /* Slim Low-Cutaway Partition Walls between Hall | Study (X = -4.2) and Study | Kitchen (X = +4.2) */
+      /* Wide Open Doorways Z ∈ [-1.25, +2.15]; front-facing edge reduced to a low floor curb (0.22 tall) for clear sightlines */
+      const partBackGeo = trackGeo(new THREE.BoxGeometry(0.12, 1.32, 2.65));
+      const partFrontCurbGeo = trackGeo(new THREE.BoxGeometry(0.12, 0.22, 2.05));
+      const partCapBackGeo = trackGeo(new THREE.BoxGeometry(0.16, 0.06, 2.7));
+      const partCapFrontGeo = trackGeo(new THREE.BoxGeometry(0.16, 0.05, 2.08));
+      const threshGeo = trackGeo(new THREE.BoxGeometry(0.14, 0.024, 3.4));
+      [
+        { px: -4.2, mat: studyWallMat, label: "HALL ⇄ STUDY", accent: "#2dd4bf" },
+        { px: 4.2, mat: kitchenWallMat, label: "STUDY ⇄ KITCHEN", accent: "#fbbf24" }
+      ].forEach(({ px, mat, label, accent }) => {
+        const pb = new THREE.Mesh(partBackGeo, mat);
+        pb.position.set(px, 0.66, -2.575);
+        pb.castShadow = true;
+        pb.receiveShadow = true;
+        const pf = new THREE.Mesh(partFrontCurbGeo, mat);
+        pf.position.set(px, 0.11, 3.175);
+        pf.receiveShadow = true;
+        const cb = new THREE.Mesh(partCapBackGeo, hCapMat);
+        cb.position.set(px, 1.35, -2.575);
+        const cf = new THREE.Mesh(partCapFrontGeo, hCapMat);
+        cf.position.set(px, 0.245, 3.175);
+        const thr = new THREE.Mesh(threshGeo, hStripMat);
+        thr.position.set(px, 0.012, 0.45);
+        thr.receiveShadow = true;
+        houseShell.add(pb, pf, cb, cf, thr);
+        addDoorwaySign(label, accent, px, 1.62, -1.35, 0.28);
+      });
+
+      /* Thin floor strip & doorway sign at Staircase 1 entry (Kitchen -> Bedroom) */
+      const stair1Strip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.024, 2.2)), hStripMat);
+      stair1Strip.position.set(12.6, 0.012, 3.0);
+      houseShell.add(stair1Strip);
+      addDoorwaySign("↑ BEDROOM", "#a78bfa", 13.6, 1.55, 3.35, -0.35);
+
+      /* ---------- UPPER FLOOR: BEDROOM (Lavender tint, above Study & Kitchen) ---------- */
+      /* Main deck: X ∈ [-2.4, +12.6] (15.0), Z ∈ [-4.2, +1.2] (5.4), top at BEDROOM_Y = 5.4 */
+      const bedSlab = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.0, 0.36, 5.4)), bedFloorMat);
+      bedSlab.position.set(5.1, BEDROOM_Y - 0.18, -1.5);
+      bedSlab.castShadow = true;
+      bedSlab.receiveShadow = true;
+      /* Right stair 1 landing flush at X ∈ [+12.6, +14.6], Z ∈ [-4.2, -2.0] */
+      const stair1Landing = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.36, 2.2)), bedFloorMat);
+      stair1Landing.position.set(13.6, BEDROOM_Y - 0.18, -3.1);
+      stair1Landing.castShadow = true;
+      stair1Landing.receiveShadow = true;
+
+      /* Structural support post under Bedroom's front-left corner so nothing floats */
+      const bedSupportPost = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, BEDROOM_Y - 0.36, 0.22)), hPlinthMat);
+      bedSupportPost.position.set(-2.24, (BEDROOM_Y - 0.36) * 0.5, 1.04);
+      bedSupportPost.castShadow = true;
+
+      /* Full-height Bedroom Back & Left Walls (Soft Lavender) */
+      const bedWallH = TERRACE_Y - BEDROOM_Y; // 4.8
+      const bBackWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(17.0, bedWallH, WALL_T)), bedWallMat);
+      bBackWall.position.set(6.1, BEDROOM_Y + bedWallH * 0.5, Z_BACK + WALL_T * 0.5);
+      bBackWall.receiveShadow = true;
+      bBackWall.castShadow = true;
+      const bLeftWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, bedWallH, 5.4)), bedWallMat);
+      bLeftWall.position.set(-2.4 + WALL_T * 0.5, BEDROOM_Y + bedWallH * 0.5, -1.5);
+      bLeftWall.receiveShadow = true;
+      bLeftWall.castShadow = true;
+      const bLeftCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T + 0.05, 0.08, 5.44)), hCapMat);
+      bLeftCap.position.set(-2.4 + WALL_T * 0.5, TERRACE_Y + 0.04, -1.5);
+      const bBackCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(17.04, 0.08, WALL_T + 0.05)), hCapMat);
+      bBackCap.position.set(6.1, TERRACE_Y + 0.04, Z_BACK + WALL_T * 0.5);
+      const bBackBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(16.7, 0.16, 0.06)), hBaseMat);
+      bBackBase.position.set(6.25, BEDROOM_Y + 0.08, Z_BACK_INNER + 0.02);
+      const bLeftBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.06, 0.16, 5.1)), hBaseMat);
+      bLeftBase.position.set(-2.08, BEDROOM_Y + 0.08, -1.35);
+
+      houseShell.add(bedSlab, stair1Landing, bedSupportPost, bBackWall, bLeftWall, bLeftCap, bBackCap, bBackBase, bLeftBase);
+
+      /* Slim & Low Cutaway Railings (front edges very low so furniture stays completely visible) */
+      const lowPostGeo = trackGeo(new THREE.CylinderGeometry(0.024, 0.024, 0.38, 8));
+      const backPostGeo = trackGeo(new THREE.CylinderGeometry(0.028, 0.028, 0.56, 8));
+      function addRailingSegment(x1, z1, x2, z2, baseY, lowFront = false) {
+        const dx = x2 - x1;
+        const dz = z2 - z1;
+        const len = Math.hypot(dx, dz);
+        const angle = Math.atan2(dx, dz);
+        const midX = (x1 + x2) * 0.5;
+        const midZ = (z1 + z2) * 0.5;
+        const h = lowFront ? 0.38 : 0.56;
+        const pGeo = lowFront ? lowPostGeo : backPostGeo;
+        const count = Math.max(2, Math.round(len / 2.8) + 1);
+        for (let i = 0; i < count; i++) {
+          const t = i / (count - 1);
+          const p = new THREE.Mesh(pGeo, hRailMat);
+          p.position.set(x1 + dx * t, baseY + h * 0.5, z1 + dz * t);
+          houseShell.add(p);
+        }
+        const bar = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.032, 0.032, len + 0.04)), hRailMat);
+        bar.position.set(midX, baseY + h, midZ);
+        bar.rotation.y = angle;
+        houseShell.add(bar);
+      }
+
+      /* Bedroom Open Front & Right Edge Railings (ultra-low 0.38 front curb rail + open Stair 1 landing) */
+      addRailingSegment(-2.22, 1.08, 12.48, 1.08, BEDROOM_Y, true);
+      addRailingSegment(12.48, -1.9, 12.48, 1.08, BEDROOM_Y, true);
+      addRailingSegment(12.6, -4.02, 14.48, -4.02, BEDROOM_Y, false);
+      addRailingSegment(14.48, -4.02, 14.48, -2.05, BEDROOM_Y, true);
+
+      /* Thin floor strips & signs at Stair 1 arrival + Stair 2 entry */
+      const stair1TopStrip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.024, 2.0)), hStripMat);
+      stair1TopStrip.position.set(12.6, BEDROOM_Y + 0.012, -3.1);
+      const stair2Strip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.68, 0.024, 0.14)), hStripMat);
+      stair2Strip.position.set(11.7, BEDROOM_Y + 0.012, 0.5);
+      houseShell.add(stair1TopStrip, stair2Strip);
+      addDoorwaySign("↑ TERRACE", "#5eead4", 11.7, BEDROOM_Y + 1.45, 0.55, -0.35);
+
+      function buildStaircase(cx, width, zBottom, zTop, yBottom, yTop, steps) {
+        const sg = new THREE.Group();
+        const spanZ = zTop - zBottom;
+        const riseY = yTop - yBottom;
+        const stepDepth = Math.abs(spanZ) / steps;
+        const stepHeight = riseY / steps;
+
+        const treadGeo = trackGeo(new THREE.BoxGeometry(width - 0.14, 0.11, stepDepth + 0.08));
+        const nosingGeo = trackGeo(new THREE.BoxGeometry(width - 0.12, 0.036, 0.065));
+        const riserGeo = trackGeo(new THREE.BoxGeometry(width - 0.18, stepHeight, 0.07));
+        for (let s = 0; s < steps; s++) {
+          const t = (s + 0.5) / steps;
+          const sy = yBottom + (s + 1) * stepHeight;
+          const sz = zBottom + spanZ * t;
+          const tread = new THREE.Mesh(treadGeo, hStairTreadMat);
+          tread.position.set(cx, sy - 0.055, sz);
+          tread.castShadow = true;
+          tread.receiveShadow = true;
+          const nosing = new THREE.Mesh(nosingGeo, hStairNosingMat);
+          nosing.position.set(cx, sy - 0.01, sz + stepDepth * 0.48);
+          const riser = new THREE.Mesh(riserGeo, hStairRiserMat);
+          riser.position.set(cx, sy - stepHeight * 0.5, sz + stepDepth * 0.44);
+          sg.add(tread, nosing, riser);
+        }
+
+        const slopeLen = Math.hypot(spanZ, riseY);
+        const slopePitch = Math.atan2(riseY, Math.abs(spanZ));
+        const midZ = (zBottom + zTop) * 0.5;
+        const midY = (yBottom + yTop) * 0.5;
+
+        const stringerGeo = trackGeo(new THREE.BoxGeometry(0.085, 0.2, slopeLen));
+        const handGeo = trackGeo(new THREE.BoxGeometry(0.042, 0.042, slopeLen + 0.14));
+        const sPostGeo = trackGeo(new THREE.CylinderGeometry(0.025, 0.025, 0.68, 8));
+        [-width * 0.5 + 0.05, width * 0.5 - 0.05].forEach((ox) => {
+          const str = new THREE.Mesh(stringerGeo, hStairFrameMat);
+          str.position.set(cx + ox, midY - 0.12, midZ);
+          str.rotation.x = slopePitch;
+          str.castShadow = true;
+          const rail = new THREE.Mesh(handGeo, hRailMat);
+          rail.position.set(cx + ox, midY + 0.66, midZ);
+          rail.rotation.x = slopePitch;
+          [0, 0.5, 1].forEach((pt) => {
+            const sp = new THREE.Mesh(sPostGeo, hRailMat);
+            sp.position.set(cx + ox, yBottom + riseY * pt + 0.34, zBottom + spanZ * pt);
+            sg.add(sp);
+          });
+          sg.add(str, rail);
         });
+        houseShell.add(sg);
+      }
+
+      /* Staircase 1: Right end of Kitchen (13.6, 0, +3.2) -> Bedroom landing (13.6, 5.4, -2.0) */
+      buildStaircase(13.6, 1.85, 3.2, -2.0, GROUND_Y, BEDROOM_Y, STAIR1_STEPS);
+
+      /* ---------- TOP LEVEL: ROOFTOP TERRACE (Dark Night Blue, above Bedroom) ---------- */
+      /* Deck: X ∈ [-0.4, +10.8] (11.2), Z ∈ [-4.2, +1.0] (5.2), top at TERRACE_Y = 10.2 */
+      const terraceSlab = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(11.2, 0.36, 5.2)), hTerraceMat);
+      terraceSlab.position.set(5.2, TERRACE_Y - 0.18, -1.6);
+      terraceSlab.castShadow = true;
+      terraceSlab.receiveShadow = true;
+      const tLanding = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.8, 0.36, 1.3)), hTerraceMat);
+      tLanding.position.set(11.7, TERRACE_Y - 0.18, -3.55);
+      tLanding.castShadow = true;
+      tLanding.receiveShadow = true;
+      const tTrimFront = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(11.26, 0.06, 0.06)), hRailMat);
+      tTrimFront.position.set(5.2, TERRACE_Y - 0.02, 1.0);
+      const tSupportPost = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.2, TERRACE_Y - BEDROOM_Y - 0.36, 0.2)), hPlinthMat);
+      tSupportPost.position.set(-0.22, BEDROOM_Y + (TERRACE_Y - BEDROOM_Y - 0.36) * 0.5, 0.85);
+      tSupportPost.castShadow = true;
+      const tStairStrip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.024, 1.25)), hStripMat);
+      tStairStrip.position.set(10.8, TERRACE_Y + 0.012, -3.55);
+      houseShell.add(terraceSlab, tLanding, tTrimFront, tSupportPost, tStairStrip);
+
+      /* Terrace Perimeter Railings (back normal slim, front & right very low 0.38 so stars & furniture stay open) */
+      addRailingSegment(-0.28, -4.06, 10.68, -4.06, TERRACE_Y, false);
+      addRailingSegment(-0.28, -4.06, -0.28, 0.88, TERRACE_Y, false);
+      addRailingSegment(-0.28, 0.88, 10.68, 0.88, TERRACE_Y, true);
+      addRailingSegment(10.68, -2.85, 10.68, 0.88, TERRACE_Y, true);
+      addRailingSegment(10.8, -4.06, 12.5, -4.06, TERRACE_Y, false);
+      addRailingSegment(12.5, -4.06, 12.5, -2.95, TERRACE_Y, true);
+
+      /* Staircase 2: Bedroom (11.7, 5.4, +0.4) -> Rooftop Terrace landing (11.7, 10.2, -2.9) */
+      buildStaircase(11.7, 1.68, 0.4, -2.9, BEDROOM_Y, TERRACE_Y, STAIR2_STEPS);
+
+      /* Walk-surface proxies (for smooth drag-and-snap anywhere across all 3 levels & both stairs) */
+      addWalkSurface(8.2, 8.0, -8.4, GROUND_Y, 0, { zone: "hall", roomIdx: 0 });
+      addWalkSurface(8.2, 8.0, 0.0, GROUND_Y, 0, { zone: "study", roomIdx: 1 });
+      addWalkSurface(8.2, 8.0, 8.4, GROUND_Y, 0, { zone: "kitchen", roomIdx: 2 });
+      addWalkSurface(1.9, Math.hypot(5.2, BEDROOM_Y), 13.6, BEDROOM_Y * 0.5, 0.6, {
+        zone: "stair1", roomIdx: 2, y0: GROUND_Y, y1: BEDROOM_Y, z0: 3.2, z1: -2.0, steps: STAIR1_STEPS
+      }, Math.atan2(BEDROOM_Y, 5.2));
+      addWalkSurface(14.8, 5.2, 5.1, BEDROOM_Y, -1.5, { zone: "bedroom", roomIdx: 3 });
+      addWalkSurface(2.0, 2.2, 13.6, BEDROOM_Y, -3.1, { zone: "bedroom", roomIdx: 3 });
+      addWalkSurface(1.75, Math.hypot(3.3, TERRACE_Y - BEDROOM_Y), 11.7, (BEDROOM_Y + TERRACE_Y) * 0.5, -1.25, {
+        zone: "stair2", roomIdx: 3, y0: BEDROOM_Y, y1: TERRACE_Y, z0: 0.4, z1: -2.9, steps: STAIR2_STEPS
+      }, Math.atan2(TERRACE_Y - BEDROOM_Y, 3.3));
+      addWalkSurface(11.0, 5.0, 5.2, TERRACE_Y, -1.6, { zone: "terrace", roomIdx: 4 });
+      addWalkSurface(1.8, 1.3, 11.7, TERRACE_Y, -3.55, { zone: "terrace", roomIdx: 4 });
+
+      /* Architectural Furnishing Helpers in Continuous House World Coordinates */
+      function addRoomWindowAt(roomIdx, x, y, z, rotY, w, h) {
+        const wg = new THREE.Group();
+        const frameMat = stdMat(0x334155, 0.5, 0.25);
+        const paneMat = stdMat(0xbae6fd, 0.15, 0.1, { emissive: 0x38bdf8, emissiveIntensity: 0.35 });
         roomWindowMats.push(paneMat);
         dayNightUpdaters.push((night) => {
           paneMat.color.setHex(night ? 0x1e293b : 0xbae6fd);
           paneMat.emissive.setHex(night ? 0xfbbf24 : 0x38bdf8);
           paneMat.emissiveIntensity = night ? 0.85 : 0.35;
         });
-
-        const frame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w + 0.2, h + 0.2, 0.1)), frameMat);
+        const frame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w + 0.18, h + 0.18, 0.1)), frameMat);
         const pane = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w, h, 0.05)), paneMat);
         pane.position.z = 0.04;
-        const barV = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.06, h, 0.08)), frameMat);
+        const barV = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.055, h, 0.08)), frameMat);
         barV.position.z = 0.06;
-        const barH = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w, 0.06, 0.08)), frameMat);
+        const barH = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w, 0.055, 0.08)), frameMat);
         barH.position.z = 0.06;
-        const sill = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w + 0.32, 0.09, 0.24)), roomStdMat(roomIdx, 0xe2e8f0, 0.6, 0.08));
-        sill.position.set(0, -h * 0.5 - 0.09, 0.09);
+        const sill = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w + 0.28, 0.08, 0.22)), stdMat(0xe2e8f0, 0.6, 0.08));
+        sill.position.set(0, -h * 0.5 - 0.08, 0.08);
         wg.add(frame, pane, barV, barH, sill);
-
-        if (wallSide === "back") {
-          wg.position.set(along, cy, -INNER_WALL + 0.04);
-        } else {
-          wg.rotation.y = Math.PI / 2;
-          wg.position.set(-INNER_WALL + 0.04, cy, along);
-        }
+        wg.position.set(x, y, z);
+        wg.rotation.y = rotY;
         roomGroups[roomIdx].add(wg);
       }
 
-      function addRoomRug(roomIdx, x, z, w, d, outerCol, innerCol) {
+      function addRoomRugAt(roomIdx, x, y, z, w, d, outerCol, innerCol) {
         const rg = new THREE.Group();
-        const r1 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w, 0.032, d)), roomStdMat(roomIdx, outerCol, 0.92, 0.02));
-        r1.position.y = 0.016;
+        const r1 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w, 0.032, d)), stdMat(outerCol, 0.92, 0.02));
+        r1.position.y = 0.022;
         r1.receiveShadow = true;
-        const r2 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w * 0.72, 0.038, d * 0.68)), roomStdMat(roomIdx, innerCol, 0.92, 0.02));
-        r2.position.y = 0.019;
+        const r2 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w * 0.72, 0.038, d * 0.68)), stdMat(innerCol, 0.92, 0.02));
+        r2.position.y = 0.026;
         r2.receiveShadow = true;
         rg.add(r1, r2);
-        rg.position.set(x, 0, z);
+        rg.position.set(x, y, z);
         roomGroups[roomIdx].add(rg);
       }
 
-      function addWallArtPiece(roomIdx, wallSide, along, cy, w, h, bgHex, accentHex) {
+      function addWallArtAt(roomIdx, x, y, z, rotY, w, h, bgHex, accentHex) {
         const art = new THREE.Group();
-        const frame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w + 0.14, h + 0.14, 0.08)), roomStdMat(roomIdx, 0x1e293b, 0.45, 0.3));
-        const bg = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w, h, 0.05)), roomStdMat(roomIdx, bgHex, 0.65, 0.05));
+        const frame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w + 0.12, h + 0.12, 0.08)), stdMat(0x1e293b, 0.45, 0.3));
+        const bg = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w, h, 0.05)), stdMat(bgHex, 0.65, 0.05));
         bg.position.z = 0.03;
         const shape = new THREE.Mesh(
-          trackGeo(new THREE.SphereGeometry(Math.min(w, h) * 0.28, 12, 10)),
-          roomStdMat(roomIdx, accentHex, 0.45, 0.1, { emissive: accentHex, emissiveIntensity: 0.25 })
+          trackGeo(new THREE.SphereGeometry(Math.min(w, h) * 0.27, 12, 10)),
+          stdMat(accentHex, 0.45, 0.1, { emissive: accentHex, emissiveIntensity: 0.25 })
         );
         shape.scale.set(1, 1, 0.25);
         shape.position.z = 0.065;
         art.add(frame, bg, shape);
-        if (wallSide === "back") art.position.set(along, cy, -INNER_WALL + 0.04);
-        else {
-          art.rotation.y = Math.PI / 2;
-          art.position.set(-INNER_WALL + 0.04, cy, along);
-        }
+        art.position.set(x, y, z);
+        art.rotation.y = rotY;
         roomGroups[roomIdx].add(art);
       }
 
-      function createPottedPlant(roomIdx, scale = 1, potHex = 0xd97757, leafHex = 0x10b981) {
+      function createPottedPlant(scale = 1, potHex = 0xd97757, leafHex = 0x10b981) {
         const pg = new THREE.Group();
-        const pot = new THREE.Mesh(
-          trackGeo(new THREE.CylinderGeometry(0.28 * scale, 0.21 * scale, 0.46 * scale, 12)),
-          roomStdMat(roomIdx, potHex, 0.72, 0.05)
-        );
+        const pot = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.28 * scale, 0.21 * scale, 0.46 * scale, 12)), stdMat(potHex, 0.72, 0.05));
         pot.position.y = 0.23 * scale;
-        const soil = new THREE.Mesh(
-          trackGeo(new THREE.CylinderGeometry(0.25 * scale, 0.25 * scale, 0.04 * scale, 10)),
-          roomStdMat(roomIdx, 0x451a03, 0.9, 0)
-        );
+        const soil = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.25 * scale, 0.25 * scale, 0.04 * scale, 10)), stdMat(0x451a03, 0.9, 0));
         soil.position.y = 0.44 * scale;
-        const lMat = roomStdMat(roomIdx, leafHex, 0.62, 0.04);
-        [
-          [0, 0.68, 0, 0.26],
-          [-0.18, 0.58, 0.1, 0.19],
-          [0.19, 0.61, -0.09, 0.2],
-          [0.04, 0.85, 0.05, 0.18]
-        ].forEach(([lx, ly, lz, r]) => {
+        const lMat = stdMat(leafHex, 0.62, 0.04);
+        [[0, 0.68, 0, 0.26], [-0.18, 0.58, 0.1, 0.19], [0.19, 0.61, -0.09, 0.2], [0.04, 0.85, 0.05, 0.18]].forEach(([lx, ly, lz, r]) => {
           const lf = new THREE.Mesh(trackGeo(new THREE.IcosahedronGeometry(r * scale, 1)), lMat);
           lf.position.set(lx * scale, ly * scale, lz * scale);
           pg.add(lf);
@@ -2843,20 +3071,7 @@
         return pg;
       }
 
-      function createFloorLamp(roomIdx, shadeHex = 0x2dd4bf) {
-        const fl = new THREE.Group();
-        const base = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.28, 0.32, 0.08, 12)), roomStdMat(roomIdx, 0x1e293b, 0.4, 0.55));
-        base.position.y = 0.04;
-        const pole = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.045, 0.045, 2.25, 8)), roomStdMat(roomIdx, 0x94a3b8, 0.35, 0.7));
-        pole.position.y = 1.15;
-        const shade = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.26, 0.38, 0.44, 14)), roomStdMat(roomIdx, shadeHex, 0.35, 0.1, { emissive: 0xfde68a, emissiveIntensity: 0.4 }));
-        shade.position.y = 2.38;
-        fl.add(base, pole, shade);
-        return fl;
-      }
-
       function registerRoomItem(roomIdx, itemGroup, cfg) {
-        const parentRoom = roomGroups[roomIdx];
         if (cfg.scale) itemGroup.scale.setScalar(cfg.scale);
         itemGroup.userData = {
           roomIdx,
@@ -2865,6 +3080,8 @@
           defaultPos: new THREE.Vector3(...cfg.pos),
           defaultRotY: cfg.rotY || 0,
           fixedY: cfg.fixedY,
+          floorY: ROOM_BOUNDS[roomIdx].floorY,
+          standPos: cfg.standPos ? new THREE.Vector3(...cfg.standPos) : null,
           isDeskTop: !!cfg.isDeskTop,
           isCounterTop: !!cfg.isCounterTop,
           gesture: cfg.gesture || "point",
@@ -2872,113 +3089,90 @@
           emissiveMaterials: []
         };
         itemGroup.traverse((c) => {
-          if (c.isMesh && c.material) {
-            trackRoomMat(roomIdx, c.material);
-            if (c.material.emissive) {
-              itemGroup.userData.emissiveMaterials.push({
-                mat: c.material,
-                baseIntensity: c.material.emissiveIntensity || 0
-              });
-            }
+          if (c.isMesh && c.material && c.material.emissive) {
+            itemGroup.userData.emissiveMaterials.push({
+              mat: c.material,
+              baseIntensity: c.material.emissiveIntensity || 0
+            });
           }
         });
         itemGroup.position.copy(itemGroup.userData.defaultPos);
         itemGroup.rotation.y = itemGroup.userData.defaultRotY;
         enableShadows(itemGroup);
-        parentRoom.add(itemGroup);
+        roomGroups[roomIdx].add(itemGroup);
         roomInteractiveItems[roomIdx].push(itemGroup);
         return itemGroup;
       }
 
-      /* ---------------- ROOM 0: HALL (ABOUT) ---------------- */
-      roomGroups[0] = createDioramaRoomShell(0, false);
-
-      /* Hall Entrance Door + Nameplate */
+      /* ---------------- ROOM 0: HALL (ABOUT — 6 main items: 1 rug, 1 plant, 1 wall art + door, wallframe, sofa, coffeetable, shoerack) ---------------- */
+      /* Hall Entrance Door + Cycling Multi-Script Nameplate on inner left wall */
       const hallDoor = new THREE.Group();
-      const hdFrame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.18, 3.4, 1.8)), roomStdMat(0, 0x4c1d95, 0.5, 0.15));
+      const hdFrame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.18, 3.4, 1.8)), stdMat(0x4c1d95, 0.5, 0.15));
       hdFrame.position.y = 1.7;
-      const hdLeaf = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.12, 3.15, 1.52)), roomStdMat(0, 0x0f766e, 0.55, 0.1));
+      const hdLeaf = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.12, 3.15, 1.52)), stdMat(0x0f766e, 0.55, 0.1));
       hdLeaf.position.set(0.06, 1.58, 0);
-      const hdPlate = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(1.7, 0.42)), roomBasicMat(0, { map: npTex }));
+      const hdPlate = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(1.7, 0.42)), trackMat(new THREE.MeshBasicMaterial({ map: npTex })));
       hdPlate.rotation.y = Math.PI / 2;
       hdPlate.position.set(0.14, 2.95, 0);
-      const welcomeMat = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.15, 0.04, 1.65)), roomStdMat(0, 0x0d9488, 0.9, 0.02));
-      welcomeMat.position.set(0.95, 0.02, 0);
+      const welcomeMat = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.1, 0.036, 1.55)), stdMat(0x0d9488, 0.9, 0.02));
+      welcomeMat.position.set(0.92, 0.018, 0);
       hallDoor.add(hdFrame, hdLeaf, hdPlate, welcomeMat);
-      hallDoor.position.set(-INNER_WALL, 0, 2.4);
+      hallDoor.position.set(X_HALL_INNER, GROUND_Y, 2.25);
+      enableShadows(hallDoor);
       roomGroups[0].add(hallDoor);
 
-      addRoomWindow(0, "left", -1.25, 2.85, 2.1, 1.8);
-      addWallArtPiece(0, "back", -2.15, 2.85, 1.55, 1.2, 0x312e81, 0x2dd4bf);
-      addRoomRug(0, 0.75, 0.65, 5.2, 3.7, 0x4c1d95, 0x0f766e);
+      addRoomWindowAt(0, X_HALL_INNER + 0.05, 2.85, -1.35, Math.PI / 2, 2.1, 1.8);
+      addWallArtAt(0, -10.55, 2.85, Z_BACK_INNER + 0.04, 0, 1.55, 1.2, 0x312e81, 0x2dd4bf);
+      addRoomRugAt(0, -8.1, GROUND_Y, 0.2, 4.4, 3.1, 0x4c1d95, 0x0f766e);
 
       /* Sofa */
       const sofaGroup = new THREE.Group();
-      const sBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.3, 0.42, 1.0)), roomStdMat(0, 0x6d28d9, 0.72, 0.05));
+      const sBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.3, 0.42, 1.0)), stdMat(0x6d28d9, 0.72, 0.05));
       sBase.position.y = 0.21;
-      const sBack = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.3, 0.72, 0.22)), roomStdMat(0, 0x5b21b6, 0.72, 0.05));
+      const sBack = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.3, 0.72, 0.22)), stdMat(0x5b21b6, 0.72, 0.05));
       sBack.position.set(0, 0.6, -0.39);
-      const sArmL = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, 0.54, 1.0)), roomStdMat(0, 0x5b21b6, 0.72, 0.05));
+      const sArmL = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, 0.54, 1.0)), stdMat(0x5b21b6, 0.72, 0.05));
       sArmL.position.set(-1.05, 0.4, 0);
       const sArmR = sArmL.clone();
       sArmR.position.x = 1.05;
-      const sPillow = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.45, 0.34, 0.18)), roomStdMat(0, 0x2dd4bf, 0.8, 0.05));
+      const sPillow = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.45, 0.34, 0.18)), stdMat(0x2dd4bf, 0.8, 0.05));
       sPillow.position.set(-0.6, 0.58, -0.15);
-      const sPillow2 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.42, 0.32, 0.18)), roomStdMat(0, 0xf472b6, 0.8, 0.05));
+      const sPillow2 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.42, 0.32, 0.18)), stdMat(0xf472b6, 0.8, 0.05));
       sPillow2.position.set(0.65, 0.58, -0.15);
       sofaGroup.add(sBase, sBack, sArmL, sArmR, sPillow, sPillow2);
       registerRoomItem(0, sofaGroup, {
         id: "sofa",
         tooltip: "Sofa (Drag to move)",
-        pos: [1.05, 0, -3.05],
-        scale: 1.38
+        pos: [-7.8, GROUND_Y, -2.95],
+        scale: 1.32
       });
 
       /* Coffee Table */
       const coffeeTable = new THREE.Group();
-      const ctTop = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.3, 0.09, 0.75)), roomStdMat(0, 0xc2956e, 0.55, 0.08));
+      const ctTop = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.3, 0.09, 0.75)), stdMat(0xc2956e, 0.55, 0.08));
       ctTop.position.y = 0.44;
       const ctLegGeo = trackGeo(new THREE.CylinderGeometry(0.04, 0.04, 0.4, 8));
-      const ctLegMat = roomStdMat(0, 0x1e293b, 0.45, 0.4);
+      const ctLegMat = stdMat(0x1e293b, 0.45, 0.4);
       [[-0.52, -0.26], [0.52, -0.26], [-0.52, 0.26], [0.52, 0.26]].forEach(([lx, lz]) => {
         const lg = new THREE.Mesh(ctLegGeo, ctLegMat);
         lg.position.set(lx, 0.2, lz);
         coffeeTable.add(lg);
       });
-      const ctBook = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.36, 0.07, 0.26)), roomStdMat(0, 0x8b5cf6, 0.6, 0.1));
+      const ctBook = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.36, 0.07, 0.26)), stdMat(0x8b5cf6, 0.6, 0.1));
       ctBook.position.set(-0.22, 0.52, 0);
-      const ctMug = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.08, 0.07, 0.14, 10)), roomStdMat(0, 0x2dd4bf, 0.4, 0.1));
+      const ctMug = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.08, 0.07, 0.14, 10)), stdMat(0x2dd4bf, 0.4, 0.1));
       ctMug.position.set(0.28, 0.55, 0.08);
       coffeeTable.add(ctTop, ctBook, ctMug);
       registerRoomItem(0, coffeeTable, {
         id: "coffeetable",
         tooltip: "Coffee Table (Drag to move)",
-        pos: [1.05, 0, -0.55],
-        scale: 1.38
-      });
-
-      /* Cozy Accent Armchair */
-      const armchair = new THREE.Group();
-      const acSeat = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.15, 0.44, 1.05)), roomStdMat(0, 0x0f766e, 0.72, 0.05));
-      acSeat.position.y = 0.22;
-      const acBack = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.15, 0.76, 0.22)), roomStdMat(0, 0x115e59, 0.72, 0.05));
-      acBack.position.set(0, 0.62, -0.42);
-      const acArmL = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.2, 0.56, 1.05)), roomStdMat(0, 0x115e59, 0.72, 0.05));
-      acArmL.position.set(-0.48, 0.42, 0);
-      const acArmR = acArmL.clone();
-      acArmR.position.x = 0.48;
-      armchair.add(acSeat, acBack, acArmL, acArmR);
-      registerRoomItem(0, armchair, {
-        id: "armchair",
-        tooltip: "Reading Chair (Drag to move)",
-        pos: [3.2, 0, 1.35],
-        rotY: -Math.PI * 0.35,
-        scale: 1.25
+        pos: [-7.8, GROUND_Y, -0.45],
+        scale: 1.32
       });
 
       /* Shoe Rack */
       const shoeRack = new THREE.Group();
-      const rackWood = roomStdMat(0, 0x9a6b48, 0.65, 0.05);
+      const rackWood = stdMat(0x9a6b48, 0.65, 0.05);
       const rSh1 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.25, 0.08, 0.44)), rackWood);
       rSh1.position.y = 0.22;
       const rSh2 = rSh1.clone();
@@ -2987,66 +3181,51 @@
       rSideL.position.set(-0.58, 0.33, 0);
       const rSideR = rSideL.clone();
       rSideR.position.x = 0.58;
-      const sh1 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, 0.12, 0.3)), roomStdMat(0, 0x2dd4bf, 0.5, 0.1));
+      const sh1 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, 0.12, 0.3)), stdMat(0x2dd4bf, 0.5, 0.1));
       sh1.position.set(-0.24, 0.68, 0);
-      const sh2 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, 0.12, 0.3)), roomStdMat(0, 0xf472b6, 0.5, 0.1));
+      const sh2 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, 0.12, 0.3)), stdMat(0xf472b6, 0.5, 0.1));
       sh2.position.set(0.2, 0.32, 0);
       shoeRack.add(rSh1, rSh2, rSideL, rSideR, sh1, sh2);
       registerRoomItem(0, shoeRack, {
         id: "shoerack",
         tooltip: "Shoe Rack (Drag to move)",
-        pos: [-3.15, 0, -3.55],
-        scale: 1.34
+        pos: [-11.1, GROUND_Y, -3.45],
+        scale: 1.3
       });
 
-      /* Hall Plants & Floor Lamp */
-      const hallPlant = createPottedPlant(0, 1.55);
-      registerRoomItem(0, hallPlant, {
+      /* 1 Hall Plant (clear of X = -4.2 doorway) */
+      registerRoomItem(0, createPottedPlant(1.42), {
         id: "hallplant",
         tooltip: "Hall Plant (Drag to move)",
-        pos: [3.65, 0, -3.45]
-      });
-
-      const hallPlant2 = createPottedPlant(0, 1.25, 0xf8fafc, 0x2dd4bf);
-      registerRoomItem(0, hallPlant2, {
-        id: "hallplant2",
-        tooltip: "Fiddle Plant (Drag to move)",
-        pos: [-1.45, 0, 3.65]
-      });
-
-      const hallLamp = createFloorLamp(0, 0xfef08a);
-      registerRoomItem(0, hallLamp, {
-        id: "halllamp",
-        tooltip: "Floor Lamp (Drag to move)",
-        pos: [3.7, 0, -1.25]
+        pos: [-5.55, GROUND_Y, -3.25]
       });
 
       /* Wall Frame -> About & Resume */
       const wallFrame = new THREE.Group();
-      const wfBox = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.75, 1.35, 0.1)), roomStdMat(0, 0x1e293b, 0.4, 0.4));
+      const wfBox = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.75, 1.35, 0.1)), stdMat(0x1e293b, 0.4, 0.4));
       wfBox.position.y = 0.68;
-      const wfArt = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(1.55, 1.15)), roomBasicMat(0, { map: frameTex }));
+      const wfArt = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(1.55, 1.15)), trackMat(new THREE.MeshBasicMaterial({ map: frameTex })));
       wfArt.position.set(0, 0.68, 0.06);
       wallFrame.add(wfBox, wfArt);
       registerRoomItem(0, wallFrame, {
         id: "wallframe",
         tooltip: "Wall Frame: About & Resume (Click or drag)",
-        pos: [1.05, 2.35, -INNER_WALL + 0.05],
+        pos: [-7.8, 2.35, Z_BACK_INNER + 0.05],
         fixedY: 2.35,
-        scale: 1.35,
+        standPos: [-7.8, GROUND_Y, -1.65],
+        scale: 1.32,
         gesture: "point",
         onClick: () => openAboutPanel(els.roomActionBtn)
       });
 
-      /* ---------------- ROOM 1: STUDY (PROJECTS) ---------------- */
-      roomGroups[1] = createDioramaRoomShell(1, false);
-      addRoomWindow(1, "back", 1.5, 3.1, 2.25, 1.8);
-      addWallArtPiece(1, "left", 0.85, 2.95, 1.65, 1.25, 0x1e1b4b, 0x8b5cf6);
-      addRoomRug(1, 0.75, 0.45, 5.1, 3.8, 0x0f766e, 0x5b21b6);
+      /* ---------------- ROOM 1: STUDY (PROJECTS — 7 main items: 1 rug, 1 plant, 1 wall art + bookshelf, desk, chair, laptop, lamp) ---------------- */
+      addRoomWindowAt(1, 1.35, 3.05, Z_BACK_INNER + 0.04, 0, 2.25, 1.8);
+      addWallArtAt(1, -2.35, 3.0, Z_BACK_INNER + 0.04, 0, 1.65, 1.25, 0x1e1b4b, 0x8b5cf6);
+      addRoomRugAt(1, 0.0, GROUND_Y, 0.75, 4.3, 3.0, 0x0f766e, 0x5b21b6);
 
       /* Bookshelf -> Projects */
       const bookshelf = new THREE.Group();
-      const bsWood = roomStdMat(1, 0x9a6b48, 0.65, 0.05);
+      const bsWood = stdMat(0x9a6b48, 0.65, 0.05);
       const bsBk = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.9, 2.7, 0.1)), bsWood);
       bsBk.position.set(0, 1.35, -0.3);
       const bsSL = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.1, 2.7, 0.65)), bsWood);
@@ -3061,26 +3240,27 @@
       });
       const bkCols = [0x8b5cf6, 0x2dd4bf, 0xf472b6, 0x38bdf8, 0xfbbf24];
       for (let b = 0; b < 8; b++) {
-        const bk = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.16, 0.5, 0.4)), roomStdMat(1, bkCols[b % bkCols.length], 0.55, 0.1));
+        const bk = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.16, 0.5, 0.4)), stdMat(bkCols[b % bkCols.length], 0.55, 0.1));
         bk.position.set(-0.55 + (b % 4) * 0.23, b < 4 ? 1.2 : 2.05, 0.02);
         bookshelf.add(bk);
       }
       registerRoomItem(1, bookshelf, {
         id: "bookshelf",
         tooltip: "Bookshelf: Projects (Click or drag)",
-        pos: [-2.85, 0, -3.55],
-        scale: 1.36,
+        pos: [-2.35, GROUND_Y, -3.4],
+        standPos: [-2.3, GROUND_Y, -1.9],
+        scale: 1.32,
         gesture: "point",
         onClick: () => openProjectsPanel(els.roomActionBtn)
       });
 
       /* Study Desk + Chair + Laptop + Lamp */
       const deskGroup = new THREE.Group();
-      const dTop = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.5, 0.14, 1.25)), roomStdMat(1, 0xc2956e, 0.55, 0.08));
+      const dTop = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.5, 0.14, 1.25)), stdMat(0xc2956e, 0.55, 0.08));
       dTop.position.y = 1.28;
       deskGroup.add(dTop);
       const dLegGeo = trackGeo(new THREE.BoxGeometry(0.11, 1.21, 0.11));
-      const dLegMat = roomStdMat(1, 0x1e293b, 0.45, 0.5);
+      const dLegMat = stdMat(0x1e293b, 0.45, 0.5);
       [[-1.1, -0.5], [1.1, -0.5], [-1.1, 0.5], [1.1, 0.5]].forEach(([lx, lz]) => {
         const lg = new THREE.Mesh(dLegGeo, dLegMat);
         lg.position.set(lx, 0.605, lz);
@@ -3089,44 +3269,45 @@
       registerRoomItem(1, deskGroup, {
         id: "desk",
         tooltip: "Study Desk (Drag to move)",
-        pos: [1.5, 0, -3.05],
+        pos: [1.35, GROUND_Y, -3.05],
         scale: 1.35
       });
       const STUDY_DESK_Y = 1.35 * 1.35;
 
       const chairGroup = new THREE.Group();
-      const cSeat = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.42, 0.42, 0.13, 14)), roomStdMat(1, 0x7c3aed, 0.6, 0.1));
+      const cSeat = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.42, 0.42, 0.13, 14)), stdMat(0x7c3aed, 0.6, 0.1));
       cSeat.position.y = 0.74;
-      const cBack = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.72, 0.68, 0.12)), roomStdMat(1, 0x6d28d9, 0.6, 0.1));
+      const cBack = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.72, 0.68, 0.12)), stdMat(0x6d28d9, 0.6, 0.1));
       cBack.position.set(0, 1.12, 0.34);
-      const cStem = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.055, 0.055, 0.62, 8)), roomStdMat(1, 0x1e293b, 0.35, 0.7));
+      const cStem = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.055, 0.055, 0.62, 8)), stdMat(0x1e293b, 0.35, 0.7));
       cStem.position.y = 0.38;
-      const cBase = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.42, 0.42, 0.07, 10)), roomStdMat(1, 0x1e293b, 0.35, 0.7));
+      const cBase = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.42, 0.42, 0.07, 10)), stdMat(0x1e293b, 0.35, 0.7));
       cBase.position.y = 0.05;
       chairGroup.add(cSeat, cBack, cStem, cBase);
       registerRoomItem(1, chairGroup, {
         id: "chair",
         tooltip: "Chair (Drag to move)",
-        pos: [1.5, 0, -1.25],
-        scale: 1.35
+        pos: [1.35, GROUND_Y, -1.25],
+        scale: 1.32
       });
 
       const laptopGroup = new THREE.Group();
-      const lBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.84, 0.04, 0.58)), roomStdMat(1, 0x334155, 0.35, 0.65));
+      const lBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.84, 0.04, 0.58)), stdMat(0x334155, 0.35, 0.65));
       lBase.position.y = 0.02;
       const lPivot = new THREE.Group();
       lPivot.position.set(0, 0.04, -0.27);
       lPivot.rotation.x = -0.3;
-      const lLid = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.84, 0.54, 0.035)), roomStdMat(1, 0x1e293b, 0.35, 0.65));
+      const lLid = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.84, 0.54, 0.035)), stdMat(0x1e293b, 0.35, 0.65));
       lLid.position.y = 0.27;
-      const lScr = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(0.75, 0.45)), roomBasicMat(1, { map: codeTex }));
+      const lScr = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(0.75, 0.45)), trackMat(new THREE.MeshBasicMaterial({ map: codeTex })));
       lScr.position.set(0, 0.27, 0.02);
       lPivot.add(lLid, lScr);
       laptopGroup.add(lBase, lPivot);
       registerRoomItem(1, laptopGroup, {
         id: "laptop",
         tooltip: "Laptop: Skills Overview (Click or drag)",
-        pos: [1.5, STUDY_DESK_Y, -2.92],
+        pos: [1.35, STUDY_DESK_Y, -2.92],
+        standPos: [1.35, GROUND_Y, -1.75],
         scale: 1.35,
         isDeskTop: true,
         gesture: "point",
@@ -3134,15 +3315,15 @@
       });
 
       const lampGroup = new THREE.Group();
-      const lmBase = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.17, 0.2, 0.06, 12)), roomStdMat(1, 0x1e293b, 0.35, 0.7));
+      const lmBase = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.17, 0.2, 0.06, 12)), stdMat(0x1e293b, 0.35, 0.7));
       lmBase.position.y = 0.03;
-      const lmArm = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.03, 0.03, 0.58, 8)), roomStdMat(1, 0x94a3b8, 0.3, 0.8));
+      const lmArm = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.03, 0.03, 0.58, 8)), stdMat(0x94a3b8, 0.3, 0.8));
       lmArm.position.set(-0.04, 0.31, 0);
       lmArm.rotation.z = -0.18;
-      const lmShade = new THREE.Mesh(trackGeo(new THREE.ConeGeometry(0.19, 0.22, 12, 1, true)), roomStdMat(1, 0x2dd4bf, 0.4, 0.25, { side: THREE.DoubleSide }));
+      const lmShade = new THREE.Mesh(trackGeo(new THREE.ConeGeometry(0.19, 0.22, 12, 1, true)), stdMat(0x2dd4bf, 0.4, 0.25, { side: THREE.DoubleSide }));
       lmShade.position.set(0.08, 0.58, 0.04);
       lmShade.rotation.z = 0.45;
-      const lmBulbMat = roomStdMat(1, 0xfef08a, 0.2, 0.1, { emissive: 0xfde047, emissiveIntensity: 0.75 });
+      const lmBulbMat = stdMat(0xfef08a, 0.2, 0.1, { emissive: 0xfde047, emissiveIntensity: 0.75 });
       const lmBulb = new THREE.Mesh(trackGeo(new THREE.SphereGeometry(0.085, 10, 8)), lmBulbMat);
       lmBulb.position.set(0.1, 0.52, 0.04);
       lampGroup.add(lmBase, lmArm, lmShade, lmBulb, deskLampLight);
@@ -3155,92 +3336,70 @@
         els.dayNightBtn.setAttribute("aria-pressed", String(appState.isNightMode));
         dayNightUpdaters.forEach((fn) => fn(appState.isNightMode));
         sunLight.intensity = appState.isNightMode ? 0.35 : 1.42;
-        hemiLight.intensity = appState.isNightMode ? 0.48 : 0.94;
+        hemiLight.intensity = appState.isNightMode ? 0.48 : 0.96;
         deskLampLight.intensity = appState.isNightMode ? 15.0 : 1.8;
         lmBulbMat.emissiveIntensity = appState.isNightMode ? 2.2 : 0.75;
         winGlowMat.emissiveIntensity = appState.isNightMode ? 1.5 : 0.75;
-        violetLight.intensity = appState.isNightMode ? 10.5 : 5.2;
-        tealLight.intensity = appState.isNightMode ? 9.0 : 4.8;
+        violetLight.intensity = appState.isNightMode ? 10.5 : 5.5;
+        tealLight.intensity = appState.isNightMode ? 9.0 : 5.2;
         stringBulbMats.forEach((m) => { m.emissiveIntensity = appState.isNightMode ? 2.1 : 0.95; });
       }
 
       registerRoomItem(1, lampGroup, {
         id: "lamp",
         tooltip: "Desk Lamp: Toggle Day / Night (Click or drag)",
-        pos: [0.22, STUDY_DESK_Y, -3.25],
+        pos: [0.08, STUDY_DESK_Y, -3.22],
+        standPos: [0.2, GROUND_Y, -1.8],
         scale: 1.35,
         isDeskTop: true,
         gesture: "wave",
         onClick: toggleDayNight
       });
 
-      /* Cozy Reading Beanbag & Side Table in Study */
-      const beanbag = new THREE.Group();
-      const bbBody = new THREE.Mesh(trackGeo(new THREE.SphereGeometry(0.75, 14, 12)), roomStdMat(1, 0x8b5cf6, 0.85, 0.04));
-      bbBody.scale.set(1.1, 0.68, 1.1);
-      bbBody.position.y = 0.44;
-      const bbTop = new THREE.Mesh(trackGeo(new THREE.SphereGeometry(0.45, 12, 10)), roomStdMat(1, 0x2dd4bf, 0.85, 0.04));
-      bbTop.scale.set(1, 0.55, 1);
-      bbTop.position.set(0, 0.78, -0.18);
-      beanbag.add(bbBody, bbTop);
-      registerRoomItem(1, beanbag, {
-        id: "beanbag",
-        tooltip: "Reading Pouf (Drag to move)",
-        pos: [-2.4, 0, 2.25]
-      });
-
-      const studyPlant = createPottedPlant(1, 1.48);
-      registerRoomItem(1, studyPlant, {
+      /* 1 Study Plant (clear of X = +4.2 doorway) */
+      registerRoomItem(1, createPottedPlant(1.38), {
         id: "studyplant",
         tooltip: "Study Plant (Drag to move)",
-        pos: [3.65, 0, 2.65]
+        pos: [2.75, GROUND_Y, 2.95]
       });
 
-      const studyPlant2 = createPottedPlant(1, 1.15, 0xf8fafc, 0x2dd4bf);
-      registerRoomItem(1, studyPlant2, {
-        id: "studyplant2",
-        tooltip: "Shelf Fern (Drag to move)",
-        pos: [-3.55, 0, -1.25]
-      });
-
-      /* ---------------- ROOM 2: KITCHEN (SKILLS & CONTACT) ---------------- */
-      roomGroups[2] = createDioramaRoomShell(2, false);
-      addRoomWindow(2, "back", 0.65, 3.25, 2.4, 1.65);
-      addWallArtPiece(2, "left", 0.75, 2.95, 1.7, 1.25, 0x0f766e, 0xfbbf24);
-      addRoomRug(2, 0.45, 0.85, 5.2, 2.8, 0x312e81, 0x2dd4bf);
+      /* ---------------- ROOM 2: KITCHEN (SKILLS & CONTACT — 7 main items: 1 rug, 1 plant, 1 wall art + counter, fridge, spicerack, kettle, bistro) ---------------- */
+      addRoomWindowAt(2, 9.1, 3.15, Z_BACK_INNER + 0.04, 0, 2.4, 1.65);
+      addWallArtAt(2, 5.55, 2.95, Z_BACK_INNER + 0.04, 0, 1.65, 1.2, 0x0f766e, 0xfbbf24);
+      addRoomRugAt(2, 8.4, GROUND_Y, 0.55, 4.1, 2.5, 0x312e81, 0x2dd4bf);
 
       const counterGroup = new THREE.Group();
-      const kBody = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(4.2, 1.25, 1.35)), roomStdMat(2, 0x334155, 0.65, 0.1));
+      const kBody = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(4.2, 1.25, 1.35)), stdMat(0x334155, 0.65, 0.1));
       kBody.position.y = 0.625;
-      const kTop = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(4.3, 0.12, 1.45)), roomStdMat(2, 0xe2e8f0, 0.3, 0.1));
+      const kTop = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(4.3, 0.12, 1.45)), stdMat(0xe2e8f0, 0.3, 0.1));
       kTop.position.y = 1.3;
       counterGroup.add(kBody, kTop);
       registerRoomItem(2, counterGroup, {
         id: "counter",
         tooltip: "Kitchen Counter (Drag to move)",
-        pos: [0.65, 0, -3.15],
+        pos: [9.1, GROUND_Y, -3.1],
         scale: 1.35
       });
       const KITCHEN_COUNTER_Y = 1.36 * 1.35;
 
       /* Tall Kitchen Pantry / Fridge */
       const fridgeGroup = new THREE.Group();
-      const frBody = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.45, 3.1, 1.3)), roomStdMat(2, 0x5eead4, 0.35, 0.25));
+      const frBody = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.45, 3.1, 1.3)), stdMat(0x5eead4, 0.35, 0.25));
       frBody.position.y = 1.55;
-      const frTrim = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.48, 0.08, 1.32)), roomStdMat(2, 0x0f172a, 0.4, 0.5));
+      const frTrim = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.48, 0.08, 1.32)), stdMat(0x0f172a, 0.4, 0.5));
       frTrim.position.y = 2.05;
-      const frHandle = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.08, 0.65, 0.1)), roomStdMat(2, 0x1e293b, 0.3, 0.7));
+      const frHandle = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.08, 0.65, 0.1)), stdMat(0x1e293b, 0.3, 0.7));
       frHandle.position.set(0.52, 2.48, 0.68);
       fridgeGroup.add(frBody, frTrim, frHandle);
       registerRoomItem(2, fridgeGroup, {
         id: "fridge",
         tooltip: "Mint Pantry Fridge (Drag to move)",
-        pos: [-3.3, 0, -3.3]
+        pos: [5.55, GROUND_Y, -3.2]
       });
 
       /* Spice Rack (6 Jars = 6 Core Skills) */
       const spiceRack = new THREE.Group();
-      const srWood = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.9, 0.14, 0.45)), roomStdMat(2, 0x9a6b48, 0.6, 0.05));
+      const srWood = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.9, 0.14, 0.45)), stdMat(0x9a6b48, 0.6, 0.05));
       srWood.position.y = 0.07;
       spiceRack.add(srWood);
 
@@ -3248,11 +3407,11 @@
       ROOM_CONFIG.skills.forEach((sk, idx) => {
         const jar = new THREE.Mesh(
           trackGeo(new THREE.CylinderGeometry(0.11, 0.11, 0.36, 10)),
-          roomStdMat(2, new THREE.Color(sk.color), 0.3, 0.15, { emissive: new THREE.Color(sk.color), emissiveIntensity: 0.25 })
+          stdMat(new THREE.Color(sk.color), 0.3, 0.15, { emissive: new THREE.Color(sk.color), emissiveIntensity: 0.25 })
         );
         jar.position.set(-0.72 + idx * 0.29, 0.32, 0);
         jar.userData = { skill: sk };
-        const lid = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.115, 0.115, 0.07, 10)), roomStdMat(2, 0xf8fafc, 0.4, 0.2));
+        const lid = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.115, 0.115, 0.07, 10)), stdMat(0xf8fafc, 0.4, 0.2));
         lid.position.set(-0.72 + idx * 0.29, 0.53, 0);
         spiceRack.add(jar, lid);
         jarHitTargets.push(jar);
@@ -3260,7 +3419,8 @@
       registerRoomItem(2, spiceRack, {
         id: "spicerack",
         tooltip: "Spice Rack: Skill Jars (Click a jar or drag)",
-        pos: [-0.55, KITCHEN_COUNTER_Y, -3.15],
+        pos: [7.9, KITCHEN_COUNTER_Y, -3.1],
+        standPos: [7.9, GROUND_Y, -1.65],
         scale: 1.35,
         isCounterTop: true,
         gesture: "point",
@@ -3272,17 +3432,17 @@
 
       /* Steaming Chai Kettle -> Contact */
       const kettleGroup = new THREE.Group();
-      const ktBody = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.19, 0.25, 0.36, 12)), roomStdMat(2, 0x2dd4bf, 0.28, 0.65));
+      const ktBody = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.19, 0.25, 0.36, 12)), stdMat(0x2dd4bf, 0.28, 0.65));
       ktBody.position.y = 0.18;
-      const ktLid = new THREE.Mesh(trackGeo(new THREE.SphereGeometry(0.15, 10, 8)), roomStdMat(2, 0x0f172a, 0.3, 0.6));
+      const ktLid = new THREE.Mesh(trackGeo(new THREE.SphereGeometry(0.15, 10, 8)), stdMat(0x0f172a, 0.3, 0.6));
       ktLid.position.y = 0.36;
-      const ktSpout = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.035, 0.055, 0.25, 8)), roomStdMat(2, 0x2dd4bf, 0.3, 0.65));
+      const ktSpout = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.035, 0.055, 0.25, 8)), stdMat(0x2dd4bf, 0.3, 0.65));
       ktSpout.position.set(0.23, 0.25, 0);
       ktSpout.rotation.z = -0.65;
-      const ktHandle = new THREE.Mesh(trackGeo(new THREE.TorusGeometry(0.14, 0.025, 8, 12, Math.PI)), roomStdMat(2, 0x0f172a, 0.4, 0.3));
+      const ktHandle = new THREE.Mesh(trackGeo(new THREE.TorusGeometry(0.14, 0.025, 8, 12, Math.PI)), stdMat(0x0f172a, 0.4, 0.3));
       ktHandle.position.set(-0.19, 0.23, 0);
       ktHandle.rotation.z = Math.PI / 2;
-      const cupMat = roomStdMat(2, 0xf8fafc, 0.35, 0.1);
+      const cupMat = stdMat(0xf8fafc, 0.35, 0.1);
       const cup1 = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.065, 0.05, 0.11, 10)), cupMat);
       cup1.position.set(0.45, 0.055, 0.18);
       const cup2 = cup1.clone();
@@ -3292,7 +3452,7 @@
       const chaiSteam = [];
       const steamGeo = trackGeo(new THREE.SphereGeometry(0.055, 8, 8));
       for (let i = 0; i < 6; i++) {
-        const smMat = roomBasicMat(2, { color: 0xf8fafc, transparent: true, opacity: 0.48 });
+        const smMat = trackMat(new THREE.MeshBasicMaterial({ color: 0xf8fafc, transparent: true, opacity: 0.48 }));
         const sm = new THREE.Mesh(steamGeo, smMat);
         sm.position.set(0.29, 0.36 + i * 0.12, 0);
         kettleGroup.add(sm);
@@ -3301,82 +3461,69 @@
       registerRoomItem(2, kettleGroup, {
         id: "kettle",
         tooltip: "Chai Kettle: Let's talk over chai (Click or drag)",
-        pos: [2.05, KITCHEN_COUNTER_Y, -3.02],
+        pos: [10.35, KITCHEN_COUNTER_Y, -3.0],
+        standPos: [10.3, GROUND_Y, -1.65],
         scale: 1.35,
         isCounterTop: true,
         gesture: "wave",
         onClick: () => openContactPanel(els.roomActionBtn)
       });
 
-      /* Kitchen Bistro Table, Stools & Herb Plants */
+      /* Kitchen Bistro Table & 1 Herb Plant (well clear of Study doorway & Staircase 1 entry) */
       const bistroTable = new THREE.Group();
-      const btTop = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.62, 0.62, 0.08, 16)), roomStdMat(2, 0xc2956e, 0.55, 0.08));
+      const btTop = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.62, 0.62, 0.08, 16)), stdMat(0xc2956e, 0.55, 0.08));
       btTop.position.y = 0.85;
-      const btStem = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.06, 0.06, 0.82, 10)), roomStdMat(2, 0x1e293b, 0.4, 0.5));
+      const btStem = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.06, 0.06, 0.82, 10)), stdMat(0x1e293b, 0.4, 0.5));
       btStem.position.y = 0.42;
-      const btFoot = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.32, 0.36, 0.06, 12)), roomStdMat(2, 0x1e293b, 0.4, 0.5));
+      const btFoot = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.32, 0.36, 0.06, 12)), stdMat(0x1e293b, 0.4, 0.5));
       btFoot.position.y = 0.03;
       bistroTable.add(btTop, btStem, btFoot);
       registerRoomItem(2, bistroTable, {
         id: "bistro",
         tooltip: "Chai Table (Drag to move)",
-        pos: [2.2, 0, 2.05],
-        scale: 1.35
+        pos: [8.3, GROUND_Y, 2.55],
+        scale: 1.28
       });
 
-      [
-        ["stool1", [0.85, 0, 2.2]],
-        ["stool2", [3.35, 0, 1.2]]
-      ].forEach(([sid, spos]) => {
-        const stool = new THREE.Group();
-        const stTop = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.32, 0.32, 0.1, 12)), roomStdMat(2, 0x8b5cf6, 0.6, 0.1));
-        stTop.position.y = 0.72;
-        const stLeg = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.06, 0.22, 0.68, 10)), roomStdMat(2, 0x1e293b, 0.4, 0.5));
-        stLeg.position.y = 0.34;
-        stool.add(stTop, stLeg);
-        registerRoomItem(2, stool, { id: sid, tooltip: "Chai Stool (Drag to move)", pos: spos });
-      });
-
-      const kitchenPlant = createPottedPlant(2, 1.38, 0xe2e8f0, 0x10b981);
-      registerRoomItem(2, kitchenPlant, {
+      registerRoomItem(2, createPottedPlant(1.32, 0xe2e8f0, 0x10b981), {
         id: "kitchenplant",
         tooltip: "Herb Plant (Drag to move)",
-        pos: [-3.45, 0, 2.85]
+        pos: [5.65, GROUND_Y, 2.95]
       });
 
-      /* ---------------- ROOM 3: BEDROOM (LEARNING) ---------------- */
-      roomGroups[3] = createDioramaRoomShell(3, false);
-      addRoomWindow(3, "left", 0.9, 3.0, 2.15, 1.85);
-      addWallArtPiece(3, "left", -2.05, 3.0, 1.45, 1.2, 0x4c1d95, 0xf472b6);
+      /* ---------------- ROOM 3: BEDROOM (LEARNING — 6 main items: 1 rug, 1 plant, 1 wall art + whiteboard, bed, nightstand, vinyl) ---------------- */
+      addRoomWindowAt(3, -2.06, BEDROOM_Y + 2.65, -0.75, Math.PI / 2, 2.0, 1.65);
+      addWallArtAt(3, 8.9, BEDROOM_Y + 2.65, Z_BACK_INNER + 0.04, 0, 1.55, 1.15, 0x1e1b4b, 0x2dd4bf);
 
       /* Whiteboard -> Currently Learning */
       const wbGroup = new THREE.Group();
-      const wbFrame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.6, 1.45, 0.1)), roomStdMat(3, 0x334155, 0.4, 0.3));
+      const wbFrame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.6, 1.45, 0.1)), stdMat(0x334155, 0.4, 0.3));
       wbFrame.position.y = 0.72;
-      const wbArt = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(2.44, 1.3)), roomBasicMat(3, { map: wbTex }));
+      const wbArt = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(2.44, 1.3)), trackMat(new THREE.MeshBasicMaterial({ map: wbTex })));
       wbArt.position.set(0, 0.72, 0.06);
       wbGroup.add(wbFrame, wbArt);
       registerRoomItem(3, wbGroup, {
         id: "whiteboard",
         tooltip: "Whiteboard: Currently Learning (Click or drag)",
-        pos: [1.55, 2.1, -INNER_WALL + 0.05],
-        fixedY: 2.1,
-        scale: 1.35,
+        pos: [5.1, BEDROOM_Y + 1.85, Z_BACK_INNER + 0.05],
+        fixedY: BEDROOM_Y + 1.85,
+        standPos: [5.1, BEDROOM_Y, -2.0],
+        scale: 1.32,
         gesture: "point",
         onClick: () => openLearningPanel(els.roomActionBtn)
       });
 
       /* Bed with Pillows */
       const bedGroup = new THREE.Group();
-      const bFrame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.15, 0.38, 3.05)), roomStdMat(3, 0x8b5e3c, 0.65, 0.05));
+      const bFrame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.15, 0.38, 3.05)), stdMat(0x8b5e3c, 0.65, 0.05));
       bFrame.position.y = 0.19;
-      const bHead = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.15, 1.05, 0.18)), roomStdMat(3, 0x70492d, 0.65, 0.05));
+      const bHead = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.15, 1.05, 0.18)), stdMat(0x70492d, 0.65, 0.05));
       bHead.position.set(0, 0.525, -1.44);
-      const bMatt = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.3, 2.82)), roomStdMat(3, 0xf8fafc, 0.8, 0.02));
+      const bMatt = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.3, 2.82)), stdMat(0xf8fafc, 0.8, 0.02));
       bMatt.position.set(0, 0.5, 0.04);
-      const bBlanket = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.04, 0.34, 1.78)), roomStdMat(3, 0x6d28d9, 0.78, 0.05));
+      const bBlanket = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.04, 0.34, 1.78)), stdMat(0x6d28d9, 0.78, 0.05));
       bBlanket.position.set(0, 0.51, 0.54);
-      const bPil1 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.78, 0.22, 0.46)), roomStdMat(3, 0x99f6e4, 0.85, 0.02));
+      const bPil1 = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.78, 0.22, 0.46)), stdMat(0x99f6e4, 0.85, 0.02));
       bPil1.position.set(-0.46, 0.74, -0.98);
       const bPil2 = bPil1.clone();
       bPil2.position.x = 0.46;
@@ -3384,172 +3531,153 @@
       registerRoomItem(3, bedGroup, {
         id: "bed",
         tooltip: "Bed with Pillows (Drag to move)",
-        pos: [-2.4, 0, -1.95],
-        scale: 1.38
+        pos: [-0.25, BEDROOM_Y, -2.0],
+        scale: 1.24
       });
 
       /* Nightstand with Lamp */
       const nightStand = new THREE.Group();
-      const nsBody = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.68, 0.62, 0.62)), roomStdMat(3, 0x9a6b48, 0.65, 0.05));
+      const nsBody = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.68, 0.62, 0.62)), stdMat(0x9a6b48, 0.65, 0.05));
       nsBody.position.y = 0.31;
-      const nsLampBase = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.11, 0.14, 0.08, 10)), roomStdMat(3, 0x1e293b, 0.4, 0.5));
+      const nsLampBase = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.11, 0.14, 0.08, 10)), stdMat(0x1e293b, 0.4, 0.5));
       nsLampBase.position.y = 0.66;
-      const nsLampShade = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.12, 0.19, 0.22, 12)), roomStdMat(3, 0xfef08a, 0.35, 0.05, { emissive: 0xfbbf24, emissiveIntensity: 0.55 }));
+      const nsLampShade = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.12, 0.19, 0.22, 12)), stdMat(0xfef08a, 0.35, 0.05, { emissive: 0xfbbf24, emissiveIntensity: 0.55 }));
       nsLampShade.position.y = 0.85;
       nightStand.add(nsBody, nsLampBase, nsLampShade);
       registerRoomItem(3, nightStand, {
         id: "nightstand",
         tooltip: "Bedside Lamp (Drag to move)",
-        pos: [-0.15, 0, -3.55],
-        scale: 1.38
+        pos: [2.05, BEDROOM_Y, -3.4],
+        scale: 1.3
       });
 
-      /* Bedroom Rug */
+      /* 1 Bedroom Rug */
       const rugGroup = new THREE.Group();
-      const rOut = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(1.45, 1.45, 0.04, 20)), roomStdMat(3, 0x5b21b6, 0.9, 0.02));
+      const rOut = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(1.45, 1.45, 0.04, 20)), stdMat(0x5b21b6, 0.9, 0.02));
       rOut.position.y = 0.02;
-      const rIn = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(1.0, 1.0, 0.045, 20)), roomStdMat(3, 0x0f766e, 0.9, 0.02));
+      const rIn = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(1.0, 1.0, 0.045, 20)), stdMat(0x0f766e, 0.9, 0.02));
       rIn.position.y = 0.022;
       rugGroup.add(rOut, rIn);
       registerRoomItem(3, rugGroup, {
         id: "rug",
         tooltip: "Cozy Rug (Drag to move)",
-        pos: [1.35, 0, 1.3],
-        scale: 1.42
+        pos: [5.1, BEDROOM_Y, -0.85],
+        scale: 1.22
       });
 
-      /* Bedroom Pouf Ottoman */
-      const bedPouf = new THREE.Group();
-      const bpBase = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.55, 0.5, 0.42, 14)), roomStdMat(3, 0xf472b6, 0.82, 0.04));
-      bpBase.position.y = 0.21;
-      const bpRim = new THREE.Mesh(trackGeo(new THREE.TorusGeometry(0.45, 0.08, 8, 16)), roomStdMat(3, 0xf8fafc, 0.85, 0.02));
-      bpRim.rotation.x = Math.PI / 2;
-      bpRim.position.y = 0.4;
-      bedPouf.add(bpBase, bpRim);
-      registerRoomItem(3, bedPouf, {
-        id: "bedpouf",
-        tooltip: "Bedroom Pouf (Drag to move)",
-        pos: [1.35, 0, 1.3]
-      });
-
-      /* Vinyl Player */
+      /* Vinyl Player (well clear of Stair 1 & Stair 2 entries) */
       const vinylGroup = new THREE.Group();
-      const vStand = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.05, 0.65, 0.82)), roomStdMat(3, 0x78350f, 0.6, 0.08));
+      const vStand = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.05, 0.65, 0.82)), stdMat(0x78350f, 0.6, 0.08));
       vStand.position.y = 0.325;
-      const vPlinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.88, 0.16, 0.68)), roomStdMat(3, 0x334155, 0.4, 0.3));
+      const vPlinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.88, 0.16, 0.68)), stdMat(0x334155, 0.4, 0.3));
       vPlinth.position.y = 0.73;
       const vDiscGroup = new THREE.Group();
       vDiscGroup.position.set(-0.08, 0.83, 0);
-      const vRec = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.27, 0.27, 0.02, 18)), roomStdMat(3, 0x090d16, 0.25, 0.6));
-      const vLbl = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.095, 0.095, 0.025, 14)), roomStdMat(3, 0x8b5cf6, 0.35, 0.2, { emissive: 0x6d28d9, emissiveIntensity: 0.45 }));
+      const vRec = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.27, 0.27, 0.02, 18)), stdMat(0x090d16, 0.25, 0.6));
+      const vLbl = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.095, 0.095, 0.025, 14)), stdMat(0x8b5cf6, 0.35, 0.2, { emissive: 0x6d28d9, emissiveIntensity: 0.45 }));
       vDiscGroup.add(vRec, vLbl);
       vinylGroup.add(vStand, vPlinth, vDiscGroup);
       registerRoomItem(3, vinylGroup, {
         id: "vinyl",
         tooltip: "Vinyl Player: Toggle Music (Click or drag)",
-        pos: [-2.95, 0, 2.75],
-        scale: 1.36,
+        pos: [8.1, BEDROOM_Y, -2.35],
+        standPos: [7.1, BEDROOM_Y, -1.6],
+        scale: 1.25,
         gesture: "wave",
         onClick: toggleVinylMusic
       });
 
-      const bedroomPlant = createPottedPlant(3, 1.42);
-      registerRoomItem(3, bedroomPlant, {
+      /* 1 Bedroom Plant */
+      registerRoomItem(3, createPottedPlant(1.28), {
         id: "bedroomplant",
         tooltip: "Bedroom Plant (Drag to move)",
-        pos: [3.55, 0, -3.35]
+        pos: [9.8, BEDROOM_Y, -3.3]
       });
 
-      const bedroomPlant2 = createPottedPlant(3, 1.15, 0xcbd5e1, 0x2dd4bf);
-      registerRoomItem(3, bedroomPlant2, {
-        id: "bedroomplant2",
-        tooltip: "Lavender Fern (Drag to move)",
-        pos: [3.55, 0, 0.35]
-      });
+      /* ---------------- ROOM 4: TERRACE (HACKATHONS — 6 main items: 1 rug, 1 plant, 1 wall art + bench, table, lantern + constellation) ---------------- */
+      /* Cozy Terrace Corner Starry Sky Alcove (slim & dark night blue) */
+      const tAlcoveWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.16, 2.75, 2.6)), tAlcoveWallMat);
+      tAlcoveWall.position.set(-0.22, TERRACE_Y + 1.375, -2.8);
+      const tBackPlaqueWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(4.3, 2.75, 0.16)), tAlcoveWallMat);
+      tBackPlaqueWall.position.set(1.85, TERRACE_Y + 1.375, -4.02);
+      const tSkyPanel = new THREE.Mesh(
+        trackGeo(new THREE.PlaneGeometry(2.0, 1.15)),
+        trackMat(new THREE.MeshBasicMaterial({ map: nightSkyTex }))
+      );
+      tSkyPanel.position.set(2.95, TERRACE_Y + 1.68, -3.9);
+      roomGroups[4].add(tAlcoveWall, tBackPlaqueWall, tSkyPanel);
 
-      /* ---------------- ROOM 4: TERRACE (HACKATHONS) ---------------- */
-      roomGroups[4] = createDioramaRoomShell(4, true);
-
-      /* Cozy Terrace Corner Pergola Alcove holding a Glowing Window & Wall Art */
-      const tAlcoveWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.2, 3.6, 3.1)), roomStdMat(4, 0x1e293b, 0.72, 0.15));
-      tAlcoveWall.position.set(-INNER_WALL - 0.09, 1.8, -2.85);
-      const tBackPlaqueWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.6, 3.4, 0.2)), roomStdMat(4, 0x1e293b, 0.72, 0.15));
-      tBackPlaqueWall.position.set(-2.95, 1.7, -INNER_WALL - 0.09);
-      roomGroups[4].add(tAlcoveWall, tBackPlaqueWall);
-
-      addRoomWindow(4, "left", -2.75, 2.1, 1.8, 1.45);
-      addWallArtPiece(4, "back", -2.95, 2.15, 1.55, 1.15, 0x1e1b4b, 0x2dd4bf);
-
-      /* Cozy Terrace Rug, Bench, Coffee Table & Warm Lantern inside 9.6 × 9.6 platform */
-      addRoomRug(4, 0.3, 0.9, 4.9, 3.3, 0x1e293b, 0x0f766e);
+      addRoomWindowAt(4, -0.1, TERRACE_Y + 1.65, -2.7, Math.PI / 2, 1.45, 1.2);
+      addWallArtAt(4, 0.9, TERRACE_Y + 1.68, -3.88, 0, 1.3, 1.0, 0x1e1b4b, 0x2dd4bf);
+      addRoomRugAt(4, 5.1, TERRACE_Y, -1.05, 4.1, 2.5, 0x1e293b, 0x0f766e);
 
       const terraceBench = new THREE.Group();
-      const tbSeat = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.75, 0.1, 0.68)), roomStdMat(4, 0x9a6b48, 0.65, 0.05));
+      const tbSeat = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.75, 0.1, 0.68)), stdMat(0x9a6b48, 0.65, 0.05));
       tbSeat.position.y = 0.46;
-      const tbBack = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.75, 0.5, 0.09)), roomStdMat(4, 0x7c4e2d, 0.65, 0.05));
+      const tbBack = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.75, 0.5, 0.09)), stdMat(0x7c4e2d, 0.65, 0.05));
       tbBack.position.set(0, 0.72, -0.29);
-      const tbLegL = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.1, 0.44, 0.62)), roomStdMat(4, 0x1e293b, 0.45, 0.5));
+      const tbLegL = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.1, 0.44, 0.62)), stdMat(0x1e293b, 0.45, 0.5));
       tbLegL.position.set(-0.75, 0.22, 0);
       const tbLegR = tbLegL.clone();
       tbLegR.position.x = 0.75;
-      const tbCushion = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.42, 0.3, 0.16)), roomStdMat(4, 0x8b5cf6, 0.75, 0.05));
+      const tbCushion = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.42, 0.3, 0.16)), stdMat(0x8b5cf6, 0.75, 0.05));
       tbCushion.position.set(-0.48, 0.62, -0.14);
       terraceBench.add(tbSeat, tbBack, tbLegL, tbLegR, tbCushion);
       registerRoomItem(4, terraceBench, {
         id: "terracebench",
         tooltip: "Terrace Bench (Drag to move)",
-        pos: [0.1, 0, -3.05],
-        scale: 1.38
+        pos: [5.25, TERRACE_Y, -3.1],
+        scale: 1.25
       });
 
       /* Small Terrace Lounger Table */
       const terraceTable = new THREE.Group();
-      const ttTop = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.68, 0.68, 0.08, 14)), roomStdMat(4, 0x9a6b48, 0.6, 0.08));
+      const ttTop = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.66, 0.66, 0.08, 14)), stdMat(0x9a6b48, 0.6, 0.08));
       ttTop.position.y = 0.54;
-      const ttLeg = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.08, 0.24, 0.5, 10)), roomStdMat(4, 0x1e293b, 0.45, 0.5));
+      const ttLeg = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.08, 0.24, 0.5, 10)), stdMat(0x1e293b, 0.45, 0.5));
       ttLeg.position.y = 0.25;
-      const ttScope = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.07, 0.09, 0.52, 10)), roomStdMat(4, 0x2dd4bf, 0.3, 0.6));
+      const ttScope = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.07, 0.09, 0.52, 10)), stdMat(0x2dd4bf, 0.3, 0.6));
       ttScope.position.set(0, 0.72, 0);
       ttScope.rotation.z = -0.65;
       terraceTable.add(ttTop, ttLeg, ttScope);
       registerRoomItem(4, terraceTable, {
         id: "terracetable",
         tooltip: "Stargazing Table (Drag to move)",
-        pos: [0.35, 0, 0.9]
+        pos: [5.1, TERRACE_Y, -0.9]
       });
 
       const lanternGroup = new THREE.Group();
-      const lnFrame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.32, 0.46, 0.32)), roomStdMat(4, 0x1e293b, 0.4, 0.5));
+      const lnFrame = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.32, 0.46, 0.32)), stdMat(0x1e293b, 0.4, 0.5));
       lnFrame.position.y = 0.23;
-      const lnGlow = new THREE.Mesh(trackGeo(new THREE.SphereGeometry(0.11, 10, 8)), roomStdMat(4, 0xfef08a, 0.2, 0.1, { emissive: 0xfbbf24, emissiveIntensity: 1.1 }));
+      const lnGlow = new THREE.Mesh(trackGeo(new THREE.SphereGeometry(0.11, 10, 8)), stdMat(0xfef08a, 0.2, 0.1, { emissive: 0xfbbf24, emissiveIntensity: 1.1 }));
       lnGlow.position.y = 0.22;
       lanternGroup.add(lnFrame, lnGlow);
       registerRoomItem(4, lanternGroup, {
         id: "lantern",
         tooltip: "Terrace Lantern (Drag to move)",
-        pos: [2.1, 0, -2.95],
-        scale: 1.38
+        pos: [7.15, TERRACE_Y, -3.05],
+        scale: 1.28
       });
 
-      /* String Lights on Corner Posts */
-      const slPostGeo = trackGeo(new THREE.CylinderGeometry(0.065, 0.065, 3.85, 8));
-      const slPostMat = roomStdMat(4, 0x334155, 0.45, 0.5);
-      [[-4.4, -4.3], [4.4, -4.3], [4.4, 0.85]].forEach(([px, pz]) => {
+      /* String Lights on Slim Terrace Corner Posts */
+      const slPostGeo = trackGeo(new THREE.CylinderGeometry(0.045, 0.045, 3.25, 8));
+      const slPostMat = stdMat(0x475569, 0.45, 0.5);
+      [[-0.15, -3.95], [10.45, -3.95], [10.45, 0.78]].forEach(([px, pz]) => {
         const post = new THREE.Mesh(slPostGeo, slPostMat);
-        post.position.set(px, 1.925, pz);
+        post.position.set(px, TERRACE_Y + 1.625, pz);
         roomGroups[4].add(post);
       });
       const slCurve = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-4.4, 3.82, -4.3),
-        new THREE.Vector3(0.0, 3.32, -4.15),
-        new THREE.Vector3(4.4, 3.82, -4.3),
-        new THREE.Vector3(4.4, 3.45, -1.7),
-        new THREE.Vector3(4.4, 3.82, 0.85)
+        new THREE.Vector3(-0.15, TERRACE_Y + 3.2, -3.95),
+        new THREE.Vector3(5.15, TERRACE_Y + 2.75, -3.85),
+        new THREE.Vector3(10.45, TERRACE_Y + 3.2, -3.95),
+        new THREE.Vector3(10.45, TERRACE_Y + 2.85, -1.6),
+        new THREE.Vector3(10.45, TERRACE_Y + 3.2, 0.78)
       ]);
-      roomGroups[4].add(new THREE.Mesh(trackGeo(new THREE.TubeGeometry(slCurve, 24, 0.028, 6, false)), roomStdMat(4, 0x1e293b, 0.8, 0.1)));
+      roomGroups[4].add(new THREE.Mesh(trackGeo(new THREE.TubeGeometry(slCurve, 24, 0.025, 6, false)), stdMat(0x1e293b, 0.8, 0.1)));
       for (let b = 0; b < 9; b++) {
         const pt = slCurve.getPoint(b / 8);
-        const bMat = roomStdMat(4, b % 2 === 0 ? 0xfef08a : 0x5eead4, 0.2, 0.1, {
+        const bMat = stdMat(b % 2 === 0 ? 0xfef08a : 0x5eead4, 0.2, 0.1, {
           emissive: b % 2 === 0 ? 0xfacc15 : 0x2dd4bf,
           emissiveIntensity: 0.95
         });
@@ -3559,38 +3687,24 @@
         stringBulbMats.push(bMat);
       }
 
-      /* Terrace Plants (3 lush planters) */
-      const tPlant1 = createPottedPlant(4, 1.5, 0xd97757, 0x10b981);
-      registerRoomItem(4, tPlant1, {
-        id: "terraceplant1",
-        tooltip: "Terrace Plant (Drag to move)",
-        pos: [3.45, 0, 3.1]
-      });
-      const tPlant2 = createPottedPlant(4, 1.3, 0x475569, 0x2dd4bf);
-      registerRoomItem(4, tPlant2, {
+      /* 1 Terrace Plant (clear of Staircase 2 landing) */
+      registerRoomItem(4, createPottedPlant(1.26, 0x475569, 0x2dd4bf), {
         id: "terraceplant2",
         tooltip: "Terrace Fern (Drag to move)",
-        pos: [-3.45, 0, -0.55]
-      });
-      const tPlant3 = createPottedPlant(4, 1.25, 0xe2e8f0, 0x10b981);
-      registerRoomItem(4, tPlant3, {
-        id: "terraceplant3",
-        tooltip: "Olive Planter (Drag to move)",
-        pos: [-3.35, 0, 3.35]
+        pos: [1.05, TERRACE_Y, -0.45]
       });
 
-      /* Twinkling Stars strictly inside the Terrace Backdrop Volume */
+      /* Twinkling Stars above the Terrace Deck */
       const TERRACE_STAR_COUNT = isMobileViewport ? 55 : 95;
       const tSkyPos = new Float32Array(TERRACE_STAR_COUNT * 3);
       for (let i = 0; i < TERRACE_STAR_COUNT; i++) {
-        tSkyPos[i * 3] = (Math.random() - 0.5) * 8.4;
-        tSkyPos[i * 3 + 1] = 1.65 + Math.random() * 3.35;
-        tSkyPos[i * 3 + 2] = (Math.random() - 0.5) * 8.4;
+        tSkyPos[i * 3] = 0.2 + Math.random() * 9.8;
+        tSkyPos[i * 3 + 1] = TERRACE_Y + 1.45 + Math.random() * 2.9;
+        tSkyPos[i * 3 + 2] = -3.8 + Math.random() * 4.4;
       }
       const tSkyGeo = trackGeo(new THREE.BufferGeometry());
       tSkyGeo.setAttribute("position", new THREE.BufferAttribute(tSkyPos, 3));
       const terraceTwinkleMat = trackMat(new THREE.PointsMaterial({ color: 0xe2e8f0, size: 0.13, transparent: true, opacity: 0.85 }));
-      trackRoomMat(4, terraceTwinkleMat);
       const terraceTwinkles = new THREE.Points(tSkyGeo, terraceTwinkleMat);
       roomGroups[4].add(terraceTwinkles);
 
@@ -3615,15 +3729,18 @@
       }));
       starExtrudeGeo.center();
 
-      /* Terrace Constellation Stars -> Hackathons (5-pointed stars + crisp sprite labels) */
+      /* Terrace Constellation Stars -> Hackathons floating above deck */
       const starMeshes = [];
       const constPts = [];
       ROOM_CONFIG.hackathons.forEach((hack) => {
-        const pVec = new THREE.Vector3(...hack.localPos);
+        const wx = 5.2 + hack.localPos[0] * 1.15;
+        const wy = TERRACE_Y + (hack.localPos[1] - 0.35);
+        const wz = THREE.MathUtils.clamp(-1.6 + hack.localPos[2] * 0.55, -3.2, -0.35);
+        const pVec = new THREE.Vector3(wx, wy, wz);
         constPts.push(pVec);
 
         const starG = new THREE.Group();
-        const sMat = roomStdMat(4, new THREE.Color(hack.color), 0.18, 0.45, {
+        const sMat = stdMat(new THREE.Color(hack.color), 0.18, 0.45, {
           emissive: new THREE.Color(hack.color),
           emissiveIntensity: 0.95
         });
@@ -3633,7 +3750,7 @@
 
         const halo = new THREE.Mesh(
           trackGeo(new THREE.TorusGeometry(0.54, 0.028, 8, 24)),
-          roomStdMat(4, new THREE.Color(hack.color), 0.2, 0.4, {
+          stdMat(new THREE.Color(hack.color), 0.2, 0.4, {
             emissive: new THREE.Color(hack.color),
             emissiveIntensity: 0.75
           })
@@ -3642,7 +3759,6 @@
 
         const lblTex = createStarLabelTexture(hack.name, hack.color);
         const lblMat = trackMat(new THREE.SpriteMaterial({ map: lblTex, transparent: true, opacity: 0.96, depthWrite: false }));
-        trackRoomMat(4, lblMat);
         const lblSprite = new THREE.Sprite(lblMat);
         lblSprite.scale.set(2.45, 0.46, 1);
         lblSprite.position.set(0, 0.72, 0);
@@ -3651,8 +3767,9 @@
         registerRoomItem(4, starG, {
           id: `star-${hack.id}`,
           tooltip: `Hackathon Star: ${hack.name} (Click or drag)`,
-          pos: [pVec.x, pVec.y, pVec.z],
-          fixedY: pVec.y,
+          pos: [wx, wy, wz],
+          fixedY: wy,
+          standPos: [THREE.MathUtils.clamp(wx, 1.5, 9.2), TERRACE_Y, -0.65],
           gesture: "point",
           onClick: () => openHackathonPanel(hack, els.roomActionBtn)
         });
@@ -3666,16 +3783,16 @@
       ];
       roomGroups[4].add(new THREE.LineSegments(
         trackGeo(new THREE.BufferGeometry().setFromPoints(constSegments)),
-        trackRoomMat(4, trackMat(new THREE.LineBasicMaterial({ color: 0x5eead4, transparent: true, opacity: 0.78 })))
+        trackMat(new THREE.LineBasicMaterial({ color: 0x5eead4, transparent: true, opacity: 0.78 }))
       ));
 
-      /* Exterior Night Sky Stars (Visible only during night exterior or whole-house overview) */
-      const STAR_COUNT = isMobileViewport ? 110 : 220;
+      /* Exterior Night Sky Stars & High Whole-House Night Stars */
+      const STAR_COUNT = isMobileViewport ? 120 : 240;
       const skyPos = new Float32Array(STAR_COUNT * 3);
       for (let i = 0; i < STAR_COUNT; i++) {
-        skyPos[i * 3] = (Math.random() - 0.5) * 38;
-        skyPos[i * 3 + 1] = 6 + Math.random() * 14;
-        skyPos[i * 3 + 2] = (Math.random() - 0.5) * 36;
+        skyPos[i * 3] = -18 + Math.random() * 40;
+        skyPos[i * 3 + 1] = 10 + Math.random() * 12;
+        skyPos[i * 3 + 2] = -18 + Math.random() * 32;
       }
       const skyGeo = trackGeo(new THREE.BufferGeometry());
       skyGeo.setAttribute("position", new THREE.BufferAttribute(skyPos, 3));
@@ -3757,21 +3874,12 @@
 
       enableShadows(avatarGroup);
 
-      const AVATAR_DOOR_POS = [
-        new THREE.Vector3(-2.65, 0, 2.35),
-        new THREE.Vector3(-2.3, 0, 2.1),
-        new THREE.Vector3(-2.3, 0, 2.1),
-        new THREE.Vector3(2.45, 0, 2.75),
-        new THREE.Vector3(-2.65, 0, 3.25)
-      ];
-
       const EXTERIOR_AVATAR_POS = new THREE.Vector3(1.55, 0, 3.35);
 
       avatarGroup.scale.setScalar(1.22);
       avatarGroup.userData = {
         id: "avatar",
-        tooltip: "Rubina (Click to wave)",
-        defaultPos: AVATAR_DOOR_POS[0].clone(),
+        tooltip: "Rubina (Click or drag anywhere)",
         emissiveMaterials: []
       };
       avatarGroup.position.copy(EXTERIOR_AVATAR_POS);
@@ -3780,8 +3888,168 @@
       scene.add(avatarGroup);
 
       /* ======================================================================
-         5. SCENE PHASE, BACKDROPS & SLIDE+FADE ROOM TRANSITION ENGINE
+         5. WAYPOINT WALKING GRAPH, SCENE PHASES & FOLLOW CAMERA ENGINE
          ====================================================================== */
+      const STAIR1_SPEC = { y0: GROUND_Y, y1: BEDROOM_Y, z0: 3.2, z1: -2.0, steps: STAIR1_STEPS };
+      const STAIR2_SPEC = { y0: BEDROOM_Y, y1: TERRACE_Y, z0: 0.4, z1: -2.9, steps: STAIR2_STEPS };
+
+      const WAYPOINTS = [
+        { x: -7.4, y: GROUND_Y, z: 0.75, roomIdx: 0 },   // 0 Hall center
+        { x: -5.1, y: GROUND_Y, z: 0.5, roomIdx: 0 },    // 1 Hall->Study doorway west
+        { x: -3.2, y: GROUND_Y, z: 0.5, roomIdx: 1 },    // 2 Hall->Study doorway east
+        { x: 0.0, y: GROUND_Y, z: 0.65, roomIdx: 1 },    // 3 Study center
+        { x: 3.2, y: GROUND_Y, z: 0.5, roomIdx: 1 },     // 4 Study->Kitchen doorway west
+        { x: 5.2, y: GROUND_Y, z: 0.5, roomIdx: 2 },     // 5 Study->Kitchen doorway east
+        { x: 8.2, y: GROUND_Y, z: 0.45, roomIdx: 2 },    // 6 Kitchen center
+        { x: 12.1, y: GROUND_Y, z: 3.2, roomIdx: 2 },    // 7 Stair 1 pre-foot
+        { x: 13.6, y: GROUND_Y, z: 3.2, roomIdx: 2 },    // 8 Stair 1 bottom
+        { x: 13.6, y: BEDROOM_Y, z: -2.0, roomIdx: 3 },  // 9 Stair 1 top
+        { x: 11.9, y: BEDROOM_Y, z: -2.0, roomIdx: 3 },  // 10 Bedroom entry from Stair 1
+        { x: 5.4, y: BEDROOM_Y, z: -0.5, roomIdx: 3 },   // 11 Bedroom center
+        { x: 10.7, y: BEDROOM_Y, z: 0.4, roomIdx: 3 },   // 12 Stair 2 pre-foot
+        { x: 11.7, y: BEDROOM_Y, z: 0.4, roomIdx: 3 },   // 13 Stair 2 bottom
+        { x: 11.7, y: TERRACE_Y, z: -2.9, roomIdx: 4 },  // 14 Stair 2 top
+        { x: 10.1, y: TERRACE_Y, z: -3.3, roomIdx: 4 },  // 15 Terrace landing entry
+        { x: 5.2, y: TERRACE_Y, z: -1.75, roomIdx: 4 }   // 16 Terrace center
+      ];
+      const ROOM_HOME_WP = [0, 3, 6, 11, 16];
+
+      function steppedStairY(spec, z) {
+        const prog = THREE.MathUtils.clamp((z - spec.z0) / (spec.z1 - spec.z0), 0, 1);
+        if (prog <= 0.015) return spec.y0;
+        if (prog >= 0.985) return spec.y1;
+        const sf = prog * spec.steps;
+        const idx = Math.floor(sf);
+        const frac = sf - idx;
+        const stepBlend = THREE.MathUtils.smoothstep(frac, 0, 0.35);
+        return spec.y0 + ((idx + stepBlend) / spec.steps) * (spec.y1 - spec.y0);
+      }
+
+      function getSegmentStair(wpA, wpB) {
+        if ((wpA === 8 && wpB === 9) || (wpA === 9 && wpB === 8)) return STAIR1_SPEC;
+        if ((wpA === 13 && wpB === 14) || (wpA === 14 && wpB === 13)) return STAIR2_SPEC;
+        return null;
+      }
+
+      function detectZoneAt(pos) {
+        if (pos.y > TERRACE_Y - 0.85) {
+          return { roomIdx: 4, onStair: 0 };
+        }
+        if (pos.y > BEDROOM_Y + 0.45) {
+          return { roomIdx: pos.y > (BEDROOM_Y + TERRACE_Y) * 0.5 ? 4 : 3, onStair: 2 };
+        }
+        if (pos.y > BEDROOM_Y - 0.8) {
+          return { roomIdx: 3, onStair: 0 };
+        }
+        if (pos.y > GROUND_Y + 0.45) {
+          return { roomIdx: pos.y > BEDROOM_Y * 0.5 ? 3 : 2, onStair: 1 };
+        }
+        if (pos.x < -4.2) return { roomIdx: 0, onStair: 0 };
+        if (pos.x <= 4.2) return { roomIdx: 1, onStair: 0 };
+        return { roomIdx: 2, onStair: 0 };
+      }
+
+      function nearestWpIndexForRoom(pos, roomIdx) {
+        let bestIdx = ROOM_HOME_WP[roomIdx];
+        let bestDist = Infinity;
+        WAYPOINTS.forEach((wp, idx) => {
+          if (wp.roomIdx !== roomIdx) return;
+          const d = Math.hypot(wp.x - pos.x, wp.z - pos.z);
+          if (d < bestDist) {
+            bestDist = d;
+            bestIdx = idx;
+          }
+        });
+        return bestIdx;
+      }
+
+      function buildWalkNodes(fromPos, targetRoomIdx, finalStandPos = null) {
+        const zone = detectZoneAt(fromPos);
+        const endWp = ROOM_HOME_WP[targetRoomIdx];
+        const nodes = [];
+
+        /* Direct walk if already on same flat level in the target room */
+        if (!zone.onStair && zone.roomIdx === targetRoomIdx && finalStandPos) {
+          nodes.push({
+            pos: finalStandPos.clone(),
+            roomIdx: targetRoomIdx,
+            stair: null
+          });
+          return nodes;
+        }
+
+        let startWp;
+        if (zone.onStair === 1) {
+          const exitUp = targetRoomIdx >= 3;
+          startWp = exitUp ? 9 : 8;
+          nodes.push({
+            pos: new THREE.Vector3(WAYPOINTS[startWp].x, WAYPOINTS[startWp].y, WAYPOINTS[startWp].z),
+            roomIdx: WAYPOINTS[startWp].roomIdx,
+            stair: STAIR1_SPEC
+          });
+        } else if (zone.onStair === 2) {
+          const exitUp = targetRoomIdx >= 4;
+          startWp = exitUp ? 14 : 13;
+          nodes.push({
+            pos: new THREE.Vector3(WAYPOINTS[startWp].x, WAYPOINTS[startWp].y, WAYPOINTS[startWp].z),
+            roomIdx: WAYPOINTS[startWp].roomIdx,
+            stair: STAIR2_SPEC
+          });
+        } else {
+          startWp = nearestWpIndexForRoom(fromPos, zone.roomIdx);
+          if (Math.hypot(WAYPOINTS[startWp].x - fromPos.x, WAYPOINTS[startWp].z - fromPos.z) > 0.25) {
+            nodes.push({
+              pos: new THREE.Vector3(WAYPOINTS[startWp].x, WAYPOINTS[startWp].y, WAYPOINTS[startWp].z),
+              roomIdx: WAYPOINTS[startWp].roomIdx,
+              stair: null
+            });
+          }
+        }
+
+        if (startWp !== endWp) {
+          const dir = endWp > startWp ? 1 : -1;
+          for (let i = startWp; i !== endWp; i += dir) {
+            const next = i + dir;
+            const wp = WAYPOINTS[next];
+            nodes.push({
+              pos: new THREE.Vector3(wp.x, wp.y, wp.z),
+              roomIdx: wp.roomIdx,
+              stair: getSegmentStair(i, next)
+            });
+          }
+        }
+
+        if (finalStandPos) {
+          const lastNode = nodes[nodes.length - 1];
+          if (!lastNode || lastNode.pos.distanceTo(finalStandPos) > 0.15) {
+            nodes.push({
+              pos: finalStandPos.clone(),
+              roomIdx: targetRoomIdx,
+              stair: null
+            });
+          }
+        } else if (nodes.length === 0) {
+          const home = WAYPOINTS[endWp];
+          nodes.push({
+            pos: new THREE.Vector3(home.x, home.y, home.z),
+            roomIdx: targetRoomIdx,
+            stair: null
+          });
+        }
+
+        return nodes;
+      }
+
+      const walkState = {
+        active: false,
+        nodes: [],
+        nodeIdx: 0,
+        targetRoomIdx: 0,
+        faceTarget: null,
+        onArrive: null,
+        phase: 0
+      };
+
       const avatarState = {
         gestureTimer: 0,
         gestureType: "wave",
@@ -3879,24 +4147,13 @@
       function refitCurrentPhase(immediate = false) {
         if (appState.scenePhase === "exterior" || appState.scenePhase === "opening") {
           const box = knockAnim.active && knockAnim.stage === "dolly" ? DOORWAY_BOX : EXTERIOR_BOX;
-          fitIsoCamera(box, immediate, false);
+          fitIsoCamera(box, immediate, false, ISO_BASE_DIR);
         } else if (appState.scenePhase === "overview") {
-          fitIsoCamera(OVERVIEW_BOX, immediate, false);
+          fitIsoCamera(WHOLE_HOUSE_BOX, immediate, false, ISO_BASE_DIR);
         } else {
-          fitRoomToViewport(appState.activeRoomIdx, immediate);
+          fitRoomToViewport(appState.activeRoomIdx, immediate, avatarGroup.position);
         }
       }
-
-      /* Smooth ~600ms Slide & Fade Transition (Zero zoom-out during transitions) */
-      const SLIDE_DIST = 11.5;
-      const roomSlide = {
-        active: false,
-        elapsed: 0,
-        duration: 0.6,
-        outIdx: 0,
-        inIdx: 0,
-        reduced: false
-      };
 
       const veilFade = {
         active: false,
@@ -3906,21 +4163,22 @@
         to: 0
       };
 
-      function showSingleRoomImmediate(roomIdx, waveOnEntry = true) {
+      function showConnectedHouseImmediate(roomIdx, waveOnEntry = true, customPos = null) {
         appState.scenePhase = "room";
         appState.activeRoomIdx = roomIdx;
-        roomSlide.active = false;
+        walkState.active = false;
         exteriorGroup.visible = false;
+        houseGroup.visible = true;
 
-        roomGroups.forEach((g, i) => {
-          g.visible = i === roomIdx;
-          g.position.set(0, 0, 0);
-          setRoomAlpha(i, 1);
-        });
-
+        const homeWp = WAYPOINTS[ROOM_HOME_WP[roomIdx]];
         avatarGroup.visible = true;
-        avatarGroup.position.copy(AVATAR_DOOR_POS[roomIdx]);
+        if (customPos) {
+          avatarGroup.position.copy(customPos);
+        } else {
+          avatarGroup.position.set(homeWp.x, homeWp.y, homeWp.z);
+        }
         avatarGroup.rotation.y = 0.45;
+
         if (waveOnEntry && !prefersReducedMotion) {
           avatarState.gestureType = "wave";
           avatarState.gestureTimer = 1.6;
@@ -3934,105 +4192,125 @@
         els.wholeHouseBtn.classList.remove("is-active");
         els.wholeHouseBtn.setAttribute("aria-pressed", "false");
         updateRoomUI(roomIdx);
-        requestAnimationFrame(() => fitRoomToViewport(roomIdx, false));
+        requestAnimationFrame(() => fitRoomToViewport(roomIdx, true, avatarGroup.position));
       }
 
-      function goToRoom(targetIdx) {
+      function walkToTarget(targetRoomIdx, finalStandPos = null, faceTarget = null, onArrive = null, waveOnArrive = true) {
         if (appState.scenePhase === "exterior" || appState.scenePhase === "opening") return;
-        const wrapped = (targetIdx + ROOM_CONFIG.rooms.length) % ROOM_CONFIG.rooms.length;
-        if (appState.scenePhase === "overview") {
-          showSingleRoomImmediate(wrapped, true);
-          return;
-        }
-        if (wrapped === appState.activeRoomIdx || roomSlide.active) return;
 
-        const outIdx = appState.activeRoomIdx;
-        const inIdx = wrapped;
+        if (appState.scenePhase === "overview") {
+          appState.scenePhase = "room";
+          els.wholeHouseBtn.classList.remove("is-active");
+          els.wholeHouseBtn.setAttribute("aria-pressed", "false");
+        }
 
         els.hoverTooltip.hidden = true;
         hoveredItem = null;
         draggedItem = null;
         avatarState.speechTimer = 0;
         els.speechBubble.hidden = true;
-        avatarGroup.visible = false;
         document.body.style.cursor = "default";
 
-        updateRoomUI(inIdx);
+        const wrapped = (targetRoomIdx + ROOM_CONFIG.rooms.length) % ROOM_CONFIG.rooms.length;
 
+        /* Reduced Motion: instant relocation + soft warm fade */
         if (prefersReducedMotion) {
-          roomSlide.active = true;
-          roomSlide.elapsed = 0;
-          roomSlide.duration = 0.14;
-          roomSlide.outIdx = outIdx;
-          roomSlide.inIdx = inIdx;
-          roomSlide.reduced = true;
-          roomGroups[outIdx].visible = true;
-          roomGroups[outIdx].position.set(0, 0, 0);
-          roomGroups[inIdx].visible = true;
-          roomGroups[inIdx].position.set(0, 0, 0);
-          setRoomAlpha(outIdx, 1);
-          setRoomAlpha(inIdx, 0);
-          requestAnimationFrame(() => fitRoomToViewport(inIdx, true));
+          walkState.active = false;
+          appState.activeRoomIdx = wrapped;
+          const homeWp = WAYPOINTS[ROOM_HOME_WP[wrapped]];
+          if (finalStandPos) {
+            avatarGroup.position.copy(finalStandPos);
+          } else {
+            avatarGroup.position.set(homeWp.x, homeWp.y, homeWp.z);
+          }
+          if (faceTarget) {
+            const dx = faceTarget.x - avatarGroup.position.x;
+            const dz = faceTarget.z - avatarGroup.position.z;
+            if (Math.hypot(dx, dz) > 0.05) avatarGroup.rotation.y = Math.atan2(dx, dz);
+          } else {
+            avatarGroup.rotation.y = 0.45;
+          }
+          updateRoomUI(wrapped);
+          fitRoomToViewport(wrapped, true, avatarGroup.position);
+          veilFade.active = true;
+          veilFade.elapsed = 0;
+          veilFade.duration = 0.16;
+          veilFade.from = 0.55;
+          veilFade.to = 0;
+          if (onArrive) onArrive();
           return;
         }
 
-        roomSlide.active = true;
-        roomSlide.elapsed = 0;
-        roomSlide.duration = 0.6;
-        roomSlide.outIdx = outIdx;
-        roomSlide.inIdx = inIdx;
-        roomSlide.reduced = false;
+        const nodes = buildWalkNodes(avatarGroup.position, wrapped, finalStandPos);
+        if (nodes.length === 0 || (nodes.length === 1 && avatarGroup.position.distanceTo(nodes[0].pos) < 0.25)) {
+          walkState.active = false;
+          appState.activeRoomIdx = wrapped;
+          updateRoomUI(wrapped);
+          fitRoomToViewport(wrapped, false, avatarGroup.position);
+          if (faceTarget) {
+            const dx = faceTarget.x - avatarGroup.position.x;
+            const dz = faceTarget.z - avatarGroup.position.z;
+            if (Math.hypot(dx, dz) > 0.05) avatarGroup.rotation.y = Math.atan2(dx, dz);
+          }
+          if (waveOnArrive) {
+            avatarState.gestureType = faceTarget ? "point" : "wave";
+            avatarState.gestureTimer = 0.85;
+          }
+          if (onArrive) {
+            window.setTimeout(onArrive, 160);
+          }
+          return;
+        }
 
-        roomGroups[outIdx].visible = true;
-        roomGroups[outIdx].position.set(0, 0, 0);
-        setRoomAlpha(outIdx, 1);
-
-        roomGroups[inIdx].visible = true;
-        roomGroups[inIdx].position.copy(SCREEN_RIGHT).multiplyScalar(SLIDE_DIST);
-        setRoomAlpha(inIdx, 0);
-
-        fitRoomToViewport(inIdx, false);
+        walkState.active = true;
+        walkState.nodes = nodes;
+        walkState.nodeIdx = 0;
+        walkState.targetRoomIdx = wrapped;
+        walkState.faceTarget = faceTarget ? faceTarget.clone() : null;
+        walkState.onArrive = onArrive;
+        walkState.waveOnArrive = waveOnArrive;
+        updateRoomUI(detectZoneAt(avatarGroup.position).roomIdx);
       }
 
-      function enterHallWithSlide() {
+      function goToRoom(targetIdx) {
+        const wrapped = (targetIdx + ROOM_CONFIG.rooms.length) % ROOM_CONFIG.rooms.length;
+        walkToTarget(wrapped, null, null, null, true);
+      }
+
+      function enterHallFromExterior() {
         appState.scenePhase = "room";
         appState.activeRoomIdx = 0;
+        walkState.active = false;
         exteriorGroup.visible = false;
+        houseGroup.visible = true;
         doorSpillLight.intensity = 0;
         lightSpillMat.opacity = 0;
 
         avatarState.speechTimer = 0;
         els.speechBubble.hidden = true;
-        avatarGroup.visible = false;
+        const homeWp = WAYPOINTS[ROOM_HOME_WP[0]];
+        avatarGroup.position.set(homeWp.x, homeWp.y, homeWp.z);
+        avatarGroup.rotation.y = 0.45;
+        avatarGroup.visible = true;
+
+        if (!prefersReducedMotion) {
+          avatarState.gestureType = "wave";
+          avatarState.gestureTimer = 1.6;
+        }
+
         els.hoverTooltip.hidden = true;
         document.body.style.cursor = "default";
-
         els.knockOverlay.hidden = true;
         els.roomBanner.hidden = false;
         els.bottomDockWrap.hidden = false;
         els.wholeHouseBtn.classList.remove("is-active");
         els.wholeHouseBtn.setAttribute("aria-pressed", "false");
         updateRoomUI(0);
-
-        roomGroups.forEach((g, i) => {
-          g.visible = i === 0;
-          g.position.set(0, 0, 0);
-          setRoomAlpha(i, i === 0 ? 0 : 1);
-        });
-        /* Snap camera to Hall 90% viewport framing behind warm veil so zero zoom-out occurs */
-        fitRoomToViewport(0, true);
-        roomGroups[0].position.copy(SCREEN_RIGHT).multiplyScalar(SLIDE_DIST);
-
-        roomSlide.active = true;
-        roomSlide.elapsed = 0;
-        roomSlide.duration = 0.6;
-        roomSlide.outIdx = -1;
-        roomSlide.inIdx = 0;
-        roomSlide.reduced = false;
+        fitRoomToViewport(0, true, avatarGroup.position);
 
         veilFade.active = true;
         veilFade.elapsed = 0;
-        veilFade.duration = 0.48;
+        veilFade.duration = 0.46;
         veilFade.from = 1;
         veilFade.to = 0;
       }
@@ -4074,7 +4352,7 @@
 
       function goOutside(immediate = false) {
         knockAnim.active = false;
-        roomSlide.active = false;
+        walkState.active = false;
         veilFade.active = false;
         clearTimeout(bannerFadeTimer);
         avatarState.speechTimer = 0;
@@ -4088,13 +4366,9 @@
           exitAnim.active = false;
           appState.scenePhase = "exterior";
           updateStageBackdrop("exterior");
-          els.warmFadeVeil.style.opacity = immediate ? "0" : (prefersReducedMotion && exteriorGroup.visible === false ? "0.75" : "0");
+          els.warmFadeVeil.style.opacity = immediate ? "0" : (prefersReducedMotion && !exteriorGroup.visible ? "0.75" : "0");
 
-          roomGroups.forEach((g, idx) => {
-            g.visible = false;
-            g.position.set(0, 0, 0);
-            setRoomAlpha(idx, 1);
-          });
+          houseGroup.visible = false;
           exteriorGroup.visible = true;
           doorPivot.rotation.y = 0;
           doorSpillLight.intensity = 0;
@@ -4116,9 +4390,9 @@
             veilFade.duration = 0.22;
             veilFade.from = 0.75;
             veilFade.to = 0;
-            fitIsoCamera(EXTERIOR_BOX, true, false);
+            fitIsoCamera(EXTERIOR_BOX, true, false, ISO_BASE_DIR);
           } else {
-            fitIsoCamera(EXTERIOR_BOX, immediate, false);
+            fitIsoCamera(EXTERIOR_BOX, immediate, false, ISO_BASE_DIR);
           }
           return;
         }
@@ -4137,44 +4411,49 @@
         if (appState.scenePhase === "exterior" || appState.scenePhase === "opening" || exitAnim.active) return;
 
         if (appState.scenePhase === "overview") {
-          showSingleRoomImmediate(appState.activeRoomIdx, true);
+          appState.scenePhase = "room";
+          els.wholeHouseBtn.classList.remove("is-active");
+          els.wholeHouseBtn.setAttribute("aria-pressed", "false");
+          updateRoomUI(appState.activeRoomIdx);
+          fitRoomToViewport(appState.activeRoomIdx, false, avatarGroup.position);
           return;
         }
 
+        walkState.active = false;
         appState.scenePhase = "overview";
         updateStageBackdrop("overview");
-        roomSlide.active = false;
         exteriorGroup.visible = false;
-        avatarGroup.visible = false;
-        roomGroups.forEach((g, idx) => {
-          g.visible = true;
-          setRoomAlpha(idx, 1);
-          g.position.set(...ROOM_CONFIG.rooms[idx].overviewPos);
-        });
+        houseGroup.visible = true;
+        avatarGroup.visible = true;
+
         els.wholeHouseBtn.classList.add("is-active");
         els.wholeHouseBtn.setAttribute("aria-pressed", "true");
-        els.roomBannerKicker.textContent = "CUTAWAY OVERVIEW";
+        els.roomBannerKicker.textContent = "3-LEVEL CONNECTED HOUSE";
         els.roomBannerTitle.textContent = "Rubina's Whole House";
-        els.roomBannerSub.textContent = "Click any room tab below to step back inside.";
+        els.roomBannerSub.textContent = "Click any room tab below or any item to walk Rubina right over.";
         showRoomChip();
-        requestAnimationFrame(() => fitIsoCamera(OVERVIEW_BOX, false, false));
+        requestAnimationFrame(() => fitIsoCamera(WHOLE_HOUSE_BOX, false, false, ISO_BASE_DIR));
       }
 
       function resetActiveRoomLayout() {
-        if (appState.scenePhase === "room") {
+        if (appState.scenePhase === "room" || appState.scenePhase === "overview") {
+          walkState.active = false;
           const idx = appState.activeRoomIdx;
           roomInteractiveItems[idx].forEach((item) => {
             item.position.copy(item.userData.defaultPos);
             item.rotation.y = item.userData.defaultRotY;
           });
-          avatarGroup.position.copy(AVATAR_DOOR_POS[idx]);
+          const homeWp = WAYPOINTS[ROOM_HOME_WP[idx]];
+          avatarGroup.position.set(homeWp.x, homeWp.y, homeWp.z);
           avatarGroup.rotation.y = 0.45;
-          fitRoomToViewport(idx, false);
+          if (appState.scenePhase === "room") {
+            fitRoomToViewport(idx, false, avatarGroup.position);
+          }
         }
       }
 
       /* ======================================================================
-         6. RAYCASTING (Knock Door, Drag Objects Inside Active Room, Click Panels)
+         6. RAYCASTING (Knock Door, Drag Avatar/Items in Connected House, Walk+Click)
          ====================================================================== */
       const raycaster = new THREE.Raycaster();
       const pointerNDC = new THREE.Vector2();
@@ -4189,10 +4468,12 @@
       let didDrag = false;
       let lastHoverCheck = 0;
 
+      const allInteractiveItems = roomInteractiveItems.flat();
+
       function getCurrentTargets() {
         if (appState.scenePhase === "exterior" && !exitAnim.active) return [doorPivot, avatarGroup];
-        if (appState.scenePhase === "room" && !roomSlide.active && !exitAnim.active) {
-          return [...roomInteractiveItems[appState.activeRoomIdx], avatarGroup];
+        if ((appState.scenePhase === "room" || appState.scenePhase === "overview") && !exitAnim.active) {
+          return [...allInteractiveItems, avatarGroup];
         }
         return [];
       }
@@ -4254,6 +4535,29 @@
         }
       }
 
+      function snapAvatarToHouseSurface(rc) {
+        const surfHits = rc.intersectObjects(houseWalkSurfaces, false);
+        if (surfHits.length === 0) return false;
+        const h = surfHits[0];
+        const meta = h.object.userData.walkMeta;
+        let ny = h.point.y;
+        if (meta && meta.steps) {
+          ny = steppedStairY(meta, h.point.z);
+        } else if (meta && (meta.zone === "hall" || meta.zone === "study" || meta.zone === "kitchen")) {
+          ny = GROUND_Y;
+        } else if (meta && meta.zone === "bedroom") {
+          ny = BEDROOM_Y;
+        } else if (meta && meta.zone === "terrace") {
+          ny = TERRACE_Y;
+        }
+        avatarGroup.position.set(h.point.x, ny, h.point.z);
+        if (meta && meta.roomIdx !== undefined && meta.roomIdx !== appState.activeRoomIdx) {
+          appState.activeRoomIdx = meta.roomIdx;
+          updateRoomUI(meta.roomIdx);
+        }
+        return true;
+      }
+
       function onPointerMove(e) {
         if (!els.panelBackdrop.hidden) return;
         updateNDC(e);
@@ -4267,18 +4571,24 @@
         if (draggedItem) {
           if (Math.hypot(e.clientX - downScreen.x, e.clientY - downScreen.y) > 6) {
             didDrag = true;
+            walkState.active = false;
             els.hoverTooltip.hidden = true;
           }
           if (didDrag) {
             raycaster.setFromCamera(pointerNDC, camera);
+            if (draggedItem === avatarGroup) {
+              snapAvatarToHouseSurface(raycaster);
+              return;
+            }
             if (raycaster.ray.intersectPlane(dragPlane, dragHit)) {
-              /* Strictly clamp dragged objects inside the 9.6 × 9.6 room floor bounds */
-              const nx = THREE.MathUtils.clamp(dragHit.x + dragOffset.x, -3.9, 3.9);
-              const nz = THREE.MathUtils.clamp(dragHit.z + dragOffset.z, -3.8, 3.8);
+              const rIdx = draggedItem.userData.roomIdx;
+              const bounds = ROOM_BOUNDS[rIdx] || ROOM_BOUNDS[0];
+              const nx = THREE.MathUtils.clamp(dragHit.x + dragOffset.x, bounds.minX, bounds.maxX);
+              const nz = THREE.MathUtils.clamp(dragHit.z + dragOffset.z, bounds.minZ, bounds.maxZ);
               draggedItem.position.x = nx;
               draggedItem.position.z = nz;
 
-              let baseY = 0;
+              let baseY = bounds.floorY;
               if (draggedItem.userData.fixedY !== undefined) baseY = draggedItem.userData.fixedY;
               else if (draggedItem.userData.isDeskTop && Math.abs(nx - deskGroup.position.x) < 1.7 && Math.abs(nz - deskGroup.position.z) < 0.9) baseY = STUDY_DESK_Y;
               else if (draggedItem.userData.isCounterTop && Math.abs(nx - counterGroup.position.x) < 2.85 && Math.abs(nz - counterGroup.position.z) < 0.98) baseY = KITCHEN_COUNTER_Y;
@@ -4312,8 +4622,8 @@
           setHighlight(nextHover, true);
           els.hoverTooltip.textContent = nextHover === doorPivot
             ? "Front Door: Knock to enter"
-            : (nextHover === avatarGroup && appState.scenePhase === "exterior"
-              ? "Rubina (Click to wave)"
+            : (nextHover === avatarGroup
+              ? "Rubina (Click to wave or drag anywhere)"
               : (jarHit ? `Spice Jar · ${jarHit.userData.skill.name}` : nextHover.userData.tooltip));
           els.hoverTooltip.style.left = `${e.clientX}px`;
           els.hoverTooltip.style.top = `${e.clientY}px`;
@@ -4330,26 +4640,37 @@
         hoveredJar = null;
 
         if (didDrag) {
+          if (item === avatarGroup) {
+            if (appState.scenePhase === "room") {
+              fitRoomToViewport(appState.activeRoomIdx, false, avatarGroup.position);
+            }
+            return;
+          }
+          const bounds = ROOM_BOUNDS[item.userData.roomIdx] || ROOM_BOUNDS[0];
           if (item.userData.fixedY !== undefined) item.position.y = item.userData.fixedY;
           else if (item.userData.isDeskTop && Math.abs(item.position.x - deskGroup.position.x) < 1.7 && Math.abs(item.position.z - deskGroup.position.z) < 0.9) item.position.y = STUDY_DESK_Y;
           else if (item.userData.isCounterTop && Math.abs(item.position.x - counterGroup.position.x) < 2.85 && Math.abs(item.position.z - counterGroup.position.z) < 0.98) item.position.y = KITCHEN_COUNTER_Y;
-          else item.position.y = 0;
+          else item.position.y = bounds.floorY;
         } else {
           if (item === avatarGroup) {
             showSpeech("Hi, I'm Rubina!", 2.4);
           } else if (item.userData.onClick) {
-            const dx = item.position.x - avatarGroup.position.x;
-            const dz = item.position.z - avatarGroup.position.z;
-            if (Math.hypot(dx, dz) > 0.05) {
-              avatarGroup.rotation.y = Math.atan2(dx, dz);
-            }
-            if (prefersReducedMotion) {
+            const targetRoom = item.userData.roomIdx;
+            const bounds = ROOM_BOUNDS[targetRoom];
+            const standPos = item.userData.standPos
+              ? item.userData.standPos.clone()
+              : new THREE.Vector3(
+                THREE.MathUtils.clamp(item.position.x, bounds.minX + 0.5, bounds.maxX - 0.5),
+                bounds.floorY,
+                THREE.MathUtils.clamp(item.position.z + 1.15, bounds.minZ + 0.4, bounds.maxZ - 0.4)
+              );
+            walkToTarget(targetRoom, standPos, item.position, () => {
+              if (!prefersReducedMotion) {
+                avatarState.gestureType = item.userData.gesture;
+                avatarState.gestureTimer = 0.75;
+              }
               item.userData.onClick(jar);
-            } else {
-              avatarState.gestureType = item.userData.gesture;
-              avatarState.gestureTimer = 0.7;
-              setTimeout(() => item.userData.onClick(jar), 160);
-            }
+            }, false);
           }
         }
       }
@@ -4430,6 +4751,8 @@
       }
 
       const _speechWorld = new THREE.Vector3();
+      const _camBasePos = new THREE.Vector3();
+      const _walkDelta = new THREE.Vector3();
       let codeTick = 0;
 
       function afterDraw(cb) {
@@ -4472,7 +4795,7 @@
             els.warmFadeVeil.style.opacity = p.toFixed(3);
             if (p >= 1) {
               knockAnim.active = false;
-              showSingleRoomImmediate(0, false);
+              showConnectedHouseImmediate(0, false);
               veilFade.active = true;
               veilFade.elapsed = 0;
               veilFade.duration = 0.24;
@@ -4497,7 +4820,7 @@
             if (p >= 1) {
               knockAnim.stage = "dolly";
               knockAnim.timer = 0;
-              fitIsoCamera(DOORWAY_BOX, false);
+              fitIsoCamera(DOORWAY_BOX, false, false, ISO_BASE_DIR);
             }
           } else if (knockAnim.stage === "dolly") {
             const p = Math.min(1, knockAnim.timer / 0.68);
@@ -4509,7 +4832,7 @@
             }
             if (p >= 1) {
               knockAnim.active = false;
-              enterHallWithSlide();
+              enterHallFromExterior();
             }
           }
         }
@@ -4520,15 +4843,8 @@
           if (exitAnim.stage === "toVeil") {
             const p = Math.min(1, exitAnim.timer / 0.36);
             els.warmFadeVeil.style.opacity = (p * 0.92).toFixed(3);
-            if (appState.scenePhase === "room") {
-              setRoomAlpha(appState.activeRoomIdx, 1 - 0.85 * p);
-            }
             if (p >= 1) {
-              roomGroups.forEach((g, idx) => {
-                g.visible = false;
-                g.position.set(0, 0, 0);
-                setRoomAlpha(idx, 1);
-              });
+              houseGroup.visible = false;
               exteriorGroup.visible = true;
               doorPivot.rotation.y = -1.75;
               doorSpillLight.intensity = 10;
@@ -4538,11 +4854,11 @@
               avatarGroup.position.copy(EXTERIOR_AVATAR_POS);
               avatarGroup.rotation.y = 0.28;
 
-              fitIsoCamera(DOORWAY_BOX, true, false);
+              fitIsoCamera(DOORWAY_BOX, true, false, ISO_BASE_DIR);
               appState.scenePhase = "exterior";
               updateStageBackdrop("exterior");
               els.knockOverlay.hidden = false;
-              requestAnimationFrame(() => fitIsoCamera(EXTERIOR_BOX, false, false));
+              requestAnimationFrame(() => fitIsoCamera(EXTERIOR_BOX, false, false, ISO_BASE_DIR));
 
               exitAnim.stage = "fromVeil";
               exitAnim.timer = 0;
@@ -4576,47 +4892,83 @@
           }
         }
 
-        /* 2. Smooth 600ms Slide & Fade Room Transition (No walking between rooms) */
-        if (roomSlide.active) {
-          roomSlide.elapsed += delta;
-          const t = Math.min(1, roomSlide.elapsed / roomSlide.duration);
-          const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        /* 2. Waypoint Walking Engine through Connected Rooms, Doorways & Stairs */
+        let isWalking = false;
+        if (walkState.active && houseGroup.visible) {
+          isWalking = true;
+          const curNode = walkState.nodes[walkState.nodeIdx];
+          _walkDelta.subVectors(curNode.pos, avatarGroup.position);
+          const flatDist = Math.hypot(_walkDelta.x, _walkDelta.z);
+          const fullDist = _walkDelta.length();
+          const speed = curNode.stair ? 6.6 : 5.6;
+          const step = speed * delta;
 
-          const outG = roomSlide.outIdx >= 0 ? roomGroups[roomSlide.outIdx] : null;
-          const inG = roomGroups[roomSlide.inIdx];
-
-          if (!roomSlide.reduced) {
-            if (outG) outG.position.copy(SCREEN_RIGHT).multiplyScalar(-SLIDE_DIST * ease);
-            inG.position.copy(SCREEN_RIGHT).multiplyScalar(SLIDE_DIST * (1 - ease));
-          }
-          if (outG) setRoomAlpha(roomSlide.outIdx, 1 - ease);
-          setRoomAlpha(roomSlide.inIdx, ease);
-
-          if (t >= 1) {
-            if (outG) {
-              outG.visible = false;
-              outG.position.set(0, 0, 0);
-              setRoomAlpha(roomSlide.outIdx, 1);
+          if (fullDist <= step + 0.04) {
+            avatarGroup.position.copy(curNode.pos);
+            walkState.nodeIdx++;
+            if (walkState.nodeIdx >= walkState.nodes.length) {
+              walkState.active = false;
+              isWalking = false;
+              if (walkState.faceTarget) {
+                const fdx = walkState.faceTarget.x - avatarGroup.position.x;
+                const fdz = walkState.faceTarget.z - avatarGroup.position.z;
+                if (Math.hypot(fdx, fdz) > 0.05) {
+                  avatarGroup.rotation.y = Math.atan2(fdx, fdz);
+                }
+              } else {
+                avatarGroup.rotation.y = 0.45;
+              }
+              if (walkState.waveOnArrive) {
+                avatarState.gestureType = walkState.faceTarget ? "point" : "wave";
+                avatarState.gestureTimer = 1.2;
+              } else if (walkState.faceTarget) {
+                avatarState.gestureType = "point";
+                avatarState.gestureTimer = 0.7;
+              }
+              if (appState.activeRoomIdx !== walkState.targetRoomIdx) {
+                appState.activeRoomIdx = walkState.targetRoomIdx;
+                updateRoomUI(walkState.targetRoomIdx);
+              }
+              if (appState.scenePhase === "room") {
+                fitRoomToViewport(appState.activeRoomIdx, false, avatarGroup.position);
+              }
+              if (walkState.onArrive) {
+                const cb = walkState.onArrive;
+                walkState.onArrive = null;
+                cb();
+              }
+            }
+          } else {
+            const inv = 1 / Math.max(fullDist, 0.001);
+            avatarGroup.position.x += _walkDelta.x * inv * step;
+            avatarGroup.position.z += _walkDelta.z * inv * step;
+            if (curNode.stair) {
+              avatarGroup.position.y = steppedStairY(curNode.stair, avatarGroup.position.z);
+            } else {
+              avatarGroup.position.y += _walkDelta.y * inv * step;
             }
 
-            inG.visible = true;
-            inG.position.set(0, 0, 0);
-            setRoomAlpha(roomSlide.inIdx, 1);
+            if (flatDist > 0.02) {
+              const targetAngle = Math.atan2(_walkDelta.x, _walkDelta.z);
+              let diff = targetAngle - avatarGroup.rotation.y;
+              while (diff > Math.PI) diff -= Math.PI * 2;
+              while (diff < -Math.PI) diff += Math.PI * 2;
+              avatarGroup.rotation.y += diff * Math.min(1, delta * 12);
+            }
+            walkState.phase += delta * 12;
 
-            appState.activeRoomIdx = roomSlide.inIdx;
-            roomSlide.active = false;
-
-            avatarGroup.position.copy(AVATAR_DOOR_POS[roomSlide.inIdx]);
-            avatarGroup.rotation.y = 0.45;
-            avatarGroup.visible = true;
-            if (!prefersReducedMotion) {
-              avatarState.gestureType = "wave";
-              avatarState.gestureTimer = 1.6;
+            const zone = detectZoneAt(avatarGroup.position);
+            if (zone.roomIdx !== appState.activeRoomIdx) {
+              appState.activeRoomIdx = zone.roomIdx;
+              updateRoomUI(zone.roomIdx);
+              if (appState.scenePhase === "room") {
+                fitRoomToViewport(appState.activeRoomIdx, false);
+              }
             }
           }
         }
 
-        /* 3. Smooth Orthographic Camera Auto-Fit + Gentle Mouse-Only Parallax */
+        /* 3. Smooth Follow + Fit Orthographic Camera (+ Terrace Tilt & Mouse Parallax) */
         if (!prefersReducedMotion) {
           const pDamp = 1 - Math.exp(-5.5 * delta);
           parallax.curX = THREE.MathUtils.lerp(parallax.curX, parallax.targetX, pDamp);
@@ -4624,8 +4976,8 @@
         }
 
         if (camFitState.active) {
-          const dampK = 1 - Math.exp(-8.5 * delta);
-          camFitState.pos.lerp(camFitState.targetPos, dampK);
+          const dampK = 1 - Math.exp(-7.2 * delta);
+          camFitState.curDir.lerp(camFitState.targetDir, dampK).normalize();
           camFitState.lookAt.lerp(camFitState.targetLookAt, dampK);
           camFitState.left = THREE.MathUtils.lerp(camFitState.left, camFitState.targetLeft, dampK);
           camFitState.right = THREE.MathUtils.lerp(camFitState.right, camFitState.targetRight, dampK);
@@ -4639,11 +4991,12 @@
           camera.updateProjectionMatrix();
 
           if (
-            camFitState.pos.distanceTo(camFitState.targetPos) < 0.02 &&
+            camFitState.lookAt.distanceTo(camFitState.targetLookAt) < 0.015 &&
+            camFitState.curDir.distanceTo(camFitState.targetDir) < 0.005 &&
             Math.abs(camFitState.top - camFitState.targetTop) < 0.015
           ) {
             applyFitImmediate({
-              pos: camFitState.targetPos,
+              dir: camFitState.targetDir,
               lookAt: camFitState.targetLookAt,
               left: camFitState.targetLeft,
               right: camFitState.targetRight,
@@ -4653,14 +5006,16 @@
           }
         }
 
+        _camBasePos.copy(camFitState.lookAt).addScaledVector(camFitState.curDir, ISO_DIST);
+        _isoUp.crossVectors(camFitState.curDir, SCREEN_RIGHT).normalize();
         _parallaxCamPos
-          .copy(camFitState.pos)
-          .addScaledVector(SCREEN_RIGHT, parallax.curX * ISO_DIST * 0.052)
-          .addScaledVector(_isoUp, parallax.curY * ISO_DIST * 0.042);
+          .copy(_camBasePos)
+          .addScaledVector(SCREEN_RIGHT, parallax.curX * ISO_DIST * 0.048)
+          .addScaledVector(_isoUp, parallax.curY * ISO_DIST * 0.038);
         camera.position.copy(_parallaxCamPos);
         camera.lookAt(camFitState.lookAt);
 
-        /* 4. Environment & Active Room Animations (Sky & clouds exterior-only; stars on Terrace + Night exterior + Overview) */
+        /* 4. Environment & Connected House Animations */
         cloudsGroup.visible = exteriorGroup.visible;
         if (!prefersReducedMotion) {
           if (cloudsGroup.visible) {
@@ -4680,16 +5035,14 @@
             });
           }
 
-          if (roomGroups[1].visible) {
+          if (houseGroup.visible) {
             codeTick += delta;
             if (codeTick > 0.36) {
               codeTick = 0;
               codeStep = (codeStep + 1) % 12;
               drawLaptopCode(codeStep);
             }
-          }
 
-          if (roomGroups[2].visible) {
             chaiSteam.forEach((s) => {
               const c = (elapsed * 0.65 + s.phase) % 1;
               s.mesh.position.y = 0.36 + c * 0.72;
@@ -4697,44 +5050,56 @@
               s.mat.opacity = (1 - c) * 0.48;
               s.mesh.scale.setScalar(0.6 + c * 0.75);
             });
-          }
 
-          if (roomGroups[3].visible && appState.musicOn) {
-            vDiscGroup.rotation.y += delta * 2.2;
-          }
+            if (appState.musicOn) {
+              vDiscGroup.rotation.y += delta * 2.2;
+            }
 
-          if (roomGroups[4].visible) {
             starMeshes.forEach((st, idx) => { st.rotation.y = elapsed * 0.8 + idx; });
             terraceTwinkleMat.size = 0.11 + Math.sin(elapsed * 2.6) * 0.03;
           }
         }
+
         skyStars.visible =
           (appState.isNightMode && exteriorGroup.visible) ||
           appState.scenePhase === "overview" ||
-          (appState.scenePhase === "room" && appState.activeRoomIdx === 4);
+          (appState.scenePhase === "room" && (appState.activeRoomIdx === 4 || appState.isNightMode));
 
-        /* 5. Avatar Animation (Standing, Idle Breathing, Blinking, Waving) */
+        /* 5. Avatar Animation (Walking Gait, Idle Breathing, Blinking, Waving/Pointing) */
         if (avatarGroup.visible) {
-          legLPivot.rotation.x = THREE.MathUtils.damp(legLPivot.rotation.x, 0, 8, delta);
-          legRPivot.rotation.x = THREE.MathUtils.damp(legRPivot.rotation.x, 0, 8, delta);
-          armLPivot.rotation.x = THREE.MathUtils.damp(armLPivot.rotation.x, 0, 8, delta);
-
-          if (avatarState.gestureTimer > 0) {
-            avatarState.gestureTimer -= delta;
-            if (avatarState.gestureType === "wave") {
-              armRPivot.rotation.z = 2.3 + Math.sin(elapsed * 14) * 0.35;
-              armRPivot.rotation.x = -0.3;
-            } else {
-              armRPivot.rotation.x = -1.2;
-              armRPivot.rotation.z = 0.15;
-            }
+          if (isWalking) {
+            const swing = Math.sin(walkState.phase);
+            legLPivot.rotation.x = swing * 0.62;
+            legRPivot.rotation.x = -swing * 0.62;
+            armLPivot.rotation.x = -swing * 0.45;
+            armRPivot.rotation.x = swing * 0.45;
+            armRPivot.rotation.z = THREE.MathUtils.damp(armRPivot.rotation.z, 0, 12, delta);
+            avatarTorsoRig.position.y = Math.abs(swing) * 0.045;
           } else {
-            armRPivot.rotation.x = THREE.MathUtils.damp(armRPivot.rotation.x, 0, 8, delta);
-            armRPivot.rotation.z = THREE.MathUtils.damp(armRPivot.rotation.z, 0, 8, delta);
+            legLPivot.rotation.x = THREE.MathUtils.damp(legLPivot.rotation.x, 0, 8, delta);
+            legRPivot.rotation.x = THREE.MathUtils.damp(legRPivot.rotation.x, 0, 8, delta);
+            armLPivot.rotation.x = THREE.MathUtils.damp(armLPivot.rotation.x, 0, 8, delta);
+
+            if (avatarState.gestureTimer > 0) {
+              avatarState.gestureTimer -= delta;
+              if (avatarState.gestureType === "wave") {
+                armRPivot.rotation.z = 2.3 + Math.sin(elapsed * 14) * 0.35;
+                armRPivot.rotation.x = -0.3;
+              } else {
+                armRPivot.rotation.x = -1.2;
+                armRPivot.rotation.z = 0.15;
+              }
+            } else {
+              armRPivot.rotation.x = THREE.MathUtils.damp(armRPivot.rotation.x, 0, 8, delta);
+              armRPivot.rotation.z = THREE.MathUtils.damp(armRPivot.rotation.z, 0, 8, delta);
+            }
+
+            if (!prefersReducedMotion) {
+              avatarTorsoRig.position.y = Math.sin(elapsed * 2.4) * 0.02;
+            }
           }
 
           if (!prefersReducedMotion) {
-            avatarTorsoRig.position.y = Math.sin(elapsed * 2.4) * 0.02;
             avatarState.blinkTimer -= delta;
             if (avatarState.blinkTimer <= 0) {
               const blink = avatarState.blinkTimer > -0.14;
