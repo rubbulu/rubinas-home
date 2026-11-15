@@ -272,6 +272,35 @@
       color: #5eead4;
     }
 
+    .music-control-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .music-volume-slider {
+      width: 68px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--accent-teal);
+      cursor: pointer;
+      background: transparent;
+      flex-shrink: 0;
+    }
+
+    .music-volume-slider:focus-visible {
+      outline: 2px solid var(--accent-teal);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 680px) {
+      .music-volume-slider {
+        width: 52px;
+      }
+    }
+
     .now-playing-tag {
       position: fixed;
       top: 56px;
@@ -1832,7 +1861,8 @@
     .cert-thumb-img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      background: #070b1a;
       display: block;
     }
 
@@ -2254,7 +2284,10 @@
       <button id="whole-house-btn" type="button" class="hud-btn" aria-pressed="false">Whole house</button>
       <button id="go-outside-btn" type="button" class="hud-btn">Go outside</button>
       <button id="day-night-btn" type="button" class="hud-btn">Day / Night</button>
-      <button id="music-toggle-btn" type="button" class="hud-btn" aria-pressed="false" aria-label="Music: off">Music</button>
+      <div class="music-control-group">
+        <button id="music-toggle-btn" type="button" class="hud-btn" aria-pressed="false" aria-label="Music: off">Music</button>
+        <input id="music-volume-slider" type="range" min="0" max="100" value="60" step="1" class="music-volume-slider" aria-label="Music volume" aria-valuetext="60%" title="Music volume: 60%" />
+      </div>
       <button id="voice-toggle-btn" type="button" class="hud-btn" aria-pressed="false" aria-label="Voice: off">Voice</button>
       <button id="toggle-view-btn" type="button" class="hud-btn">Skip to normal view</button>
       <a id="top-github-link" href="https://github.com/rubbulu" target="_blank" rel="noopener noreferrer" class="hud-btn hide-sm" aria-label="Visit Rubina Sultana on GitHub">GitHub</a>
@@ -2826,7 +2859,7 @@
           title: "Recognition Certificate",
           event: "Smart India Hackathon (internal round)",
           result: "Recognition certificate",
-          image: "/certificates/sih.jpg",
+          image: "/certificates/sih.jpeg",
           alt: "Smart India Hackathon (internal round) recognition certificate",
           accent: "#2dd4bf"
         },
@@ -2835,7 +2868,7 @@
           title: "Participation Certificate",
           event: "Samartha 24-hour Hackathon",
           result: "Participation certificate",
-          image: "/certificates/samartha.jpg",
+          image: "/certificates/samartha.jpeg",
           alt: "Samartha 24-hour Hackathon participation certificate",
           accent: "#a78bfa"
         },
@@ -2844,7 +2877,7 @@
           title: "Top Performing Certificate",
           event: "Agritech Hackathon (HackAP)",
           result: "Top performing certificate, 2nd position",
-          image: "/certificates/hackap.jpg",
+          image: "/certificates/hackap.jpeg",
           alt: "Agritech Hackathon top performing certificate",
           accent: "#fbbf24"
         },
@@ -2853,7 +2886,7 @@
           title: "Participation Certificate",
           event: "Product Verse Agentic AI Hackathon",
           result: "Participation certificate",
-          image: "/certificates/productverse.jpg",
+          image: "/certificates/productverse.jpeg",
           alt: "Product Verse Agentic AI Hackathon participation certificate",
           accent: "#38bdf8"
         }
@@ -2908,6 +2941,7 @@
       dockMoreBtn: document.getElementById("dock-more-btn"),
       dockMoreMenu: document.getElementById("dock-more-menu"),
       musicToggleBtn: document.getElementById("music-toggle-btn"),
+      musicVolumeSlider: document.getElementById("music-volume-slider"),
       voiceToggleBtn: document.getElementById("voice-toggle-btn"),
       waveBtn: document.getElementById("wave-btn"),
       roomActionBtn: document.getElementById("room-action-btn"),
@@ -2940,6 +2974,7 @@
       activeProjectIdx: 0,
       isNightMode: false,
       musicOn: false,
+      musicVolume: 0.6,
       musicPausedByVisibility: false,
       soundUnlocked: false,
       voiceOn: false,
@@ -2966,6 +3001,7 @@
     let musicInterval = null;
     let masterGain = null;
     let lofiFilter = null;
+    let lofiCompressor = null;
     let musicFadeTimer = 0;
 
     function setVeilOpacity(alpha) {
@@ -3062,6 +3098,25 @@
       }
     }
 
+    function setMusicVolume(pctValue) {
+      try {
+        const clampedPct = Math.max(0, Math.min(100, Number(pctValue)));
+        const safePct = Number.isFinite(clampedPct) ? clampedPct : 60;
+        appState.musicVolume = safePct / 100;
+        if (els.musicVolumeSlider) {
+          els.musicVolumeSlider.value = String(Math.round(safePct));
+          els.musicVolumeSlider.title = `Music volume: ${Math.round(safePct)}%`;
+          els.musicVolumeSlider.setAttribute("aria-valuetext", `${Math.round(safePct)}%`);
+        }
+        if (masterGain && audioCtx && appState.musicOn && !appState.musicPausedByVisibility && audioCtx.state === "running") {
+          const targetGain = Math.max(0.0001, appState.musicVolume);
+          masterGain.gain.setTargetAtTime(targetGain, audioCtx.currentTime, 0.04);
+        }
+      } catch (err) {
+        console.error("setMusicVolume failed:", err);
+      }
+    }
+
     function updateMusicUI() {
       if (els.musicToggleBtn) {
         els.musicToggleBtn.textContent = "Music";
@@ -3069,6 +3124,14 @@
         els.musicToggleBtn.setAttribute("aria-pressed", String(appState.musicOn));
         els.musicToggleBtn.setAttribute("aria-label", appState.musicOn ? "Music: on" : "Music: off");
         els.musicToggleBtn.title = appState.musicOn ? "Music: on" : "Music: off";
+      }
+      if (els.musicVolumeSlider) {
+        const pct = Math.round(appState.musicVolume * 100);
+        if (els.musicVolumeSlider.value !== String(pct)) {
+          els.musicVolumeSlider.value = String(pct);
+        }
+        els.musicVolumeSlider.title = `Music volume: ${pct}%`;
+        els.musicVolumeSlider.setAttribute("aria-valuetext", `${pct}%`);
       }
       if (!appState.soundUnlocked) {
         els.nowPlayingTag.textContent = "Tap to enable sound";
@@ -3221,20 +3284,30 @@
       if (!lofiFilter) {
         lofiFilter = ctx.createBiquadFilter();
         lofiFilter.type = "lowpass";
-        lofiFilter.frequency.setValueAtTime(1380, ctx.currentTime);
-        lofiFilter.Q.setValueAtTime(0.65, ctx.currentTime);
+        lofiFilter.frequency.setValueAtTime(1750, ctx.currentTime);
+        lofiFilter.Q.setValueAtTime(0.55, ctx.currentTime);
+      }
+      if (!lofiCompressor) {
+        lofiCompressor = ctx.createDynamicsCompressor();
+        lofiCompressor.threshold.setValueAtTime(-14, ctx.currentTime);
+        lofiCompressor.knee.setValueAtTime(18, ctx.currentTime);
+        lofiCompressor.ratio.setValueAtTime(4, ctx.currentTime);
+        lofiCompressor.attack.setValueAtTime(0.01, ctx.currentTime);
+        lofiCompressor.release.setValueAtTime(0.22, ctx.currentTime);
       }
       if (!masterGain) {
         masterGain = ctx.createGain();
-        lofiFilter.connect(masterGain);
+        lofiFilter.connect(lofiCompressor);
+        lofiCompressor.connect(masterGain);
         masterGain.connect(ctx.destination);
       }
       const now = ctx.currentTime;
+      const targetMaster = Math.max(0.0001, appState.musicVolume);
       masterGain.gain.cancelScheduledValues(now);
       masterGain.gain.setValueAtTime(0.0001, now);
-      masterGain.gain.linearRampToValueAtTime(0.12, now + 1.25);
+      masterGain.gain.linearRampToValueAtTime(targetMaster, now + 1.25);
 
-      /* Slow C Major / A Minor Pentatonic Felt-Piano Pattern + Quiet Sustained Pad */
+      /* Slow C Major / A Minor Pentatonic Felt-Piano Pattern + Soft Sustained Pad */
       const pads = [
         [174.61, 220.00, 261.63, 329.63], // Fmaj7
         [196.00, 246.94, 293.66, 329.63], // G6
@@ -3253,7 +3326,7 @@
         if (!appState.musicOn || appState.musicPausedByVisibility || !audioCtx || !lofiFilter || audioCtx.state !== "running") return;
         const t = audioCtx.currentTime;
 
-        /* Quiet soft pad every 8 steps (~4.16s) */
+        /* Warm soft pad every 8 steps (~4.16s) */
         if (step % 8 === 0) {
           const padChord = pads[Math.floor(step / 8) % pads.length];
           padChord.forEach((freq) => {
@@ -3262,16 +3335,16 @@
             pOsc.type = "sine";
             pOsc.frequency.setValueAtTime(freq, t);
             pGain.gain.setValueAtTime(0.0008, t);
-            pGain.gain.linearRampToValueAtTime(0.085, t + 0.85);
-            pGain.gain.exponentialRampToValueAtTime(0.0008, t + 4.05);
+            pGain.gain.linearRampToValueAtTime(0.115, t + 0.75);
+            pGain.gain.exponentialRampToValueAtTime(0.0008, t + 4.08);
             pOsc.connect(pGain);
             pGain.connect(lofiFilter);
             pOsc.start(t);
-            pOsc.stop(t + 4.15);
+            pOsc.stop(t + 4.18);
           });
         }
 
-        /* Soft piano-like pentatonic note */
+        /* Clearly audible warm piano-like pentatonic note */
         const noteFreq = melodySteps[step % melodySteps.length];
         if (noteFreq) {
           const mOsc1 = audioCtx.createOscillator();
@@ -3282,18 +3355,18 @@
           mOsc2.type = "sine";
           mOsc2.frequency.setValueAtTime(noteFreq * 2, t);
           const overtoneGain = audioCtx.createGain();
-          overtoneGain.gain.setValueAtTime(0.18, t);
+          overtoneGain.gain.setValueAtTime(0.24, t);
           mGain.gain.setValueAtTime(0.0008, t);
-          mGain.gain.linearRampToValueAtTime(0.26, t + 0.025);
-          mGain.gain.exponentialRampToValueAtTime(0.0008, t + 1.22);
+          mGain.gain.linearRampToValueAtTime(0.38, t + 0.022);
+          mGain.gain.exponentialRampToValueAtTime(0.0008, t + 1.32);
           mOsc1.connect(mGain);
           mOsc2.connect(overtoneGain);
           overtoneGain.connect(mGain);
           mGain.connect(lofiFilter);
           mOsc1.start(t);
           mOsc2.start(t);
-          mOsc1.stop(t + 1.28);
-          mOsc2.stop(t + 1.28);
+          mOsc1.stop(t + 1.38);
+          mOsc2.stop(t + 1.38);
         }
 
         step = (step + 1) % melodySteps.length;
@@ -4696,6 +4769,21 @@
       tealLight.position.set(9, 8, 5);
       scene.add(tealLight);
 
+      /* Dedicated Per-Room Light Rigs (Study = room 1, Bedroom = room 3; scaled to 15% when their lamp is off) */
+      const studyAmbientLight = new THREE.AmbientLight(0xdbeafe, 0);
+      const studyHemiLight = new THREE.HemisphereLight(0xf3e8ff, 0x334155, 0);
+      const studyDirLight = new THREE.DirectionalLight(0xfff4e6, 0);
+      studyDirLight.position.set(15, 25, 19);
+      studyDirLight.target.position.set(0, 1.2, 0);
+      scene.add(studyAmbientLight, studyHemiLight, studyDirLight, studyDirLight.target);
+
+      const bedAmbientLight = new THREE.AmbientLight(0xf3e8ff, 0);
+      const bedHemiLight = new THREE.HemisphereLight(0xf3e8ff, 0x334155, 0);
+      const bedDirLight = new THREE.DirectionalLight(0xfff4e6, 0);
+      bedDirLight.position.set(20.1, 30.4, 19);
+      bedDirLight.target.position.set(5.1, BEDROOM_Y + 1.2, 0);
+      scene.add(bedAmbientLight, bedHemiLight, bedDirLight, bedDirLight.target);
+
       /* Drifting Sky Clouds (Exterior Intro Only) */
       const cloudsGroup = new THREE.Group();
       scene.add(cloudsGroup);
@@ -5265,10 +5353,47 @@
 
       function makeSegWallMat(dayHex, nightHex, roughness = 0.86, metalness = 0.02) {
         const mat = stdMat(dayHex, roughness, metalness);
+        mat.userData.dayHex = dayHex;
+        mat.userData.nightHex = nightHex;
         dayNightUpdaters.push((night) => {
-          mat.color.setHex(night ? nightHex : dayHex);
+          if (!mat.userData.roomDimControlled) {
+            mat.color.setHex(night ? nightHex : dayHex);
+          }
         });
         return mat;
+      }
+
+      const studyDimMats = [];
+      const bedDimMats = [];
+
+      function registerDimMat(list, mat, dayHex, nightHex = dayHex) {
+        if (!mat || !mat.color) return mat;
+        if (mat.userData.dimRegistered) return mat;
+        mat.userData.dimRegistered = true;
+        mat.userData.roomDimControlled = true;
+        list.push({
+          mat,
+          dayColor: new THREE.Color(dayHex),
+          nightColor: new THREE.Color(nightHex)
+        });
+        return mat;
+      }
+
+      function registerGroupDimMats(list, group, skipMats = new Set()) {
+        if (!group) return;
+        group.traverse((c) => {
+          if (!c.isMesh || !c.material) return;
+          if (c.userData && (c.userData.isPriorityHitBox || c.userData.isLampGlow)) return;
+          const mats = Array.isArray(c.material) ? c.material : [c.material];
+          mats.forEach((m) => {
+            if (!m || !m.color || skipMats.has(m)) return;
+            if (m.userData && m.userData.dayHex !== undefined) {
+              registerDimMat(list, m, m.userData.dayHex, m.userData.nightHex);
+            } else {
+              registerDimMat(list, m, m.color.getHex(), m.color.getHex());
+            }
+          });
+        });
       }
 
       function registerFadeEntry(meshes, opts = {}) {
@@ -5319,17 +5444,25 @@
         polygonOffsetUnits: -1
       });
 
-      /* Room 0: Hall (Cream) | Room 1: Study (Navy) | Room 2: Kitchen (Warm Yellow) */
+      /* Room 0: Hall (Cream) | Room 1: Study (Navy, isolated for lamp dimming) | Room 2: Kitchen (Warm Yellow) */
       const hallFloorMat = stdMat(0xf5efe0, 0.78, 0.03);
       const hallWallMat = stdMat(0xfaf5e8, 0.86, 0.02);
-      const studyFloorMat = stdMat(0x1d2b52, 0.74, 0.05);
-      const studyWallMat = stdMat(0x243563, 0.84, 0.04);
+      const studyFloorMat = registerDimMat(studyDimMats, stdMat(0x1d2b52, 0.74, 0.05), 0x1d2b52, 0x111a36);
+      const studyWallMat = registerDimMat(studyDimMats, stdMat(0x243563, 0.84, 0.04), 0x243563, 0x172347);
+      const studyPlinthMat = registerDimMat(studyDimMats, stdMat(0x1e293b, 0.6, 0.25), 0x1e293b, 0x090f24);
+      const studyTrimMat = registerDimMat(studyDimMats, stdMat(0x64748b, 0.5, 0.25), 0x64748b, 0x64748b);
+      const studyCapMat = registerDimMat(studyDimMats, stdMat(0x94a3b8, 0.55, 0.15), 0x94a3b8, 0x475569);
+      const studyBaseMat = registerDimMat(studyDimMats, stdMat(0xcbd5e1, 0.6, 0.08), 0xcbd5e1, 0x334155);
       const kitchenFloorMat = stdMat(0xf4da92, 0.76, 0.03);
       const kitchenWallMat = stdMat(0xfbeab8, 0.86, 0.02);
 
-      /* Room 3: Bedroom (Lavender) | Room 4: Terrace (Constant Dark Slate-Blue) */
-      const bedFloorMat = stdMat(0xdad0fa, 0.78, 0.04);
-      const bedWallMat = stdMat(0xe8e1ff, 0.86, 0.02);
+      /* Room 3: Bedroom (Lavender, isolated for lamp dimming) | Room 4: Terrace (Constant Dark Slate-Blue) */
+      const bedFloorMat = registerDimMat(bedDimMats, stdMat(0xdad0fa, 0.78, 0.04), 0xdad0fa, 0x282147);
+      const bedWallMat = registerDimMat(bedDimMats, stdMat(0xe8e1ff, 0.86, 0.02), 0xe8e1ff, 0x332a59);
+      const bedPostMat = registerDimMat(bedDimMats, stdMat(0x1e293b, 0.6, 0.25), 0x1e293b, 0x090f24);
+      const bedCapMat = registerDimMat(bedDimMats, stdMat(0x94a3b8, 0.55, 0.15), 0x94a3b8, 0x475569);
+      const bedBaseMat = registerDimMat(bedDimMats, stdMat(0xcbd5e1, 0.6, 0.08), 0xcbd5e1, 0x334155);
+      const stair1LandingFloorMat = makeSegWallMat(0xdad0fa, 0x282147, 0.78, 0.04);
       const hTerraceMat = stdMat(0x1e293b, 0.84, 0.06);
 
       /* Constant Warm Wood Brown Staircase Materials (never shift on Day/Night or room switch) */
@@ -5351,12 +5484,8 @@
       dayNightUpdaters.push((night) => {
         hallFloorMat.color.setHex(night ? 0x352f42 : 0xf5efe0);
         hallWallMat.color.setHex(night ? 0x413a52 : 0xfaf5e8);
-        studyFloorMat.color.setHex(night ? 0x111a36 : 0x1d2b52);
-        studyWallMat.color.setHex(night ? 0x172347 : 0x243563);
         kitchenFloorMat.color.setHex(night ? 0x3f3622 : 0xf4da92);
         kitchenWallMat.color.setHex(night ? 0x4b4129 : 0xfbeab8);
-        bedFloorMat.color.setHex(night ? 0x282147 : 0xdad0fa);
-        bedWallMat.color.setHex(night ? 0x332a59 : 0xe8e1ff);
         hPlinthMat.color.setHex(night ? 0x090f24 : 0x1e293b);
         hCapMat.color.setHex(night ? 0x475569 : 0x94a3b8);
         hBaseMat.color.setHex(night ? 0x334155 : 0xcbd5e1);
@@ -5438,35 +5567,35 @@
         gFrontWallHall, gFrontBaseHall, gFrontCapHall, hallCeiling
       );
 
-      /* Study (Room 1: X ∈ [-4.2, +4.2], closed 4 walls + ceiling) */
-      const studyFloorSlab = new THREE.Mesh(roomSlabGeo, hPlinthMat);
+      /* Study (Room 1: X ∈ [-4.2, +4.2], closed 4 walls + ceiling, isolated for lamp dimming) */
+      const studyFloorSlab = new THREE.Mesh(roomSlabGeo, studyPlinthMat);
       studyFloorSlab.position.set(0, -0.22, 0);
       studyFloorSlab.receiveShadow = true;
       const studyFloorTile = new THREE.Mesh(roomTileGeo, studyFloorMat);
       studyFloorTile.position.set(0, -0.01, 0);
       studyFloorTile.receiveShadow = true;
-      const studyPlinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, 0.16, 8.66)), hPlinthMat);
+      const studyPlinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, 0.16, 8.66)), studyPlinthMat);
       studyPlinth.position.set(0, -0.35, 0);
       studyPlinth.receiveShadow = true;
-      const studyFrontTrim = new THREE.Mesh(roomFrontTrimGeo, hTrimMat);
+      const studyFrontTrim = new THREE.Mesh(roomFrontTrimGeo, studyTrimMat);
       studyFrontTrim.position.set(0, -0.02, 4.2);
       const gBackWallStudy = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, BEDROOM_Y, WALL_T)), studyWallMat);
       gBackWallStudy.position.set(0, BEDROOM_Y * 0.5, Z_BACK + WALL_T * 0.5);
       gBackWallStudy.receiveShadow = true;
-      const gBackStudyCap = new THREE.Mesh(roomBackCapGeo, hCapMat);
+      const gBackStudyCap = new THREE.Mesh(roomBackCapGeo, studyCapMat);
       gBackStudyCap.position.set(0, BEDROOM_Y + 0.04, Z_BACK + WALL_T * 0.5);
-      const gBackBaseStudy = new THREE.Mesh(roomBackBaseGeo, hBaseMat);
+      const gBackBaseStudy = new THREE.Mesh(roomBackBaseGeo, studyBaseMat);
       gBackBaseStudy.position.set(0, 0.09, Z_BACK_INNER + 0.02);
 
-      const gFrontWallStudy = new THREE.Mesh(roomFrontWallGeo, makeSegWallMat(0x243563, 0x172347));
+      const gFrontWallStudy = new THREE.Mesh(roomFrontWallGeo, registerDimMat(studyDimMats, makeSegWallMat(0x243563, 0x172347), 0x243563, 0x172347));
       gFrontWallStudy.position.set(0, BEDROOM_Y * 0.5, Z_FRONT - WALL_T * 0.5);
-      const gFrontBaseStudy = new THREE.Mesh(roomFrontBaseGeo, makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08));
+      const gFrontBaseStudy = new THREE.Mesh(roomFrontBaseGeo, registerDimMat(studyDimMats, makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08), 0xcbd5e1, 0x334155));
       gFrontBaseStudy.position.set(0, 0.09, Z_FRONT_INNER - 0.02);
-      const gFrontCapStudy = new THREE.Mesh(roomBackCapGeo, makeSegWallMat(0x94a3b8, 0x475569, 0.55, 0.15));
+      const gFrontCapStudy = new THREE.Mesh(roomBackCapGeo, registerDimMat(studyDimMats, makeSegWallMat(0x94a3b8, 0x475569, 0.55, 0.15), 0x94a3b8, 0x475569));
       gFrontCapStudy.position.set(0, BEDROOM_Y + 0.04, Z_FRONT - WALL_T * 0.5);
       registerFadeEntry([gFrontWallStudy, gFrontBaseStudy, gFrontCapStudy], { isFrontForOverview: true });
 
-      const studyCeiling = new THREE.Mesh(roomCeilGeo, makeSegWallMat(0x1f2e56, 0x141e3d));
+      const studyCeiling = new THREE.Mesh(roomCeilGeo, registerDimMat(studyDimMats, makeSegWallMat(0x1f2e56, 0x141e3d), 0x1f2e56, 0x141e3d));
       studyCeiling.position.set(0, BEDROOM_Y - 0.50, 0);
       registerFadeEntry([studyCeiling], { isCeiling: true });
       roomCeilings[1] = studyCeiling;
@@ -5649,14 +5778,14 @@
       staircase1Group.add(stair1Strip);
       addDoorwaySign(staircase1Group, "↑ BEDROOM", "#a78bfa", 12.6, 3.65, 3.0, -Math.PI * 0.5);
 
-      /* ---------- UPPER FLOOR: CLOSED BEDROOM (Lavender tint, expanded Z ∈ [-4.2, +3.8]) ---------- */
+      /* ---------- UPPER FLOOR: CLOSED BEDROOM (Lavender tint, expanded Z ∈ [-4.2, +3.8], isolated for lamp dimming) ---------- */
       /* Main deck: X ∈ [-2.4, +12.6] (15.0), Z ∈ [-4.2, +3.8] (8.0), top at BEDROOM_Y = 5.4 */
       const bedSlab = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.0, 0.36, 8.0)), bedFloorMat);
       bedSlab.position.set(5.1, BEDROOM_Y - 0.18, -0.2);
       bedSlab.receiveShadow = true;
 
       /* Structural support post under Bedroom's front-left corner so exterior/overview stays grounded */
-      const bedSupportPost = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, BEDROOM_Y - 0.36, 0.22)), hPlinthMat);
+      const bedSupportPost = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, BEDROOM_Y - 0.36, 0.22)), bedPostMat);
       bedSupportPost.position.set(-2.24, (BEDROOM_Y - 0.36) * 0.5, 3.64);
       bedSupportPost.castShadow = true;
 
@@ -5665,40 +5794,40 @@
       bBackWall.position.set(5.1, BEDROOM_Y + bedWallH * 0.5, Z_BACK + WALL_T * 0.5);
       bBackWall.receiveShadow = true;
 
-      const bLeftWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, bedWallH, 8.0)), makeSegWallMat(0xe8e1ff, 0x332a59));
+      const bLeftWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, bedWallH, 8.0)), registerDimMat(bedDimMats, makeSegWallMat(0xe8e1ff, 0x332a59), 0xe8e1ff, 0x332a59));
       bLeftWall.position.set(-2.4 + WALL_T * 0.5, BEDROOM_Y + bedWallH * 0.5, -0.2);
-      const bLeftCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T + 0.05, 0.08, 8.04)), makeSegWallMat(0x94a3b8, 0x475569, 0.55, 0.15));
+      const bLeftCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T + 0.05, 0.08, 8.04)), registerDimMat(bedDimMats, makeSegWallMat(0x94a3b8, 0x475569, 0.55, 0.15), 0x94a3b8, 0x475569));
       bLeftCap.position.set(-2.4 + WALL_T * 0.5, TERRACE_Y + 0.04, -0.2);
-      const bLeftBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.06, 0.16, 7.7)), makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08));
+      const bLeftBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.06, 0.16, 7.7)), registerDimMat(bedDimMats, makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08), 0xcbd5e1, 0x334155));
       bLeftBase.position.set(-2.08, BEDROOM_Y + 0.08, -0.05);
       registerFadeEntry([bLeftWall, bLeftCap, bLeftBase]);
 
-      const bBackCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.08, WALL_T + 0.05)), hCapMat);
+      const bBackCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.08, WALL_T + 0.05)), bedCapMat);
       bBackCap.position.set(-1.4, TERRACE_Y + 0.04, Z_BACK + WALL_T * 0.5);
-      const bBackBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(14.7, 0.16, 0.06)), hBaseMat);
+      const bBackBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(14.7, 0.16, 0.06)), bedBaseMat);
       bBackBase.position.set(5.25, BEDROOM_Y + 0.08, Z_BACK_INNER + 0.02);
 
       /* Bedroom Front Wall (Z ∈ [+3.5, +3.8], fadeable) */
-      const bFrontWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.0, bedWallH, WALL_T)), makeSegWallMat(0xe8e1ff, 0x332a59));
+      const bFrontWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.0, bedWallH, WALL_T)), registerDimMat(bedDimMats, makeSegWallMat(0xe8e1ff, 0x332a59), 0xe8e1ff, 0x332a59));
       bFrontWall.position.set(5.1, BEDROOM_Y + bedWallH * 0.5, 3.8 - WALL_T * 0.5);
-      const bFrontBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(14.7, 0.16, 0.06)), makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08));
+      const bFrontBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(14.7, 0.16, 0.06)), registerDimMat(bedDimMats, makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08), 0xcbd5e1, 0x334155));
       bFrontBase.position.set(5.1, BEDROOM_Y + 0.08, 3.48);
-      const bFrontCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.02, 0.08, WALL_T + 0.05)), makeSegWallMat(0x94a3b8, 0x475569, 0.55, 0.15));
+      const bFrontCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.02, 0.08, WALL_T + 0.05)), registerDimMat(bedDimMats, makeSegWallMat(0x94a3b8, 0x475569, 0.55, 0.15), 0x94a3b8, 0x475569));
       bFrontCap.position.set(5.1, TERRACE_Y + 0.04, 3.8 - WALL_T * 0.5);
       registerFadeEntry([bFrontWall, bFrontBase, bFrontCap], { isFrontForOverview: true });
 
       /* Bedroom Right Wall at X = 12.6 (doorway Z ∈ [-4.2, -2.0] into Stair 1 landing, solid Z ∈ [-2.0, +3.8]) */
-      const bRightWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, bedWallH, 5.8)), makeSegWallMat(0xe8e1ff, 0x332a59));
+      const bRightWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, bedWallH, 5.8)), registerDimMat(bedDimMats, makeSegWallMat(0xe8e1ff, 0x332a59), 0xe8e1ff, 0x332a59));
       bRightWall.position.set(12.6 - WALL_T * 0.5, BEDROOM_Y + bedWallH * 0.5, 0.9);
-      const bRightHeader = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, bedWallH - 3.35, 2.2)), makeSegWallMat(0xe8e1ff, 0x332a59));
+      const bRightHeader = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, bedWallH - 3.35, 2.2)), registerDimMat(bedDimMats, makeSegWallMat(0xe8e1ff, 0x332a59), 0xe8e1ff, 0x332a59));
       bRightHeader.position.set(12.6 - WALL_T * 0.5, BEDROOM_Y + 3.35 + (bedWallH - 3.35) * 0.5, -3.1);
-      const bRightBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.06, 0.16, 5.5)), makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08));
+      const bRightBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.06, 0.16, 5.5)), registerDimMat(bedDimMats, makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08), 0xcbd5e1, 0x334155));
       bRightBase.position.set(12.28, BEDROOM_Y + 0.08, 0.9);
       registerFadeEntry([bRightWall, bRightHeader, bRightBase]);
 
       /* Bedroom Ceiling Group (split so zero coplanar faces ever overlap terraceSlab or tLanding) */
       const bedCeilingGroup = new THREE.Group();
-      const bCeilMat = makeSegWallMat(0xdcd3f7, 0x2b234d);
+      const bCeilMat = registerDimMat(bedDimMats, makeSegWallMat(0xdcd3f7, 0x2b234d), 0xdcd3f7, 0x2b234d);
       const bCeilFront = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(13.2, 0.28, 2.8)), bCeilMat);
       bCeilFront.position.set(4.2, TERRACE_Y - 0.14, 2.4);
       const bCeilLeft = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.28, 5.2)), bCeilMat);
@@ -5717,7 +5846,7 @@
       );
 
       /* Right stair 1 landing flush at X ∈ [+12.6, +14.6], Z ∈ [-4.2, -2.0] (part of staircase1Group) */
-      const stair1Landing = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.36, 2.2)), bedFloorMat);
+      const stair1Landing = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.36, 2.2)), stair1LandingFloorMat);
       stair1Landing.position.set(13.6, BEDROOM_Y - 0.18, -3.1);
       stair1Landing.castShadow = true;
       stair1Landing.receiveShadow = true;
@@ -6342,8 +6471,52 @@
         onClick: () => enterLaptopFocus(els.roomActionBtn)
       });
 
+      function createLampGlowSprite(hexColor = 0xffdfb0) {
+        const c = document.createElement("canvas");
+        c.width = 128;
+        c.height = 128;
+        const g = c.getContext("2d");
+        const grad = g.createRadialGradient(64, 64, 4, 64, 64, 62);
+        grad.addColorStop(0, "rgba(255, 248, 225, 0.95)");
+        grad.addColorStop(0.35, "rgba(253, 224, 130, 0.55)");
+        grad.addColorStop(0.7, "rgba(251, 191, 36, 0.18)");
+        grad.addColorStop(1, "rgba(251, 191, 36, 0)");
+        g.fillStyle = grad;
+        g.fillRect(0, 0, 128, 128);
+        const tex = trackTex(new THREE.CanvasTexture(c));
+        tex.colorSpace = THREE.SRGBColorSpace;
+        const mat = trackMat(new THREE.SpriteMaterial({
+          map: tex,
+          color: hexColor,
+          transparent: true,
+          opacity: 0.62,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        }));
+        const sprite = new THREE.Sprite(mat);
+        sprite.raycast = () => {};
+        sprite.userData.isLampGlow = true;
+        return { sprite, mat };
+      }
+
       let studyLampOn = true;
       let bedLampOn = true;
+      let studyLampAnim = 1;
+      let bedLampAnim = 1;
+      let activeEnvScale = 1;
+
+      const _tmpColA = new THREE.Color();
+      const _tmpColB = new THREE.Color();
+      const _studyShadeOn = new THREE.Color(0x5eead4);
+      const _studyShadeOff = new THREE.Color(0x134e4a);
+      const _studyShadeEmOn = new THREE.Color(0x14b8a6);
+      const _studyBulbOn = new THREE.Color(0xfef08a);
+      const _studyBulbOff = new THREE.Color(0x475569);
+      const _studyBulbEmOn = new THREE.Color(0xfde047);
+      const _bedShadeOn = new THREE.Color(0xfef3c7);
+      const _bedShadeOff = new THREE.Color(0x64748b);
+      const _bedShadeEmOn = new THREE.Color(0xfbbf24);
+      const _blackCol = new THREE.Color(0x000000);
 
       const lampGroup = new THREE.Group();
       const lmBase = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.17, 0.2, 0.06, 12)), stdMat(0x1e293b, 0.35, 0.7));
@@ -6358,27 +6531,51 @@
       const lmBulbMat = stdMat(0xfef08a, 0.2, 0.1, { emissive: 0xfde047, emissiveIntensity: 1.5 });
       const lmBulb = new THREE.Mesh(trackGeo(new THREE.SphereGeometry(0.085, 10, 8)), lmBulbMat);
       lmBulb.position.set(0.1, 0.52, 0.04);
-      lampGroup.add(lmBase, lmArm, lmShade, lmBulb, deskLampLight);
+      const studyGlow = createLampGlowSprite(0xffe4b8);
+      studyGlow.sprite.position.set(0.11, 0.53, 0.05);
+      studyGlow.sprite.scale.set(0.95, 0.95, 1);
+      lampGroup.add(lmBase, lmArm, lmShade, lmBulb, deskLampLight, studyGlow.sprite);
       deskLampLight.position.set(0.12, 0.55, 0.06);
 
-      function updateStudyLampVisuals() {
+      function applyStudyLampVisuals(t = studyLampAnim) {
         try {
-          deskLampLight.intensity = studyLampOn ? (appState.isNightMode ? 16.0 : 9.5) : 0;
-          lmShadeMat.color.setHex(studyLampOn ? 0x5eead4 : 0x134e4a);
-          lmShadeMat.emissive.setHex(studyLampOn ? 0x14b8a6 : 0x000000);
-          lmBulbMat.color.setHex(studyLampOn ? 0xfef08a : 0x475569);
-          lmBulbMat.emissive.setHex(studyLampOn ? 0xfde047 : 0x000000);
-          syncItemEmissiveBase(lampGroup, lmShadeMat, studyLampOn ? (appState.isNightMode ? 0.9 : 0.55) : 0);
-          syncItemEmissiveBase(lampGroup, lmBulbMat, studyLampOn ? (appState.isNightMode ? 2.2 : 1.5) : 0);
+          const clamped = THREE.MathUtils.clamp(t, 0, 1);
+          const eased = clamped * clamped * (3 - 2 * clamped);
+          const colorMult = THREE.MathUtils.lerp(0.35, 1.0, eased);
+          const night = appState.isNightMode;
+
+          studyDimMats.forEach((rec) => {
+            rec.mat.color.copy(night ? rec.nightColor : rec.dayColor).multiplyScalar(colorMult);
+          });
+
+          deskLampLight.intensity = (night ? 16.0 : 10.5) * eased;
+          studyGlow.mat.opacity = (night ? 0.78 : 0.58) * eased;
+          studyGlow.sprite.visible = eased > 0.01;
+
+          _tmpColA.copy(_studyShadeOff).lerp(_studyShadeOn, eased);
+          lmShadeMat.color.copy(_tmpColA);
+          _tmpColB.copy(_blackCol).lerp(_studyShadeEmOn, eased);
+          lmShadeMat.emissive.copy(_tmpColB);
+
+          _tmpColA.copy(_studyBulbOff).lerp(_studyBulbOn, eased);
+          lmBulbMat.color.copy(_tmpColA);
+          _tmpColB.copy(_blackCol).lerp(_studyBulbEmOn, eased);
+          lmBulbMat.emissive.copy(_tmpColB);
+
+          syncItemEmissiveBase(lampGroup, lmShadeMat, (night ? 0.9 : 0.55) * eased);
+          syncItemEmissiveBase(lampGroup, lmBulbMat, (night ? 2.2 : 1.5) * eased);
         } catch (err) {
-          console.error("updateStudyLampVisuals failed:", err);
+          console.error("applyStudyLampVisuals failed:", err);
         }
       }
 
       function toggleStudyLamp() {
         try {
           studyLampOn = !studyLampOn;
-          updateStudyLampVisuals();
+          if (prefersReducedMotion) {
+            studyLampAnim = studyLampOn ? 1 : 0;
+            applyStudyLampVisuals(studyLampAnim);
+          }
         } catch (err) {
           console.error("toggleStudyLamp failed:", err);
         }
@@ -6396,7 +6593,6 @@
         onClick: toggleStudyLamp
       });
       attachPriorityHitBox(lampGroup, 1, 1.5);
-      updateStudyLampVisuals();
 
       /* 1 Study Plant (clear of X = +4.2 doorway) */
       registerRoomItem(1, createPottedPlant(1.38), {
@@ -6404,6 +6600,9 @@
         tooltip: "Study Plant",
         pos: [2.75, GROUND_Y, 2.95]
       });
+
+      registerGroupDimMats(studyDimMats, roomGroups[1], new Set([lmShadeMat, lmBulbMat, lScr.material, ...roomWindowMats]));
+      applyStudyLampVisuals(studyLampAnim);
 
       /* ---------------- ROOM 2: KITCHEN (SKILLS & CONTACT — 7 main items: 1 rug, 1 plant, 1 wall art + counter, fridge, spicerack, kettle, bistro) ---------------- */
       addRoomWindowAt(2, 9.1, 3.15, Z_BACK_INNER + 0.04, 0, 2.4, 1.65);
@@ -6591,24 +6790,44 @@
       const nsLampShadeMat = stdMat(0xfef3c7, 0.32, 0.05, { emissive: 0xfbbf24, emissiveIntensity: 0.95 });
       const nsLampShade = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.13, 0.2, 0.24, 12)), nsLampShadeMat);
       nsLampShade.position.y = 0.87;
+      const bedGlow = createLampGlowSprite(0xffdfb0);
+      bedGlow.sprite.position.set(0, 0.87, 0.04);
+      bedGlow.sprite.scale.set(1.05, 1.05, 1);
       bedLampLight.position.set(0, 0.92, 0.04);
-      nightStand.add(nsBody, nsLampBase, nsLampStem, nsLampShade, bedLampLight);
+      nightStand.add(nsBody, nsLampBase, nsLampStem, nsLampShade, bedLampLight, bedGlow.sprite);
 
-      function updateBedroomLampVisuals() {
+      function applyBedroomLampVisuals(t = bedLampAnim) {
         try {
-          bedLampLight.intensity = bedLampOn ? (appState.isNightMode ? 15.0 : 9.0) : 0;
-          nsLampShadeMat.color.setHex(bedLampOn ? 0xfef3c7 : 0x64748b);
-          nsLampShadeMat.emissive.setHex(bedLampOn ? 0xfbbf24 : 0x000000);
-          syncItemEmissiveBase(nightStand, nsLampShadeMat, bedLampOn ? (appState.isNightMode ? 1.55 : 0.95) : 0);
+          const clamped = THREE.MathUtils.clamp(t, 0, 1);
+          const eased = clamped * clamped * (3 - 2 * clamped);
+          const colorMult = THREE.MathUtils.lerp(0.35, 1.0, eased);
+          const night = appState.isNightMode;
+
+          bedDimMats.forEach((rec) => {
+            rec.mat.color.copy(night ? rec.nightColor : rec.dayColor).multiplyScalar(colorMult);
+          });
+
+          bedLampLight.intensity = (night ? 15.0 : 10.0) * eased;
+          bedGlow.mat.opacity = (night ? 0.84 : 0.62) * eased;
+          bedGlow.sprite.visible = eased > 0.01;
+
+          _tmpColA.copy(_bedShadeOff).lerp(_bedShadeOn, eased);
+          nsLampShadeMat.color.copy(_tmpColA);
+          _tmpColB.copy(_blackCol).lerp(_bedShadeEmOn, eased);
+          nsLampShadeMat.emissive.copy(_tmpColB);
+          syncItemEmissiveBase(nightStand, nsLampShadeMat, (night ? 1.55 : 0.95) * eased);
         } catch (err) {
-          console.error("updateBedroomLampVisuals failed:", err);
+          console.error("applyBedroomLampVisuals failed:", err);
         }
       }
 
       function toggleBedroomLamp() {
         try {
           bedLampOn = !bedLampOn;
-          updateBedroomLampVisuals();
+          if (prefersReducedMotion) {
+            bedLampAnim = bedLampOn ? 1 : 0;
+            applyBedroomLampVisuals(bedLampAnim);
+          }
         } catch (err) {
           console.error("toggleBedroomLamp failed:", err);
         }
@@ -6621,10 +6840,8 @@
         els.dayNightBtn.setAttribute("aria-pressed", String(appState.isNightMode));
         dayNightUpdaters.forEach((fn) => fn(appState.isNightMode));
         renderer.toneMappingExposure = appState.isNightMode ? 1.02 : 1.18;
-        sunLight.intensity = appState.isNightMode ? 0.35 : 1.62;
-        hemiLight.intensity = appState.isNightMode ? 0.48 : 1.15;
-        updateStudyLampVisuals();
-        updateBedroomLampVisuals();
+        applyStudyLampVisuals(studyLampAnim);
+        applyBedroomLampVisuals(bedLampAnim);
         winGlowMat.emissiveIntensity = appState.isNightMode ? 1.5 : 0.75;
         violetLight.intensity = appState.isNightMode ? 10.5 : 5.5;
         tealLight.intensity = appState.isNightMode ? 9.0 : 5.2;
@@ -6642,7 +6859,6 @@
         onClick: toggleBedroomLamp
       });
       attachPriorityHitBox(nightStand, 3, 1.5);
-      updateBedroomLampVisuals();
 
       /* 1 Bedroom Rug (raised 0.02 above floor with polygonOffset + non-overlapping layers) */
       const rugGroup = new THREE.Group();
@@ -6696,6 +6912,9 @@
         tooltip: "Bedroom Plant",
         pos: [9.8, BEDROOM_Y, -3.3]
       });
+
+      registerGroupDimMats(bedDimMats, roomGroups[3], new Set([nsLampShadeMat, ...roomWindowMats]));
+      applyBedroomLampVisuals(bedLampAnim);
 
       /* ---------------- ROOM 4: TERRACE (HACKATHONS — Open Railed Deck under Night Sky Dome) ---------------- */
       addWallArtAt(4, 1.6, TERRACE_Y + 0.72, -3.96, 0, 1.25, 0.9, 0x1e1b4b, 0x2dd4bf);
@@ -8578,7 +8797,70 @@
           }
         }
 
-        /* 2b. Ceiling Visibility, Sky Dome, Room Lighting & Perspective Camera Follow */
+        /* 2b. Per-Room Lamp Transitions (400ms), Room Lighting Isolation, Ceiling Visibility & Camera */
+        const lampStep = prefersReducedMotion ? 1 : (delta / 0.4);
+        const studyTarget = studyLampOn ? 1 : 0;
+        if (studyLampAnim !== studyTarget) {
+          studyLampAnim = studyTarget > studyLampAnim
+            ? Math.min(1, studyLampAnim + lampStep)
+            : Math.max(0, studyLampAnim - lampStep);
+          applyStudyLampVisuals(studyLampAnim);
+        }
+        const bedTarget = bedLampOn ? 1 : 0;
+        if (bedLampAnim !== bedTarget) {
+          bedLampAnim = bedTarget > bedLampAnim
+            ? Math.min(1, bedLampAnim + lampStep)
+            : Math.max(0, bedLampAnim - lampStep);
+          applyBedroomLampVisuals(bedLampAnim);
+        }
+
+        const studyEased = studyLampAnim * studyLampAnim * (3 - 2 * studyLampAnim);
+        const bedEased = bedLampAnim * bedLampAnim * (3 - 2 * bedLampAnim);
+        const inRoomView = houseGroup.visible && (appState.scenePhase === "room" || appState.scenePhase === "laptop");
+        const inStudy = inRoomView && appState.activeRoomIdx === 1;
+        const inBedroom = inRoomView && appState.activeRoomIdx === 3;
+
+        const targetEnvScale = inStudy
+          ? THREE.MathUtils.lerp(0.15, 1.0, studyEased)
+          : (inBedroom ? THREE.MathUtils.lerp(0.15, 1.0, bedEased) : 1.0);
+        if (activeEnvScale !== targetEnvScale) {
+          activeEnvScale = targetEnvScale > activeEnvScale
+            ? Math.min(targetEnvScale, activeEnvScale + lampStep)
+            : Math.max(targetEnvScale, activeEnvScale - lampStep);
+        }
+
+        const night = appState.isNightMode;
+        const baseHemi = night ? 0.48 : 1.15;
+        const baseSun = night ? 0.35 : 1.62;
+        if (inStudy) {
+          studyAmbientLight.intensity = (night ? 0.14 : 0.24) * activeEnvScale;
+          studyHemiLight.intensity = (night ? 0.38 : 0.90) * activeEnvScale;
+          studyDirLight.intensity = (night ? 0.28 : 1.30) * activeEnvScale;
+          bedAmbientLight.intensity = 0;
+          bedHemiLight.intensity = 0;
+          bedDirLight.intensity = 0;
+          hemiLight.intensity = (baseHemi - (night ? 0.38 : 0.90)) * activeEnvScale;
+          sunLight.intensity = (baseSun - (night ? 0.28 : 1.30)) * activeEnvScale;
+        } else if (inBedroom) {
+          studyAmbientLight.intensity = 0;
+          studyHemiLight.intensity = 0;
+          studyDirLight.intensity = 0;
+          bedAmbientLight.intensity = (night ? 0.14 : 0.24) * activeEnvScale;
+          bedHemiLight.intensity = (night ? 0.38 : 0.90) * activeEnvScale;
+          bedDirLight.intensity = (night ? 0.28 : 1.30) * activeEnvScale;
+          hemiLight.intensity = (baseHemi - (night ? 0.38 : 0.90)) * activeEnvScale;
+          sunLight.intensity = (baseSun - (night ? 0.28 : 1.30)) * activeEnvScale;
+        } else {
+          studyAmbientLight.intensity = 0;
+          studyHemiLight.intensity = 0;
+          studyDirLight.intensity = 0;
+          bedAmbientLight.intensity = 0;
+          bedHemiLight.intensity = 0;
+          bedDirLight.intensity = 0;
+          hemiLight.intensity = baseHemi;
+          sunLight.intensity = baseSun;
+        }
+
         if (houseGroup.visible) {
           for (let i = 0; i < 4; i++) {
             if (roomCeilings[i]) {
@@ -8602,7 +8884,7 @@
             roomFillLight.position.y = THREE.MathUtils.lerp(roomFillLight.position.y, fillTargetY, ld);
             roomFillLight.position.z = THREE.MathUtils.lerp(roomFillLight.position.z, rcb.centerZ, ld);
           }
-          roomFillLight.intensity = appState.isNightMode ? 5.2 : 4.4;
+          roomFillLight.intensity = (night ? 5.2 : 4.4) * ((inStudy || inBedroom) ? activeEnvScale : 1);
         }
 
         const shadowMode = (appState.scenePhase === "room" || appState.scenePhase === "laptop") ? "room" : "wide";
@@ -8949,6 +9231,18 @@
         console.error("Music toggle button failed:", err);
       }
     });
+
+    if (els.musicVolumeSlider) {
+      const onVolumeChange = (e) => {
+        try {
+          setMusicVolume(e.target.value);
+        } catch (err) {
+          console.error("Music volume slider failed:", err);
+        }
+      };
+      els.musicVolumeSlider.addEventListener("input", onVolumeChange);
+      els.musicVolumeSlider.addEventListener("change", onVolumeChange);
+    }
 
     els.voiceToggleBtn.addEventListener("click", () => {
       try {
