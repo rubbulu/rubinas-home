@@ -806,6 +806,79 @@
       font-size: 0.78rem;
     }
 
+    .result-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      align-self: flex-start;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .result-badge--gold {
+      background: rgba(251, 191, 36, 0.16);
+      border: 1px solid rgba(251, 191, 36, 0.55);
+      color: #fde68a;
+    }
+
+    .result-badge--violet {
+      background: rgba(139, 92, 246, 0.22);
+      border: 1px solid rgba(167, 139, 250, 0.55);
+      color: #ddd6fe;
+    }
+
+    .result-badge--teal {
+      background: rgba(45, 212, 191, 0.16);
+      border: 1px solid rgba(45, 212, 191, 0.5);
+      color: #99f6e4;
+    }
+
+    .terrace-star-a11y {
+      position: fixed;
+      top: 52px;
+      right: 14px;
+      z-index: 205;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .terrace-star-a11y-btn {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+      pointer-events: auto;
+    }
+
+    .terrace-star-a11y-btn:focus-visible {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      clip: auto;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: var(--hud-surface);
+      border: 1px solid var(--accent-teal);
+      color: var(--text-light);
+      font-size: 0.8rem;
+      font-weight: 600;
+      box-shadow: 0 8px 20px rgba(2, 6, 23, 0.45);
+    }
+
     .progress-bar-wrap {
       width: 100%;
       height: 7px;
@@ -1515,6 +1588,7 @@
 
     <div id="hover-tooltip" class="hover-tooltip" hidden></div>
     <div id="speech-bubble" class="speech-bubble" role="status" aria-live="polite" hidden>Come in!</div>
+    <nav id="terrace-star-a11y" class="terrace-star-a11y" aria-label="Terrace constellation stars" hidden></nav>
 
     <!-- Laptop Focus Exit Trigger & Projected 3D Screen VS Code Editor -->
     <button id="leave-laptop-btn" type="button" class="leave-laptop-btn" hidden>Leave laptop (Esc)</button>
@@ -1622,8 +1696,15 @@
   <script type="module">
     /* ==========================================================================
        EDIT ALL CONTENT, TEXT, LINKS & COLORS IN THIS SINGLE ROOM_CONFIG OBJECT
+       - owner: Bio, college, email, GitHub/LinkedIn, and resume download URL
+       - rooms: Room titles, dock labels, and top-left banner subtitles
+       - projects: Study bookshelf & laptop IDE items (edit description & tech TODOs)
+       - skills: Kitchen spice jars
+       - bedroomLearningLine & learning: Bedroom whiteboard items
+       - hackathons: Terrace constellation stars (badge: "gold" | "violet" | "teal")
        ========================================================================== */
     const ROOM_CONFIG = {
+      /* Edit personal info & external profile links here */
       owner: {
         name: "Rubina Sultana",
         role: "3rd-Year B.Tech CS/IT Student · Web Developer Seeking Internship",
@@ -1645,7 +1726,7 @@
         "స్వాగతం · स्वागत · خوش آمدید · Welcome"
       ],
 
-      /* 5 Rooms in Order */
+      /* 5 Rooms in Order — edit banner text and action button labels here */
       rooms: [
         {
           id: "hall",
@@ -1659,7 +1740,7 @@
           id: "study",
           name: "Study",
           bannerTitle: "Study: Projects",
-          bannerSub: "Laptop: Projects IDE · Bookshelf: Skills · Lamp: Day/Night.",
+          bannerSub: "Bookshelf & Laptop: Projects · Lamp: Day/Night.",
           actionLabel: "Open Projects",
           overviewPos: [-5.1, 0, -5.1]
         },
@@ -1675,7 +1756,7 @@
           id: "bedroom",
           name: "Bedroom",
           bannerTitle: "Bedroom: Learning",
-          bannerSub: "Click whiteboard for learning, or vinyl for music.",
+          bannerSub: "Learning: MongoDB and DSA in Java · Click whiteboard or vinyl.",
           actionLabel: "Open Learning Tracker",
           overviewPos: [-5.1, 5.6, -0.2]
         },
@@ -1689,6 +1770,7 @@
         }
       ],
 
+      /* Edit 3D palette hex values here */
       colors: {
         wallDay: 0xebe6f6,
         wallNight: 0x161d3b,
@@ -1705,93 +1787,133 @@
         hairDark: 0x181826
       },
 
+      /* Edit Study Projects here (shown via Study Bookshelf panel, Laptop IDE, and Normal View)
+         Leave repoUrl or liveUrl as null when a link does not exist. */
       projects: [
         {
-          id: "aucew-portal",
-          title: "AUCEW College Portal",
-          subtitle: "2-Person Team · Deployed on Vercel & Render",
-          description: "Centralized college portal built by a 2-person team for Andhra University College of Engineering for Women, deployed on Vercel and Render.",
-          tech: ["HTML", "CSS", "JavaScript", "Node.js", "Express.js", "SQL"],
-          liveUrl: "https://aucew-portal-placeholder.vercel.app",
-          githubUrl: "https://github.com/rubbulu/aucew-college-portal"
-        },
-        {
-          id: "brandguard",
-          title: "BrandGuard",
-          subtitle: "CodeStar 30 Solo Entry · Live on Render",
-          description: "AI-powered brand protection and analysis tool created solo for CodeStar 30 and deployed live on Render.",
-          tech: ["HTML", "CSS", "JavaScript", "Node.js", "Express.js"],
-          liveUrl: "https://brandguard-placeholder.onrender.com",
-          githubUrl: "https://github.com/rubbulu/brandguard"
+          id: "college-portal",
+          title: "College Portal",
+          description: "TODO: edit",
+          tech: ["TODO"],
+          repoUrl: "https://github.com/rubbulu/college-portal",
+          liveUrl: "https://college-portal-psi.vercel.app/"
         },
         {
           id: "code-quality-evaluator",
           title: "Code Quality Evaluator",
-          subtitle: "OOSE Lab Project · 5-Person Team",
-          description: "Object-Oriented Software Engineering lab project created by a 5-person team to evaluate code maintainability and quality.",
-          tech: ["JavaScript", "HTML", "CSS", "Node.js", "SQL"],
-          liveUrl: "https://code-quality-evaluator-placeholder.onrender.com",
-          githubUrl: "https://github.com/rubbulu/code-quality-evaluator"
+          description: "TODO: edit",
+          tech: ["TODO"],
+          repoUrl: "https://github.com/rubbulu/code-quality-evaluator",
+          liveUrl: null
         },
         {
-          id: "educonnect",
-          title: "EduConnect",
-          subtitle: "AL Foundation Hackathon · Multi-Role Dashboards",
-          description: "Institutional coordination platform featuring dedicated student, faculty, and officials dashboards.",
-          tech: ["HTML", "CSS", "JavaScript", "Node.js", "Express.js", "SQL"],
-          liveUrl: "https://educonnect-placeholder.vercel.app",
-          githubUrl: "https://github.com/rubbulu/educonnect"
+          id: "brandguard",
+          title: "BrandGuard",
+          description: "TODO: edit",
+          tech: ["TODO"],
+          repoUrl: "https://github.com/rubbulu/brandguard",
+          liveUrl: "https://brandguard-kbw7.onrender.com/"
         },
         {
           id: "proofboard",
           title: "ProofBoard",
-          subtitle: "Samartha 24-Hour Hackathon · Proof-of-Skill",
-          description: "24-hour hackathon concept turning verified deliverables and code milestones into proof-of-skill showcases.",
-          tech: ["HTML", "CSS", "JavaScript", "Express.js"],
-          liveUrl: "https://proofboard-placeholder.vercel.app",
-          githubUrl: "https://github.com/rubbulu/proofboard"
+          description: "TODO: edit",
+          tech: ["TODO"],
+          repoUrl: "https://github.com/rubbulu/proofboard",
+          liveUrl: "https://ai.studio/apps/8eb52f44-3605-40ab-81ca-3dfc3f225a5c"
+        },
+        {
+          id: "ecdat",
+          title: "ecdat",
+          description: "TODO: edit",
+          tech: ["TODO"],
+          repoUrl: "https://github.com/rubbulu/ecdat",
+          liveUrl: "https://ecdat-rose.vercel.app/"
+        },
+        {
+          id: "baton",
+          title: "Baton (knowledge handover)",
+          description: "TODO: edit",
+          tech: ["TODO"],
+          repoUrl: "https://github.com/rubbulu/baton-knowledge-handover",
+          liveUrl: null
+        },
+        {
+          id: "krishisaathi",
+          title: "KrishiSaathi (team project, still in progress)",
+          description: "TODO: edit",
+          tech: ["TODO"],
+          repoUrl: "https://github.com/mohankandula15/KrishiSaathi",
+          liveUrl: "https://krishi-saathi-app-seven.vercel.app"
+        },
+        {
+          id: "orbit",
+          title: "Orbit",
+          description: "TODO: edit",
+          tech: ["TODO"],
+          repoUrl: "https://github.com/rubbulu/orbit",
+          liveUrl: "https://orbit-sk6n.onrender.com/"
+        },
+        {
+          id: "yatrasetu",
+          title: "YatraSetu (SIH internal round)",
+          description: "TODO: edit",
+          tech: ["TODO"],
+          repoUrl: null,
+          liveUrl: "https://yatrasetu-cyan.vercel.app/"
+        },
+        {
+          id: "civora",
+          title: "CIVORA (AL Foundation Hackathon)",
+          description: "TODO: edit",
+          tech: ["TODO"],
+          repoUrl: null,
+          liveUrl: "https://statuesque-treacle-a6b523.netlify.app"
         }
       ],
 
+      /* Edit Kitchen Spice Rack skills here */
       skills: [
         {
           name: "HTML",
           color: "#8b5cf6",
           category: "Frontend",
-          note: "Used to craft semantic, accessible markup across AUCEW College Portal, BrandGuard, EduConnect, and ProofBoard."
+          note: "Used to craft semantic, accessible markup across web builds."
         },
         {
           name: "CSS",
           color: "#2dd4bf",
           category: "Frontend",
-          note: "Used for responsive Grid/Flexbox layouts, accessible contrast, and smooth transitions across every project."
+          note: "Used for responsive Grid/Flexbox layouts, accessible contrast, and smooth transitions."
         },
         {
           name: "JavaScript",
           color: "#38bdf8",
           category: "Frontend",
-          note: "Used for interactive DOM workflows, client state, API calls, and code evaluation logic in Code Quality Evaluator."
+          note: "Used for interactive DOM workflows, client state, API calls, and logic."
         },
         {
           name: "Node.js",
           color: "#10b981",
           category: "Backend",
-          note: "Used to power backend services and Render deployments for AUCEW College Portal and BrandGuard."
+          note: "Used to power backend services and server deployments."
         },
         {
           name: "Express.js",
           color: "#a855f7",
           category: "Backend",
-          note: "Used to build REST API routes, validation, and role-based dashboard endpoints in EduConnect and ProofBoard."
+          note: "Used to build REST API routes, validation, and role-based endpoints."
         },
         {
           name: "SQL",
           color: "#f472b6",
           category: "Database",
-          note: "Used to model relational schemas, joins, and structured queries for student/faculty portals and evaluator reports."
+          note: "Used to model relational schemas, joins, and structured queries."
         }
       ],
 
+      /* Edit Bedroom Learning line & tracker items here */
+      bedroomLearningLine: "Learning: MongoDB and DSA in Java",
       learning: [
         {
           name: "MongoDB",
@@ -1805,45 +1927,129 @@
         }
       ],
 
+      /* Edit Terrace Constellation Hackathons here
+         badge: "gold" (podium) | "violet" (shortlisted/top rank) | "teal" (participation/learning) */
       hackathons: [
         {
-          id: "sih",
-          name: "Smart India Hackathon",
-          project: "SIH 2026 — AI Advisory for Rural Micro-Entrepreneurs",
-          description: "Designed an accessible AI advisory platform to assist rural micro-entrepreneurs with pricing, market readiness, and scheme discovery.",
-          tech: ["HTML", "CSS", "JavaScript", "Node.js", "Express.js", "SQL"],
-          color: "#2dd4bf",
-          localPos: [-2.4, 3.05, -2.05]
-        },
-        {
-          id: "codestar-30",
-          name: "CodeStar 30",
-          project: "BrandGuard (Solo Entry)",
-          description: "Built and deployed BrandGuard solo for CodeStar 30—an AI-powered brand protection tool live on Render.",
-          tech: ["HTML", "CSS", "JavaScript", "Node.js", "Express.js"],
+          id: "sih-internal",
+          name: "Smart India Hackathon (internal round)",
+          shortName: "SIH (Internal)",
+          accessibleName: "Smart India Hackathon (internal round), 6th of 103 teams (top 10)",
+          badge: "violet",
+          badgeLabel: "Violet · Shortlisted / Top Rank",
+          built: "Team entry: YatraSetu",
+          result: "My first hackathon, team entry YatraSetu. 6th of 103 teams (top 10).",
+          certificate: "Recognition certificates.",
           color: "#a78bfa",
-          localPos: [-0.35, 3.85, -2.65]
+          localPos: [-3.7, 2.25, -2.1]
         },
         {
-          id: "samartha",
-          name: "Samartha",
-          project: "ProofBoard (24-Hour Hackathon)",
-          description: "Rapidly prototyped a proof-of-skill portfolio concept during the Samartha 24-hour coding sprint.",
-          tech: ["HTML", "CSS", "JavaScript", "Express.js"],
-          color: "#f472b6",
-          localPos: [2.15, 3.15, -1.75]
+          id: "amazon-ml-challenge",
+          name: "Amazon ML Challenge",
+          shortName: "Amazon ML",
+          accessibleName: "Amazon ML Challenge, rank 4,222 of 89,394",
+          badge: "teal",
+          badgeLabel: "Teal · Participation / Learning",
+          built: "Highest Inference Score Achieved, public leaderboard score 0.796944 (Macro F0.5)",
+          result: "72 hours, 89,394 registered participants. Highest Inference Score Achieved, public leaderboard score 0.796944 (Macro F0.5), rank 4,222.",
+          certificate: "No certificate.",
+          color: "#2dd4bf",
+          localPos: [-2.75, 3.55, -2.5]
         },
         {
           id: "al-foundation",
           name: "AL Foundation Hackathon",
-          project: "EduConnect (Multi-Role Dashboards)",
-          description: "Engineered student, faculty, and education officials dashboards in a collaborative hackathon build.",
-          tech: ["HTML", "CSS", "JavaScript", "Node.js", "Express.js", "SQL"],
-          color: "#38bdf8",
-          localPos: [0.55, 2.55, 0.55]
+          shortName: "AL Foundation",
+          accessibleName: "AL Foundation Hackathon, did not place",
+          badge: "teal",
+          badgeLabel: "Teal · Participation / Learning",
+          built: "CIVORA (team, Education and Innovation track)",
+          result: "Did not place, and it taught me a lot.",
+          certificate: "No certificate.",
+          color: "#2dd4bf",
+          localPos: [-1.8, 2.15, 0.8]
+        },
+        {
+          id: "samartha",
+          name: "Samartha 24-hour Hackathon",
+          shortName: "Samartha 24h",
+          accessibleName: "Samartha 24-hour Hackathon, top 30 of 203 teams",
+          badge: "violet",
+          badgeLabel: "Violet · Shortlisted / Top Rank",
+          built: "ProofBoard",
+          result: "203 teams registered for screening, 100 selected, we reached the top 30.",
+          certificate: "Participation certificate.",
+          color: "#a78bfa",
+          localPos: [-0.9, 4.15, -2.2]
+        },
+        {
+          id: "codestar-30",
+          name: "CodeStar 30 (We Code Coders)",
+          shortName: "CodeStar 30",
+          accessibleName: "CodeStar 30 (We Code Coders), round 3 (top 50)",
+          badge: "violet",
+          badgeLabel: "Violet · Shortlisted / Top Rank",
+          built: "BrandGuard (solo entry)",
+          result: "Solo entry, 2000+ teams registered, I reached round 3 (top 50).",
+          certificate: "Rank certificate expected on 21 Nov 2026.",
+          color: "#a78bfa",
+          localPos: [0.0, 2.95, -0.6]
+        },
+        {
+          id: "product-verse",
+          name: "Product Verse Agentic AI Hackathon (Product Space and Wispr Flow)",
+          shortName: "Product Verse",
+          accessibleName: "Product Verse Agentic AI Hackathon, participation",
+          badge: "teal",
+          badgeLabel: "Teal · Participation / Learning",
+          built: "Orbit",
+          result: "Built Orbit.",
+          certificate: "Participation certificate.",
+          color: "#2dd4bf",
+          localPos: [0.95, 4.15, -2.4]
+        },
+        {
+          id: "codersinpune",
+          name: "CodersInPune (We Code Coders)",
+          shortName: "CodersInPune",
+          accessibleName: "CodersInPune (We Code Coders), round 3 (top 50 teams)",
+          badge: "violet",
+          badgeLabel: "Violet · Shortlisted / Top Rank",
+          built: "Baton",
+          result: "Selected for round 3 (top 50 teams).",
+          certificate: "Not listed.",
+          color: "#a78bfa",
+          localPos: [1.85, 2.25, 0.9]
+        },
+        {
+          id: "agritech-hackap",
+          name: "Agritech Hackathon (HackAP)",
+          shortName: "Agritech (HackAP)",
+          accessibleName: "Agritech Hackathon, 2nd position",
+          badge: "gold",
+          badgeLabel: "Gold · Podium",
+          built: "KrishiSaathi, which we are still building",
+          result: "45 teams registered, 15 pitched, 2nd position. Mentorship and investor connections offered.",
+          certificate: "Top performing certificate, with mentorship and investor connections offered.",
+          color: "#fbbf24",
+          localPos: [2.8, 3.65, -1.8]
+        },
+        {
+          id: "threws-odessy",
+          name: "Threws Odessy, cybersecurity track",
+          shortName: "Threws Odessy",
+          accessibleName: "Threws Odessy, cybersecurity track, did not place",
+          badge: "teal",
+          badgeLabel: "Teal · Participation / Learning",
+          built: "ecdat",
+          result: "Did not place.",
+          certificate: "Not listed.",
+          color: "#2dd4bf",
+          localPos: [3.65, 2.45, -0.5]
         }
       ],
 
+      /* Edit Kitchen Contact panel copy here */
       contact: {
         heading: "Let's talk over chai",
         description: "Have an internship opportunity or project idea? Let's connect over chai via Email, GitHub, or LinkedIn."
@@ -1876,6 +2082,7 @@
       knockBtn: document.getElementById("knock-btn"),
       hoverTooltip: document.getElementById("hover-tooltip"),
       speechBubble: document.getElementById("speech-bubble"),
+      terraceStarA11y: document.getElementById("terrace-star-a11y"),
       leaveLaptopBtn: document.getElementById("leave-laptop-btn"),
       laptopScreenOverlay: document.getElementById("laptop-screen-overlay"),
       vscodeFiles: document.getElementById("vscode-files"),
@@ -2035,7 +2242,10 @@
         "Currently Learning: " + learning.map((l) => `${l.name} (${l.progress}%)`).join(", "),
         "",
         "PROJECTS",
-        ...projects.map((p) => `- ${p.title} (${p.subtitle}): ${p.description} [${p.tech.join(", ")}]`)
+        ...projects.map((p) => {
+          const links = [p.repoUrl ? `Code: ${p.repoUrl}` : null, p.liveUrl ? `Live: ${p.liveUrl}` : null].filter(Boolean).join(" | ");
+          return `- ${p.title}: ${p.description} [${p.tech.join(", ")}]${links ? ` (${links})` : ""}`;
+        })
       ].join("\n");
 
       const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
@@ -2166,25 +2376,30 @@
 
       els.vscodeBreadcrumb.textContent = `projects  ›  ${proj.id}.ts  ›  ${proj.title}`;
 
-      const lineNums = Array.from({ length: 14 }, (_, i) => String(i + 1).padStart(2, "0")).join("<br>");
+      const projIdxStr = String(activeIdx + 1).padStart(2, "0");
+      const projTotStr = String(projects.length).padStart(2, "0");
+      const codeLinkHtml = proj.repoUrl
+        ? `<a href="${proj.repoUrl}" target="_blank" rel="noopener noreferrer" class="vscode-btn-primary">Code</a>`
+        : "";
+      const liveLinkHtml = proj.liveUrl
+        ? `<a href="${proj.liveUrl}" target="_blank" rel="noopener noreferrer" class="vscode-btn-secondary">Live</a>`
+        : "";
+
+      const lineNums = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).join("<br>");
       els.vscodeEditorPanel.setAttribute("aria-labelledby", `vscode-tab-${proj.id}`);
       els.vscodeEditorPanel.innerHTML = `
         <div class="vscode-gutter" aria-hidden="true">${lineNums}</div>
         <article class="vscode-content">
-          <p class="vscode-code-comment">// Project 0${activeIdx + 1} of 0${projects.length} · ${proj.id}.ts</p>
+          <p class="vscode-code-comment">// Project ${projIdxStr} of ${projTotStr} · ${proj.id}.ts</p>
           <h2 class="vscode-proj-title">${proj.title}</h2>
-          <div class="vscode-team-card">
-            <span class="vscode-team-label">Team &amp; Deployment</span>
-            <span class="vscode-team-value">${proj.subtitle}</span>
-          </div>
           <p class="vscode-proj-desc">${proj.description}</p>
           <div>
             <p class="vscode-section-lbl">Tech Stack</p>
             <ul class="vscode-tech-list">${proj.tech.map((t) => `<li class="vscode-tech-tag">${t}</li>`).join("")}</ul>
           </div>
           <div class="vscode-actions">
-            <a href="${proj.liveUrl}" target="_blank" rel="noopener noreferrer" class="vscode-btn-primary">Live Demo</a>
-            <a href="${proj.githubUrl}" target="_blank" rel="noopener noreferrer" class="vscode-btn-secondary">GitHub Repo</a>
+            ${codeLinkHtml}
+            ${liveLinkHtml}
           </div>
         </article>
       `;
@@ -2197,6 +2412,29 @@
           activeTabEl.scrollIntoView({ block: "nearest", inline: "nearest" });
         }
       }
+    }
+
+    function openProjectsPanel(triggerEl = null) {
+      openGlassPanel("STUDY · BOOKSHELF PROJECTS", "Projects", (box) => {
+        ROOM_CONFIG.projects.forEach((p, idx) => {
+          const card = document.createElement("article");
+          card.className = "panel-item";
+          const codeBtn = p.repoUrl
+            ? `<a href="${p.repoUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary">Code</a>`
+            : "";
+          const liveBtn = p.liveUrl
+            ? `<a href="${p.liveUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Live</a>`
+            : "";
+          card.innerHTML = `
+            <p class="panel-item-sub">Project ${String(idx + 1).padStart(2, "0")} of ${String(ROOM_CONFIG.projects.length).padStart(2, "0")}</p>
+            <h3 class="panel-item-title">${p.title}</h3>
+            <p class="panel-item-desc">${p.description}</p>
+            <ul class="chip-list">${p.tech.map((t) => `<li class="tech-chip">${t}</li>`).join("")}</ul>
+            <div class="panel-actions">${codeBtn}${liveBtn}</div>
+          `;
+          box.appendChild(card);
+        });
+      }, triggerEl);
     }
 
     function openSkillsPanel(selectedSkill = null, triggerEl = null) {
@@ -2234,6 +2472,13 @@
 
     function openLearningPanel(triggerEl) {
       openGlassPanel("BEDROOM · WHITEBOARD", "Currently Learning", (box) => {
+        const line = document.createElement("p");
+        line.style.margin = "0";
+        line.style.fontWeight = "600";
+        line.style.color = "var(--accent-teal)";
+        line.textContent = ROOM_CONFIG.bedroomLearningLine;
+        box.appendChild(line);
+
         ROOM_CONFIG.learning.forEach((l) => {
           const card = document.createElement("article");
           card.className = "panel-item";
@@ -2258,11 +2503,13 @@
         list.forEach((h) => {
           const card = document.createElement("article");
           card.className = "panel-item";
+          card.setAttribute("aria-label", h.accessibleName);
           card.innerHTML = `
-            <p class="panel-item-sub">${h.project}</p>
+            <span class="result-badge result-badge--${h.badge}">${h.badgeLabel}</span>
             <h3 class="panel-item-title">${h.name}</h3>
-            <p class="panel-item-desc">${h.description}</p>
-            <ul class="chip-list">${h.tech.map((t) => `<li class="tech-chip">${t}</li>`).join("")}</ul>
+            <p class="panel-item-desc"><strong>What I built:</strong> ${h.built}</p>
+            <p class="panel-item-desc"><strong>Result:</strong> ${h.result}</p>
+            <p class="panel-item-desc"><strong>Certificate status:</strong> ${h.certificate}</p>
           `;
           box.appendChild(card);
         });
@@ -2295,7 +2542,7 @@
        NORMAL VIEW / ACCESSIBLE HTML FALLBACK
        ========================================================================== */
     function renderNormalView() {
-      const { owner, doorFullLine, projects, skills, learning, hackathons, contact } = ROOM_CONFIG;
+      const { owner, doorFullLine, projects, skills, bedroomLearningLine, learning, hackathons, contact } = ROOM_CONFIG;
       els.normalView.innerHTML = `
         <section class="nv-card" aria-labelledby="nv-hall-title">
           <p class="panel-kicker" style="padding-right:0;">HALL · ABOUT</p>
@@ -2310,21 +2557,28 @@
         </section>
 
         <section aria-labelledby="nv-study-title">
-          <p class="panel-kicker" style="padding-right:0; color:#6d28d9;">STUDY · LAPTOP PROJECTS</p>
+          <p class="panel-kicker" style="padding-right:0; color:${appState.isNightMode ? "#5eead4" : "#6d28d9"};">STUDY · BOOKSHELF &amp; LAPTOP PROJECTS</p>
           <h2 id="nv-study-title" class="nv-section-title" style="color:${appState.isNightMode ? "#f8fafc" : "#0f172a"};">Projects</h2>
           <div class="nv-grid">
-            ${projects.map((p) => `
-              <article class="panel-item" style="background:var(--hud-surface);">
-                <p class="panel-item-sub">${p.subtitle}</p>
-                <h3 class="panel-item-title">${p.title}</h3>
-                <p class="panel-item-desc">${p.description}</p>
-                <ul class="chip-list">${p.tech.map((t) => `<li class="tech-chip">${t}</li>`).join("")}</ul>
-                <div class="panel-actions" style="margin-top:auto; padding-top:6px;">
-                  <a href="${p.liveUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary">Live Demo</a>
-                  <a href="${p.githubUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">GitHub</a>
-                </div>
-              </article>
-            `).join("")}
+            ${projects.map((p) => {
+              const codeBtn = p.repoUrl
+                ? `<a href="${p.repoUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary">Code</a>`
+                : "";
+              const liveBtn = p.liveUrl
+                ? `<a href="${p.liveUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Live</a>`
+                : "";
+              return `
+                <article class="panel-item" style="background:var(--hud-surface);">
+                  <h3 class="panel-item-title">${p.title}</h3>
+                  <p class="panel-item-desc">${p.description}</p>
+                  <ul class="chip-list">${p.tech.map((t) => `<li class="tech-chip">${t}</li>`).join("")}</ul>
+                  <div class="panel-actions" style="margin-top:auto; padding-top:6px;">
+                    ${codeBtn}
+                    ${liveBtn}
+                  </div>
+                </article>
+              `;
+            }).join("")}
           </div>
         </section>
 
@@ -2354,6 +2608,7 @@
         <section class="nv-card" aria-labelledby="nv-bedroom-title">
           <p class="panel-kicker" style="padding-right:0;">BEDROOM · WHITEBOARD</p>
           <h2 id="nv-bedroom-title" class="nv-section-title">Currently Learning</h2>
+          <p style="margin:0 0 14px; font-weight:600; color:var(--accent-teal);">${bedroomLearningLine}</p>
           <div class="nv-grid">
             ${learning.map((l) => `
               <article class="panel-item">
@@ -2371,15 +2626,16 @@
         </section>
 
         <section aria-labelledby="nv-terrace-title">
-          <p class="panel-kicker" style="padding-right:0; color:#6d28d9;">TERRACE · CONSTELLATION</p>
+          <p class="panel-kicker" style="padding-right:0; color:${appState.isNightMode ? "#5eead4" : "#6d28d9"};">TERRACE · CONSTELLATION</p>
           <h2 id="nv-terrace-title" class="nv-section-title" style="color:${appState.isNightMode ? "#f8fafc" : "#0f172a"};">Hackathons</h2>
           <div class="nv-grid">
             ${hackathons.map((h) => `
-              <article class="panel-item" style="background:var(--hud-surface);">
-                <p class="panel-item-sub">${h.project}</p>
+              <article class="panel-item" style="background:var(--hud-surface);" aria-label="${h.accessibleName}">
+                <span class="result-badge result-badge--${h.badge}">${h.badgeLabel}</span>
                 <h3 class="panel-item-title">${h.name}</h3>
-                <p class="panel-item-desc">${h.description}</p>
-                <ul class="chip-list">${h.tech.map((t) => `<li class="tech-chip">${t}</li>`).join("")}</ul>
+                <p class="panel-item-desc"><strong>What I built:</strong> ${h.built}</p>
+                <p class="panel-item-desc"><strong>Result:</strong> ${h.result}</p>
+                <p class="panel-item-desc"><strong>Certificate status:</strong> ${h.certificate}</p>
               </article>
             `).join("")}
           </div>
@@ -2418,6 +2674,7 @@
       els.goOutsideBtn.hidden = true;
       els.dayNightBtn.hidden = true;
       els.warmFadeVeil.style.opacity = "0";
+      els.terraceStarA11y.hidden = true;
       els.normalView.hidden = false;
       renderNormalView();
 
@@ -4176,12 +4433,12 @@
       }
       registerRoomItem(1, bookshelf, {
         id: "bookshelf",
-        tooltip: "Bookshelf: Skills Notes (Click or drag)",
+        tooltip: "Bookshelf: Projects (Click or drag)",
         pos: [-2.35, GROUND_Y, -3.4],
         standPos: [-2.3, GROUND_Y, -1.9],
         scale: 1.32,
         gesture: "point",
-        onClick: () => openSkillsPanel(null, els.roomActionBtn)
+        onClick: () => openProjectsPanel(els.roomActionBtn)
       });
 
       /* Study Desk + Chair + Laptop + Lamp */
@@ -4649,6 +4906,7 @@
       /* Terrace Constellation Stars -> Hackathons floating above deck */
       const starMeshes = [];
       const constPts = [];
+      els.terraceStarA11y.innerHTML = "";
       ROOM_CONFIG.hackathons.forEach((hack) => {
         const wx = 5.2 + hack.localPos[0] * 1.15;
         const wy = TERRACE_Y + (hack.localPos[1] - 0.35);
@@ -4657,6 +4915,7 @@
         constPts.push(pVec);
 
         const starG = new THREE.Group();
+        starG.scale.setScalar(hack.badge === "gold" ? 1.04 : 0.86);
         const sMat = stdMat(new THREE.Color(hack.color), 0.18, 0.45, {
           emissive: new THREE.Color(hack.color),
           emissiveIntensity: 0.95
@@ -4674,7 +4933,7 @@
         );
         starG.add(halo);
 
-        const lblTex = createStarLabelTexture(hack.name, hack.color);
+        const lblTex = createStarLabelTexture(hack.shortName || hack.name, hack.color);
         const lblMat = trackMat(new THREE.MeshBasicMaterial({
           map: lblTex,
           transparent: true,
@@ -4682,28 +4941,39 @@
           depthWrite: false,
           side: THREE.DoubleSide
         }));
-        const lblMesh = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(2.45, 0.46)), lblMat);
-        lblMesh.position.set(0, 0.72, 0);
+        const lblMesh = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(2.05, 0.40)), lblMat);
+        lblMesh.position.set(0, 0.65, 0);
         starG.add(lblMesh);
         starLabelMeshes.push(lblMesh);
 
+        const starA11yBtn = document.createElement("button");
+        starA11yBtn.type = "button";
+        starA11yBtn.className = "terrace-star-a11y-btn";
+        starA11yBtn.setAttribute("aria-label", hack.accessibleName);
+        starA11yBtn.textContent = hack.accessibleName;
+        starA11yBtn.addEventListener("click", () => {
+          openHackathonPanel(hack, starA11yBtn);
+        });
+        els.terraceStarA11y.appendChild(starA11yBtn);
+
         registerRoomItem(4, starG, {
           id: `star-${hack.id}`,
-          tooltip: `Hackathon Star: ${hack.name} (Click or drag)`,
+          tooltip: hack.accessibleName,
           pos: [wx, wy, wz],
           fixedY: wy,
-          standPos: [THREE.MathUtils.clamp(wx, 1.5, 9.2), TERRACE_Y, -0.65],
+          standPos: [THREE.MathUtils.clamp(wx, 1.2, 9.4), TERRACE_Y, -0.65],
           gesture: "point",
           onClick: () => openHackathonPanel(hack, els.roomActionBtn)
         });
       });
 
-      const constSegments = [
-        constPts[0], constPts[1],
-        constPts[1], constPts[2],
-        constPts[2], constPts[3],
-        constPts[0], constPts[2]
-      ];
+      const constSegments = [];
+      for (let i = 0; i < constPts.length - 1; i++) {
+        constSegments.push(constPts[i], constPts[i + 1]);
+      }
+      if (constPts.length >= 8) {
+        constSegments.push(constPts[1], constPts[4], constPts[4], constPts[7]);
+      }
       roomGroups[4].add(new THREE.LineSegments(
         trackGeo(new THREE.BufferGeometry().setFromPoints(constSegments)),
         trackMat(new THREE.LineBasicMaterial({ color: 0x5eead4, transparent: true, opacity: 0.78 }))
@@ -5062,6 +5332,7 @@
         if (appState.scenePhase === "room") {
           updateStageBackdrop(rm.id);
         }
+        els.terraceStarA11y.hidden = !(appState.scenePhase === "room" && roomIdx === 4);
         showRoomChip();
       }
 
@@ -5586,6 +5857,7 @@
 
           els.roomBanner.hidden = true;
           els.bottomDockWrap.hidden = true;
+          els.terraceStarA11y.hidden = true;
           els.knockOverlay.hidden = false;
           els.wholeHouseBtn.classList.remove("is-active");
           els.wholeHouseBtn.setAttribute("aria-pressed", "false");
@@ -5625,6 +5897,7 @@
 
         walkState.active = false;
         appState.scenePhase = "overview";
+        els.terraceStarA11y.hidden = false;
         updateStageBackdrop("overview");
         exteriorGroup.visible = false;
         houseGroup.visible = true;
