@@ -3324,7 +3324,8 @@
       ],
 
       /* Edit Terrace Constellation Hackathons here
-         badge: "gold" (podium) | "violet" (shortlisted/top rank) | "teal" (participation/learning) */
+         badge: "gold" (podium) | "violet" (shortlisted/top rank) | "teal" (participation/learning)
+         projectId: optional id from ROOM_CONFIG.projects; certificateId: optional id from ROOM_CONFIG.CERTIFICATES */
       hackathons: [
         {
           id: "sih-internal",
@@ -3335,6 +3336,7 @@
           badgeLabel: "Teal · Participation / Learning",
           result: "My first hackathon. I joined Team Travel Titans as a member to complete the team, and we placed 6th of 103 teams (top 10) with YatraSetu, an AI and verified-local travel platform.",
           certificate: "Recognition certificates.",
+          certificateId: "sih-cert",
           liveUrl: "https://yatrasetu-cyan.vercel.app/",
           liveLabel: "YatraSetu Live Demo",
           color: "#2dd4bf",
@@ -3377,6 +3379,8 @@
           badgeLabel: "Violet · Shortlisted / Top Rank",
           result: "203 teams registered for screening, 100 selected, and we reached the top 30. Built ProofBoard.",
           certificate: "Participation certificate.",
+          certificateId: "samartha-cert",
+          projectId: "proofboard",
           liveUrl: null,
           liveLabel: null,
           color: "#a78bfa",
@@ -3391,6 +3395,7 @@
           badgeLabel: "Violet · Shortlisted / Top Rank",
           result: "Solo entry, 2000+ teams registered, I reached round 3 (top 50). Built BrandGuard.",
           certificate: "Rank certificate expected on 21 Nov 2026.",
+          projectId: "brandguard",
           liveUrl: null,
           liveLabel: null,
           color: "#a78bfa",
@@ -3405,6 +3410,8 @@
           badgeLabel: "Teal · Participation / Learning",
           result: "Built Orbit.",
           certificate: "Participation certificate.",
+          certificateId: "productverse-cert",
+          projectId: "orbit",
           liveUrl: null,
           liveLabel: null,
           color: "#2dd4bf",
@@ -3419,6 +3426,7 @@
           badgeLabel: "Violet · Shortlisted / Top Rank",
           result: "Selected for round 3 (top 50 teams). Built Baton.",
           certificate: "Not listed.",
+          projectId: "baton",
           liveUrl: null,
           liveLabel: null,
           color: "#a78bfa",
@@ -3433,6 +3441,8 @@
           badgeLabel: "Gold · Podium",
           result: "45 teams registered, 15 pitched, and we took 2nd position. Built KrishiSaathi, which we are still building.",
           certificate: "Top performing certificate, with mentorship and investor connections offered.",
+          certificateId: "hackap-cert",
+          projectId: "krishisaathi",
           liveUrl: null,
           liveLabel: null,
           color: "#fbbf24",
@@ -3447,6 +3457,7 @@
           badgeLabel: "Teal · Participation / Learning",
           result: "Did not place. Built ecdat.",
           certificate: "Not listed.",
+          projectId: "ecdat",
           liveUrl: null,
           liveLabel: null,
           color: "#2dd4bf",
@@ -4882,6 +4893,64 @@
       }, triggerEl);
     }
 
+    function buildHackathonActionsEl(h, extraStyle = "") {
+      const proj = h.projectId
+        ? (ROOM_CONFIG.projects || []).find((p) => p.id === h.projectId)
+        : null;
+      const certs = ROOM_CONFIG.CERTIFICATES || [];
+      const certIdx = h.certificateId
+        ? certs.findIndex((c) => c.id === h.certificateId && c.image)
+        : -1;
+
+      const actions = document.createElement("div");
+      actions.className = "panel-actions";
+      if (extraStyle) actions.style.cssText = extraStyle;
+
+      if (proj) {
+        if (proj.repoUrl) {
+          const codeLink = document.createElement("a");
+          codeLink.href = proj.repoUrl;
+          codeLink.target = "_blank";
+          codeLink.rel = "noopener noreferrer";
+          codeLink.className = "btn-primary";
+          codeLink.textContent = `${proj.title} Code`;
+          codeLink.setAttribute("aria-label", `${proj.title} source code on GitHub (opens in a new tab)`);
+          actions.appendChild(codeLink);
+        }
+        if (proj.liveUrl) {
+          const liveLink = document.createElement("a");
+          liveLink.href = proj.liveUrl;
+          liveLink.target = "_blank";
+          liveLink.rel = "noopener noreferrer";
+          liveLink.className = "btn-secondary";
+          liveLink.textContent = `${proj.title} Live`;
+          liveLink.setAttribute("aria-label", `${proj.title} live site (opens in a new tab)`);
+          actions.appendChild(liveLink);
+        }
+      } else if (h.liveUrl) {
+        const liveLink = document.createElement("a");
+        liveLink.href = h.liveUrl;
+        liveLink.target = "_blank";
+        liveLink.rel = "noopener noreferrer";
+        liveLink.className = "btn-secondary";
+        liveLink.textContent = h.liveLabel || "Live demo";
+        liveLink.setAttribute("aria-label", `${h.liveLabel || `${h.name} live demo`} (opens in a new tab)`);
+        actions.appendChild(liveLink);
+      }
+
+      if (certIdx >= 0) {
+        const certBtn = document.createElement("button");
+        certBtn.type = "button";
+        certBtn.className = "btn-secondary";
+        certBtn.textContent = "View certificate";
+        certBtn.setAttribute("aria-label", `View certificate for ${h.name}`);
+        certBtn.addEventListener("click", () => openCertificateLightbox(certIdx, certBtn));
+        actions.appendChild(certBtn);
+      }
+
+      return actions.childElementCount > 0 ? actions : null;
+    }
+
     function openHackathonPanel(selectedHack = null, triggerEl = null) {
       openGlassPanel("TERRACE · CONSTELLATION STARS", selectedHack ? selectedHack.name : "Hackathons", (box) => {
         const list = selectedHack ? [selectedHack, ...ROOM_CONFIG.hackathons.filter((h) => h.id !== selectedHack.id)] : ROOM_CONFIG.hackathons;
@@ -4889,16 +4958,14 @@
           const card = document.createElement("article");
           card.className = "panel-item";
           card.setAttribute("aria-label", h.accessibleName);
-          const liveAction = h.liveUrl
-            ? `<div class="panel-actions"><a href="${h.liveUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">${h.liveLabel || "Live demo"}</a></div>`
-            : "";
           card.innerHTML = `
             <span class="result-badge result-badge--${h.badge}">${h.badgeLabel}</span>
             <h3 class="panel-item-title">${h.name}</h3>
             <p class="panel-item-desc"><strong>Result:</strong> ${h.result}</p>
             <p class="panel-item-desc"><strong>Certificate status:</strong> ${h.certificate}</p>
-            ${liveAction}
           `;
+          const actionsEl = buildHackathonActionsEl(h);
+          if (actionsEl) card.appendChild(actionsEl);
           box.appendChild(card);
         });
       }, triggerEl);
@@ -5188,24 +5255,28 @@
         <section aria-labelledby="nv-terrace-title">
           <p class="panel-kicker" style="padding-right:0; color:${appState.isNightMode ? "#5eead4" : "#6d28d9"};">TERRACE · CONSTELLATION</p>
           <h2 id="nv-terrace-title" class="nv-section-title" style="color:${appState.isNightMode ? "#f8fafc" : "#0f172a"};">Hackathons</h2>
-          <div class="nv-grid">
-            ${hackathons.map((h) => {
-              const liveAction = h.liveUrl
-                ? `<div class="panel-actions" style="margin-top:auto; padding-top:6px;"><a href="${h.liveUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">${h.liveLabel || "Live demo"}</a></div>`
-                : "";
-              return `
-                <article class="panel-item" style="background:var(--hud-surface);" aria-label="${h.accessibleName}">
-                  <span class="result-badge result-badge--${h.badge}">${h.badgeLabel}</span>
-                  <h3 class="panel-item-title">${h.name}</h3>
-                  <p class="panel-item-desc"><strong>Result:</strong> ${h.result}</p>
-                  <p class="panel-item-desc"><strong>Certificate status:</strong> ${h.certificate}</p>
-                  ${liveAction}
-                </article>
-              `;
-            }).join("")}
-          </div>
+          <div id="nv-hackathons-grid" class="nv-grid"></div>
         </section>
       `;
+
+      const nvHackathonsGrid = els.normalView.querySelector("#nv-hackathons-grid");
+      if (nvHackathonsGrid && Array.isArray(hackathons)) {
+        hackathons.forEach((h) => {
+          const card = document.createElement("article");
+          card.className = "panel-item";
+          card.style.background = "var(--hud-surface)";
+          card.setAttribute("aria-label", h.accessibleName);
+          card.innerHTML = `
+            <span class="result-badge result-badge--${h.badge}">${h.badgeLabel}</span>
+            <h3 class="panel-item-title">${h.name}</h3>
+            <p class="panel-item-desc"><strong>Result:</strong> ${h.result}</p>
+            <p class="panel-item-desc"><strong>Certificate status:</strong> ${h.certificate}</p>
+          `;
+          const actionsEl = buildHackathonActionsEl(h, "margin-top:auto; padding-top:6px;");
+          if (actionsEl) card.appendChild(actionsEl);
+          nvHackathonsGrid.appendChild(card);
+        });
+      }
 
       const nvCertGrid = els.normalView.querySelector("#nv-cert-grid");
       if (nvCertGrid && Array.isArray(CERTIFICATES)) {
