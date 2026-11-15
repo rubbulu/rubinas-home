@@ -13,7 +13,7 @@
   <!-- Google Fonts: Outfit (Display), Plus Jakarta Sans (Body), JetBrains Mono (Code/Tags) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <!-- Three.js CDN Import Map (Primitives only, zero downloaded models) -->
   <script type="importmap">
@@ -1935,6 +1935,421 @@
     }
 
     /* ==========================================================================
+       3D STUDY DIARY CREAM PAPER OVERLAY (Tracks 4 Projected Pages Mesh Corners)
+       ========================================================================== */
+    body.is-3d-active.is-diary-focused .top-bar,
+    body.is-3d-active.is-diary-focused .room-banner,
+    body.is-3d-active.is-diary-focused .bottom-dock-wrap,
+    body.is-3d-active.is-diary-focused .hover-tooltip,
+    body.is-3d-active.is-diary-focused .speech-bubble,
+    body.is-3d-active.is-diary-focused .sound-unlock-hint,
+    body.is-3d-active.is-diary-focused .music-volume-popover {
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+    }
+
+    .leave-diary-btn {
+      position: fixed;
+      top: 14px;
+      right: 16px;
+      z-index: 320;
+      min-height: 36px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(45, 212, 191, 0.6);
+      color: #f8fafc;
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(2, 6, 23, 0.48);
+      transition: background-color 0.16s var(--ease-out), border-color 0.16s var(--ease-out), transform 0.16s var(--ease-out);
+    }
+
+    .leave-diary-btn:hover,
+    .leave-diary-btn:focus-visible {
+      background: #0f766e;
+      border-color: #2dd4bf;
+      transform: translateY(-1px);
+    }
+
+    .diary-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 260;
+      overflow: hidden;
+      border-radius: 10px;
+      background: #fdf6e3;
+      color: #1e1b3a;
+      border: 5px solid #4c1d95;
+      box-shadow:
+        0 22px 54px rgba(2, 6, 23, 0.68),
+        0 0 0 1px rgba(45, 212, 191, 0.35),
+        inset 0 0 22px rgba(180, 148, 96, 0.16);
+      display: flex;
+      flex-direction: column;
+      transform-origin: center center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.24s var(--ease-out);
+    }
+
+    .diary-overlay.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .diary-ribbon {
+      position: absolute;
+      top: -2px;
+      left: calc(37% - 10px);
+      width: 18px;
+      height: 52px;
+      z-index: 4;
+      pointer-events: none;
+      background: linear-gradient(180deg, #0d9488 0%, #2dd4bf 100%);
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+      box-shadow: 0 4px 10px rgba(13, 148, 136, 0.32);
+    }
+
+    .diary-spread {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 37% 1fr;
+      background: #fdf6e3;
+    }
+
+    .diary-left-page {
+      position: relative;
+      min-height: 0;
+      padding: 16px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background-color: #fbf2d8;
+      background-image:
+        linear-gradient(90deg, rgba(124, 58, 237, 0.03) 0%, rgba(120, 90, 40, 0.08) 96%, rgba(91, 33, 182, 0.18) 100%),
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 24px,
+          rgba(139, 92, 246, 0.12) 24px,
+          rgba(139, 92, 246, 0.12) 25px
+        );
+      border-right: 1px solid rgba(91, 33, 182, 0.2);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .diary-cover-heading {
+      margin: 0;
+      font-family: 'Caveat', cursive;
+      font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+      font-weight: 700;
+      line-height: 1.05;
+      color: #4c1d95;
+    }
+
+    .diary-cover-sub {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #0f766e;
+      font-weight: 600;
+    }
+
+    .diary-index-list {
+      list-style: none;
+      margin: 4px 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .diary-index-btn {
+      width: 100%;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 4px 7px;
+      border-radius: 6px;
+      text-align: left;
+      font-family: 'Caveat', cursive;
+      font-size: clamp(1rem, 1.45vw, 1.18rem);
+      font-weight: 600;
+      line-height: 1.15;
+      color: #312e81;
+      background: transparent;
+      border: 1px solid transparent;
+      transition: background-color 0.14s var(--ease-out), border-color 0.14s var(--ease-out);
+    }
+
+    .diary-index-btn:hover {
+      background: rgba(45, 212, 191, 0.16);
+    }
+
+    .diary-index-btn:focus-visible {
+      outline: 2px solid #0d9488;
+      outline-offset: 1px;
+    }
+
+    .diary-index-btn.is-active {
+      background: rgba(139, 92, 246, 0.14);
+      border-color: rgba(109, 40, 217, 0.35);
+      color: #4c1d95;
+      font-weight: 700;
+    }
+
+    .diary-index-num {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: #0f766e;
+      flex-shrink: 0;
+    }
+
+    .diary-right-page {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background-color: #fdf6e3;
+      background-image:
+        linear-gradient(90deg, rgba(120, 90, 40, 0.1) 0%, transparent 18px),
+        linear-gradient(90deg, transparent 0, transparent 28px, rgba(225, 112, 85, 0.22) 28px, rgba(225, 112, 85, 0.22) 29px, transparent 29px),
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 26px,
+          rgba(139, 92, 246, 0.14) 26px,
+          rgba(139, 92, 246, 0.14) 27px
+        );
+      perspective: 900px;
+    }
+
+    .diary-page-sheet {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 16px 20px 10px 38px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transform-origin: left center;
+    }
+
+    .diary-page-sheet.is-turning-next {
+      animation: diaryPageTurnNext 0.32s var(--ease-out);
+    }
+
+    .diary-page-sheet.is-turning-prev {
+      animation: diaryPageTurnPrev 0.32s var(--ease-out);
+    }
+
+    @keyframes diaryPageTurnNext {
+      0% {
+        opacity: 0.25;
+        transform: rotateY(-18deg) scale(0.985);
+      }
+      100% {
+        opacity: 1;
+        transform: rotateY(0deg) scale(1);
+      }
+    }
+
+    @keyframes diaryPageTurnPrev {
+      0% {
+        opacity: 0.25;
+        transform: rotateY(16deg) scale(0.985);
+      }
+      100% {
+        opacity: 1;
+        transform: rotateY(0deg) scale(1);
+      }
+    }
+
+    .diary-page-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px dashed rgba(109, 40, 217, 0.26);
+      padding-bottom: 4px;
+    }
+
+    .diary-page-kicker {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #0f766e;
+    }
+
+    .diary-page-title {
+      margin: 2px 0 4px;
+      font-family: 'Caveat', cursive;
+      font-size: clamp(1.5rem, 2.5vw, 1.95rem);
+      font-weight: 700;
+      line-height: 1.08;
+      color: #4c1d95;
+    }
+
+    .diary-page-body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-family: 'Caveat', cursive;
+      font-size: clamp(1.18rem, 1.95vw, 1.44rem);
+      font-weight: 500;
+      line-height: 1.3;
+      color: #1e1b3a;
+    }
+
+    .diary-page-body p {
+      margin: 0;
+    }
+
+    .diary-page-list {
+      margin: 0;
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .diary-links-list {
+      list-style: none;
+      margin: 2px 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .diary-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Caveat', cursive;
+      font-size: clamp(1.14rem, 1.8vw, 1.36rem);
+      font-weight: 700;
+      color: #0f766e;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      word-break: break-word;
+    }
+
+    .diary-link:hover,
+    .diary-link:focus-visible {
+      color: #6d28d9;
+    }
+
+    .diary-footer {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 16px 10px 34px;
+      border-top: 1px solid rgba(109, 40, 217, 0.16);
+      background: rgba(251, 242, 216, 0.85);
+    }
+
+    .diary-nav-btn {
+      min-height: 32px;
+      padding: 4px 12px;
+      border-radius: 7px;
+      background: #4c1d95;
+      color: #ffffff;
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background-color 0.15s var(--ease-out), transform 0.15s var(--ease-out);
+    }
+
+    .diary-nav-btn:hover:not(:disabled),
+    .diary-nav-btn:focus-visible:not(:disabled) {
+      background: #0f766e;
+      transform: translateY(-1px);
+    }
+
+    .diary-nav-btn:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .diary-page-number {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #4c1d95;
+      white-space: nowrap;
+    }
+
+    /* Compact / Phone Responsive Layout for Diary Overlay */
+    .diary-overlay.is-compact .diary-spread {
+      grid-template-columns: 1fr;
+    }
+
+    .diary-overlay.is-compact .diary-left-page {
+      display: none;
+    }
+
+    .diary-overlay.is-compact .diary-ribbon {
+      left: auto;
+      right: 18px;
+      height: 40px;
+      width: 15px;
+    }
+
+    .diary-overlay.is-compact .diary-page-sheet {
+      padding: 14px 16px 10px 32px;
+    }
+
+    .diary-overlay.is-compact .diary-page-title {
+      font-size: 1.55rem;
+    }
+
+    .diary-overlay.is-compact .diary-page-body {
+      font-size: 1.24rem;
+      line-height: 1.32;
+    }
+
+    .diary-overlay.is-compact .diary-link {
+      font-size: 1.18rem;
+    }
+
+    .diary-overlay.is-compact .diary-footer {
+      padding: 8px 12px 10px 18px;
+    }
+
+    .diary-overlay.is-compact .diary-nav-btn {
+      min-height: 36px;
+      padding: 5px 12px;
+      font-size: 0.8rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .diary-page-sheet.is-turning-next,
+      .diary-page-sheet.is-turning-prev {
+        animation: none !important;
+      }
+    }
+
+    /* ==========================================================================
        CERTIFICATES GALLERY GRID & ACCESSIBLE LIGHTBOX
        ========================================================================== */
     .cert-grid {
@@ -2529,6 +2944,33 @@
       </div>
     </section>
 
+    <!-- Study Diary Focus Exit Trigger & Projected 3D Pages Cream-Paper Overlay -->
+    <button id="leave-diary-btn" type="button" class="leave-diary-btn" hidden>Close diary (Esc)</button>
+    <section id="diary-overlay" class="diary-overlay" role="dialog" aria-modal="true" aria-labelledby="diary-dialog-title" hidden>
+      <div class="diary-ribbon" aria-hidden="true"></div>
+      <div class="diary-spread">
+        <aside class="diary-left-page" aria-label="Diary pages index">
+          <p class="diary-cover-heading">Rubina's Diary</p>
+          <p class="diary-cover-sub">Study Desk · 6 Pages</p>
+          <ul id="diary-index-list" class="diary-index-list"></ul>
+        </aside>
+        <div class="diary-right-page">
+          <div id="diary-page-sheet" class="diary-page-sheet" tabindex="0">
+            <div class="diary-page-header">
+              <p id="diary-page-kicker" class="diary-page-kicker">PAGE 01 / 06</p>
+            </div>
+            <h2 id="diary-dialog-title" class="diary-page-title"></h2>
+            <div id="diary-page-body" class="diary-page-body"></div>
+          </div>
+          <div class="diary-footer">
+            <button id="diary-prev-btn" type="button" class="diary-nav-btn" aria-label="Previous page">&#8592; Previous</button>
+            <span id="diary-page-number" class="diary-page-number" aria-live="polite">Page 1 of 6</span>
+            <button id="diary-next-btn" type="button" class="diary-nav-btn" aria-label="Next page">Next &#8594;</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Compact Single-Row Bottom Navigation Dock -->
     <div id="bottom-dock-wrap" class="bottom-dock-wrap" hidden>
       <button id="dock-toggle-btn" type="button" class="dock-toggle-btn" aria-expanded="true" aria-controls="bottom-dock">
@@ -2698,6 +3140,12 @@
           bannerTitle: "Study: Projects",
           bannerSub: "Bookshelf & Laptop: Projects · Desk Lamp: Toggle Study light.",
           actionLabel: "Open Projects",
+          /* Edit Study room greeting lines (spoken in order with a short pause) and 15-second idle prompt here */
+          speechLines: [
+            "This is where I build my projects. Open my laptop to see them.",
+            "And open my diary to know more about me."
+          ],
+          idlePrompt: "Click the laptop or the diary, I'll show you!",
           overviewPos: [-5.1, 0, -5.1]
         },
         {
@@ -3052,7 +3500,70 @@
           alt: "Product Verse Agentic AI Hackathon participation certificate",
           accent: "#38bdf8"
         }
-      ]
+      ],
+
+      /* Edit Study Diary pages here (shown in the 3D Study Diary overlay and in Normal View).
+         Each page entry supports:
+         - pageNumber: 1..6
+         - title: Page heading
+         - body: Array of paragraphs or bullet lines for that page
+         - links: Optional array of { label, href, external } contact/profile links */
+      DIARY: {
+        title: "Rubina's Diary",
+        subtitle: "Notes from my Study desk",
+        pages: [
+          {
+            pageNumber: 1,
+            title: "About me",
+            body: [
+              "Hi, I'm Rubina Sultana, a third-year B.Tech CS/IT student at Andhra University College of Engineering for Women. I love building full web projects and learning through hackathons."
+            ]
+          },
+          {
+            pageNumber: 2,
+            title: "Education",
+            body: [
+              "B.Tech CS/IT at AUCEW (3rd year, CGPA 7.76)",
+              "Intermediate MPC at Sri Chaitanya Junior College (901/1000)",
+              "10th at Jamia Umme Sulaim (499/600)"
+            ]
+          },
+          {
+            pageNumber: 3,
+            title: "Skills",
+            body: [
+              "HTML, CSS, JavaScript, React, Node.js, Express.js, SQL, FastAPI.",
+              "Currently learning MongoDB and DSA in Java."
+            ]
+          },
+          {
+            pageNumber: 4,
+            title: "Languages",
+            body: [
+              "English, Hindi, Urdu, Telugu."
+            ]
+          },
+          {
+            pageNumber: 5,
+            title: "My hackathon journey",
+            body: [
+              "2nd place at the Agritech Hackathon (HackAP) with KrishiSaathi, round 3 in CodeStar 30 (top 50) with BrandGuard, round 3 in CodersInPune with Baton, top 30 at Samartha with ProofBoard."
+            ]
+          },
+          {
+            pageNumber: 6,
+            title: "What I'm looking for",
+            body: [
+              "A web development internship where I can build real products and keep growing."
+            ],
+            links: [
+              { label: "Email: sultanarubina209@gmail.com", href: "mailto:sultanarubina209@gmail.com", external: false },
+              { label: "GitHub: https://github.com/rubbulu", href: "https://github.com/rubbulu", external: true },
+              { label: "LinkedIn: https://linkedin.com/in/rubina-sultana-b79b94413", href: "https://linkedin.com/in/rubina-sultana-b79b94413", external: true }
+            ]
+          }
+        ]
+      }
     };
 
     /* ==========================================================================
@@ -3092,6 +3603,16 @@
       vscodeBreadcrumb: document.getElementById("vscode-breadcrumb"),
       vscodeEditorPanel: document.getElementById("vscode-editor-panel"),
       vscodeStatusCount: document.getElementById("vscode-status-count"),
+      leaveDiaryBtn: document.getElementById("leave-diary-btn"),
+      diaryOverlay: document.getElementById("diary-overlay"),
+      diaryIndexList: document.getElementById("diary-index-list"),
+      diaryPageSheet: document.getElementById("diary-page-sheet"),
+      diaryPageKicker: document.getElementById("diary-page-kicker"),
+      diaryDialogTitle: document.getElementById("diary-dialog-title"),
+      diaryPageBody: document.getElementById("diary-page-body"),
+      diaryPageNumber: document.getElementById("diary-page-number"),
+      diaryPrevBtn: document.getElementById("diary-prev-btn"),
+      diaryNextBtn: document.getElementById("diary-next-btn"),
 
       bottomDockWrap: document.getElementById("bottom-dock-wrap"),
       dockToggleBtn: document.getElementById("dock-toggle-btn"),
@@ -3136,9 +3657,10 @@
     const appState = {
       mode: "3d",
       manualNormalView: false,
-      scenePhase: "exterior", // "exterior" | "opening" | "room" | "laptop" | "overview"
+      scenePhase: "exterior", // "exterior" | "opening" | "room" | "laptop" | "diary" | "overview"
       activeRoomIdx: 0,
       activeProjectIdx: 0,
+      activeDiaryPageIdx: 0,
       isNightMode: false,
       musicOn: true,
       musicVolume: 0.6,
@@ -3158,7 +3680,7 @@
        ========================================================================== */
     const ROOM_SPEECH_LINES = {
       hall: "Welcome to my home! I'm Rubina. Look around and click anything.",
-      study: "This is where I build my projects. Open my laptop to see them.",
+      study: ROOM_CONFIG.rooms[1].speechLines[0],
       kitchen: "Skills are cooking here. Pick a jar or have a cup of chai with me.",
       bedroom: "I'm learning MongoDB and DSA in Java. Try the whiteboard.",
       terrace: "My hackathon journey is up here. Every star is an event."
@@ -4197,6 +4719,83 @@
       }
     }
 
+    function renderDiaryPage(turnDir = 0) {
+      const pages = ROOM_CONFIG.DIARY.pages || [];
+      if (pages.length === 0) return;
+      const idx = THREE_COMPAT_CLAMP(appState.activeDiaryPageIdx, 0, pages.length - 1);
+      appState.activeDiaryPageIdx = idx;
+      const page = pages[idx];
+
+      els.diaryIndexList.innerHTML = "";
+      pages.forEach((pg, i) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `diary-index-btn ${i === idx ? "is-active" : ""}`;
+        btn.setAttribute("aria-current", i === idx ? "page" : "false");
+        btn.innerHTML = `<span class="diary-index-num">0${pg.pageNumber}</span><span>${pg.title}</span>`;
+        btn.addEventListener("click", () => {
+          if (i !== appState.activeDiaryPageIdx) {
+            selectDiaryPage(i, i > appState.activeDiaryPageIdx ? 1 : -1);
+          }
+        });
+        li.appendChild(btn);
+        els.diaryIndexList.appendChild(li);
+      });
+
+      const pageNumStr = String(page.pageNumber).padStart(2, "0");
+      const totalStr = String(pages.length).padStart(2, "0");
+      els.diaryPageKicker.textContent = `PAGE ${pageNumStr} / ${totalStr}`;
+      els.diaryDialogTitle.textContent = page.title;
+      els.diaryPageNumber.textContent = `Page ${page.pageNumber} of ${pages.length}`;
+
+      const bodyLines = Array.isArray(page.body) ? page.body : [];
+      const bodyHtml = bodyLines.length > 1 && page.pageNumber === 2
+        ? `<ul class="diary-page-list">${bodyLines.map((line) => `<li>${line}</li>`).join("")}</ul>`
+        : bodyLines.map((line) => `<p>${line}</p>`).join("");
+
+      const linksHtml = Array.isArray(page.links) && page.links.length > 0
+        ? `<ul class="diary-links-list">${page.links.map((lk) => {
+            const attrs = lk.external ? ` target="_blank" rel="noopener noreferrer"` : ` target="_blank" rel="noopener noreferrer"`;
+            return `<li><a href="${lk.href}"${attrs} class="diary-link">${lk.label}</a></li>`;
+          }).join("")}</ul>`
+        : "";
+
+      els.diaryPageBody.innerHTML = `${bodyHtml}${linksHtml}`;
+      els.diaryPageSheet.scrollTop = 0;
+
+      els.diaryPrevBtn.disabled = idx <= 0;
+      els.diaryNextBtn.disabled = idx >= pages.length - 1;
+
+      els.diaryPageSheet.classList.remove("is-turning-next", "is-turning-prev");
+      if (turnDir !== 0 && !prefersReducedMotion) {
+        void els.diaryPageSheet.offsetWidth;
+        els.diaryPageSheet.classList.add(turnDir > 0 ? "is-turning-next" : "is-turning-prev");
+      }
+    }
+
+    function THREE_COMPAT_CLAMP(val, min, max) {
+      return Math.max(min, Math.min(max, val));
+    }
+
+    function selectDiaryPage(idx, turnDir = 0) {
+      const pages = ROOM_CONFIG.DIARY.pages || [];
+      if (pages.length === 0) return;
+      const nextIdx = THREE_COMPAT_CLAMP(idx, 0, pages.length - 1);
+      if (nextIdx === appState.activeDiaryPageIdx && turnDir !== 0) return;
+      appState.activeDiaryPageIdx = nextIdx;
+      renderDiaryPage(turnDir);
+    }
+
+    function stepDiaryPage(delta) {
+      const pages = ROOM_CONFIG.DIARY.pages || [];
+      if (pages.length === 0) return;
+      const nextIdx = THREE_COMPAT_CLAMP(appState.activeDiaryPageIdx + delta, 0, pages.length - 1);
+      if (nextIdx !== appState.activeDiaryPageIdx) {
+        selectDiaryPage(nextIdx, delta > 0 ? 1 : -1);
+      }
+    }
+
     function openProjectsPanel(triggerEl = null) {
       openGlassPanel("STUDY · BOOKSHELF PROJECTS", "Projects", (box) => {
         ROOM_CONFIG.projects.forEach((p) => {
@@ -4521,6 +5120,28 @@
           </div>
         </section>
 
+        <section id="nv-diary-section" class="nv-card" aria-labelledby="nv-diary-title">
+          <p class="panel-kicker" style="padding-right:0;">STUDY · DESK DIARY</p>
+          <h2 id="nv-diary-title" class="nv-section-title">${ROOM_CONFIG.DIARY.title}</h2>
+          <div class="nv-grid">
+            ${(ROOM_CONFIG.DIARY.pages || []).map((pg) => {
+              const lines = Array.isArray(pg.body) ? pg.body : [];
+              const bodyHtml = lines.map((line) => `<p class="panel-item-desc">${line}</p>`).join("");
+              const linksHtml = Array.isArray(pg.links) && pg.links.length > 0
+                ? `<div class="panel-actions" style="margin-top:auto; padding-top:6px;">${pg.links.map((lk) => `<a href="${lk.href}" target="_blank" rel="noopener noreferrer" class="btn-secondary">${lk.label}</a>`).join("")}</div>`
+                : "";
+              return `
+                <article class="panel-item">
+                  <p class="panel-item-sub">Page ${pg.pageNumber} of ${(ROOM_CONFIG.DIARY.pages || []).length}</p>
+                  <h3 class="panel-item-title">${pg.title}</h3>
+                  ${bodyHtml}
+                  ${linksHtml}
+                </article>
+              `;
+            }).join("")}
+          </div>
+        </section>
+
         <section class="nv-card" aria-labelledby="nv-kitchen-title">
           <p class="panel-kicker" style="padding-right:0;">KITCHEN · SPICE RACK &amp; CHAI KETTLE</p>
           <h2 id="nv-kitchen-title" class="nv-section-title">Skills &amp; Contact</h2>
@@ -4612,10 +5233,13 @@
 
     function activateNormalView() {
       appState.mode = "2d";
-      document.body.classList.remove("is-3d-active", "controls-hidden", "is-laptop-focused");
+      document.body.classList.remove("is-3d-active", "controls-hidden", "is-laptop-focused", "is-diary-focused");
       els.laptopScreenOverlay.classList.remove("is-visible");
       els.laptopScreenOverlay.hidden = true;
       els.leaveLaptopBtn.hidden = true;
+      els.diaryOverlay.classList.remove("is-visible");
+      els.diaryOverlay.hidden = true;
+      els.leaveDiaryBtn.hidden = true;
       els.bottomDock.classList.remove("is-collapsed");
       els.dockToggleBtn.setAttribute("aria-expanded", "true");
       els.dockToggleLabel.textContent = "Hide Controls";
@@ -6718,6 +7342,269 @@
         onClick: () => enterLaptopFocus(els.roomActionBtn)
       });
 
+      /* Small Closed Diary + Pen on right side of Study Desk */
+      const DIARY_W = 0.32;
+      const DIARY_D = 0.42;
+      const diaryGroup = new THREE.Group();
+
+      const diaryBackCover = new THREE.Mesh(
+        trackGeo(new THREE.BoxGeometry(DIARY_W, 0.012, DIARY_D)),
+        stdMat(0x4c1d95, 0.52, 0.08)
+      );
+      diaryBackCover.position.set(0, 0.006, 0);
+
+      const diaryRightPages = new THREE.Mesh(
+        trackGeo(new THREE.BoxGeometry(DIARY_W - 0.022, 0.026, DIARY_D - 0.024)),
+        stdMat(0xfdf6e3, 0.86, 0.02)
+      );
+      diaryRightPages.position.set(0.006, 0.025, 0);
+
+      const ruledCanvas = document.createElement("canvas");
+      ruledCanvas.width = 256;
+      ruledCanvas.height = 320;
+      const rCtx = ruledCanvas.getContext("2d");
+      rCtx.fillStyle = "#fdf6e3";
+      rCtx.fillRect(0, 0, 256, 320);
+      rCtx.strokeStyle = "rgba(139, 92, 246, 0.24)";
+      rCtx.lineWidth = 2;
+      for (let ry = 28; ry < 306; ry += 20) {
+        rCtx.beginPath();
+        rCtx.moveTo(14, ry);
+        rCtx.lineTo(242, ry);
+        rCtx.stroke();
+      }
+      rCtx.strokeStyle = "rgba(225, 112, 85, 0.35)";
+      rCtx.beginPath();
+      rCtx.moveTo(34, 10);
+      rCtx.lineTo(34, 310);
+      rCtx.stroke();
+      const ruledTex = trackTex(new THREE.CanvasTexture(ruledCanvas));
+      ruledTex.colorSpace = THREE.SRGBColorSpace;
+      ruledTex.anisotropy = maxAniso;
+
+      const diaryRightPageTop = new THREE.Mesh(
+        trackGeo(new THREE.PlaneGeometry(DIARY_W - 0.028, DIARY_D - 0.028)),
+        trackMat(new THREE.MeshStandardMaterial({
+          map: ruledTex,
+          roughness: 0.85,
+          metalness: 0.01,
+          polygonOffset: true,
+          polygonOffsetFactor: -1,
+          polygonOffsetUnits: -1
+        }))
+      );
+      diaryRightPageTop.rotation.x = -Math.PI / 2;
+      diaryRightPageTop.position.set(0.006, 0.039, 0);
+
+      const diarySpine = new THREE.Mesh(
+        trackGeo(new THREE.CylinderGeometry(0.022, 0.022, DIARY_D, 10)),
+        stdMat(0x3b0764, 0.5, 0.1)
+      );
+      diarySpine.rotation.x = Math.PI / 2;
+      diarySpine.position.set(-DIARY_W * 0.5, 0.024, 0);
+
+      const diaryRibbon = new THREE.Mesh(
+        trackGeo(new THREE.BoxGeometry(0.024, 0.004, 0.13)),
+        stdMat(0x2dd4bf, 0.52, 0.08, { emissive: 0x0d9488, emissiveIntensity: 0.18 })
+      );
+      diaryRibbon.position.set(0.035, 0.012, DIARY_D * 0.5 + 0.042);
+      diaryRibbon.rotation.x = 0.14;
+
+      const diaryCoverPivot = new THREE.Group();
+      diaryCoverPivot.position.set(-DIARY_W * 0.5, 0.04, 0);
+
+      const diaryFrontCover = new THREE.Mesh(
+        trackGeo(new THREE.BoxGeometry(DIARY_W, 0.013, DIARY_D)),
+        stdMat(0x5b21b6, 0.48, 0.1)
+      );
+      diaryFrontCover.position.set(DIARY_W * 0.5, 0.0065, 0);
+
+      const diarySpineBand = new THREE.Mesh(
+        trackGeo(new THREE.BoxGeometry(0.022, 0.0145, DIARY_D + 0.002)),
+        stdMat(0x2dd4bf, 0.46, 0.12)
+      );
+      diarySpineBand.position.set(0.026, 0.0065, 0);
+
+      const labelCanvas = document.createElement("canvas");
+      labelCanvas.width = 512;
+      labelCanvas.height = 256;
+      const lCtx = labelCanvas.getContext("2d");
+      lCtx.fillStyle = "#fdf6e3";
+      lCtx.fillRect(0, 0, 512, 256);
+      lCtx.strokeStyle = "#2dd4bf";
+      lCtx.lineWidth = 14;
+      lCtx.strokeRect(12, 12, 488, 232);
+      lCtx.strokeStyle = "#6d28d9";
+      lCtx.lineWidth = 4;
+      lCtx.strokeRect(24, 24, 464, 208);
+      lCtx.fillStyle = "#3b0764";
+      lCtx.font = "700 62px Georgia, serif";
+      lCtx.textAlign = "center";
+      lCtx.textBaseline = "middle";
+      lCtx.fillText("Rubina's", 256, 98);
+      lCtx.fillStyle = "#0f766e";
+      lCtx.font = "700 64px Georgia, serif";
+      lCtx.fillText("Diary", 256, 166);
+      const diaryLabelTex = trackTex(new THREE.CanvasTexture(labelCanvas));
+      diaryLabelTex.colorSpace = THREE.SRGBColorSpace;
+      diaryLabelTex.anisotropy = maxAniso;
+
+      const diaryLabelMesh = new THREE.Mesh(
+        trackGeo(new THREE.PlaneGeometry(DIARY_W * 0.68, DIARY_D * 0.28)),
+        trackMat(new THREE.MeshStandardMaterial({
+          map: diaryLabelTex,
+          roughness: 0.6,
+          metalness: 0.04,
+          polygonOffset: true,
+          polygonOffsetFactor: -1,
+          polygonOffsetUnits: -1
+        }))
+      );
+      diaryLabelMesh.rotation.x = -Math.PI / 2;
+      diaryLabelMesh.position.set(DIARY_W * 0.52, 0.0138, -0.02);
+
+      const diaryLeftPages = new THREE.Mesh(
+        trackGeo(new THREE.BoxGeometry(DIARY_W - 0.024, 0.015, DIARY_D - 0.024)),
+        stdMat(0xfdf6e3, 0.86, 0.02)
+      );
+      diaryLeftPages.position.set(DIARY_W * 0.5 - 0.006, -0.0075, 0);
+
+      const diaryLeftPageTop = new THREE.Mesh(
+        trackGeo(new THREE.PlaneGeometry(DIARY_W - 0.028, DIARY_D - 0.028)),
+        trackMat(new THREE.MeshStandardMaterial({
+          map: ruledTex,
+          roughness: 0.85,
+          metalness: 0.01,
+          polygonOffset: true,
+          polygonOffsetFactor: -1,
+          polygonOffsetUnits: -1
+        }))
+      );
+      diaryLeftPageTop.rotation.x = Math.PI / 2;
+      diaryLeftPageTop.position.set(DIARY_W * 0.5 - 0.006, -0.0155, 0);
+
+      diaryCoverPivot.add(diaryFrontCover, diarySpineBand, diaryLabelMesh, diaryLeftPages, diaryLeftPageTop);
+
+      /* Pen resting next to the diary */
+      const penGroup = new THREE.Group();
+      const penBarrel = new THREE.Mesh(
+        trackGeo(new THREE.CylinderGeometry(0.013, 0.013, 0.30, 10)),
+        stdMat(0x0f766e, 0.36, 0.28)
+      );
+      penBarrel.rotation.x = Math.PI / 2;
+      const penRing = new THREE.Mesh(
+        trackGeo(new THREE.CylinderGeometry(0.0148, 0.0148, 0.024, 10)),
+        stdMat(0xfbbf24, 0.26, 0.82)
+      );
+      penRing.rotation.x = Math.PI / 2;
+      penRing.position.z = -0.03;
+      const penClip = new THREE.Mesh(
+        trackGeo(new THREE.BoxGeometry(0.006, 0.007, 0.085)),
+        stdMat(0xfbbf24, 0.26, 0.82)
+      );
+      penClip.position.set(0, 0.014, -0.08);
+      const penNib = new THREE.Mesh(
+        trackGeo(new THREE.ConeGeometry(0.013, 0.048, 10)),
+        stdMat(0xfbbf24, 0.24, 0.85)
+      );
+      penNib.rotation.x = Math.PI / 2;
+      penNib.position.z = 0.174;
+      penGroup.add(penBarrel, penRing, penClip, penNib);
+      penGroup.position.set(DIARY_W * 0.5 + 0.068, 0.014, 0.02);
+      penGroup.rotation.y = 0.18;
+
+      diaryGroup.add(diaryBackCover, diaryRightPages, diaryRightPageTop, diarySpine, diaryRibbon, diaryCoverPivot, penGroup);
+
+      registerRoomItem(1, diaryGroup, {
+        id: "diary",
+        tooltip: "Diary",
+        pos: [2.62, STUDY_DESK_Y, -2.86],
+        rotY: -0.1,
+        standPos: [2.15, GROUND_Y, -1.85],
+        scale: 1.35,
+        isDeskTop: true,
+        gesture: "point",
+        onClick: () => enterDiaryFocus(els.roomActionBtn)
+      });
+      attachPriorityHitBox(diaryGroup, 1, 1.5);
+
+      /* Projection reference plane covering the open two-page spread (added after hitbox so hitbox hugs closed diary + pen) */
+      const DIARY_SPREAD_W = DIARY_W * 2 - 0.016;
+      const DIARY_SPREAD_H = DIARY_D - 0.016;
+      const diaryPagesMesh = new THREE.Mesh(
+        trackGeo(new THREE.PlaneGeometry(DIARY_SPREAD_W, DIARY_SPREAD_H)),
+        trackMat(new THREE.MeshBasicMaterial({
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
+          colorWrite: false
+        }))
+      );
+      diaryPagesMesh.raycast = () => {};
+      diaryPagesMesh.rotation.x = -Math.PI / 2;
+      diaryPagesMesh.position.set(-DIARY_W * 0.5, 0.046, 0);
+      diaryGroup.add(diaryPagesMesh);
+
+      /* Gentle pulsing highlight rings (static outline when prefers-reduced-motion) for Laptop & Diary */
+      const glowHaloCanvas = document.createElement("canvas");
+      glowHaloCanvas.width = 128;
+      glowHaloCanvas.height = 128;
+      const ghCtx = glowHaloCanvas.getContext("2d");
+      const ghGrad = ghCtx.createRadialGradient(64, 64, 24, 64, 64, 62);
+      ghGrad.addColorStop(0, "rgba(45, 212, 191, 0)");
+      ghGrad.addColorStop(0.55, "rgba(45, 212, 191, 0.42)");
+      ghGrad.addColorStop(0.76, "rgba(45, 212, 191, 0.72)");
+      ghGrad.addColorStop(1, "rgba(45, 212, 191, 0)");
+      ghCtx.fillStyle = ghGrad;
+      ghCtx.fillRect(0, 0, 128, 128);
+      const glowHaloTex = trackTex(new THREE.CanvasTexture(glowHaloCanvas));
+      glowHaloTex.colorSpace = THREE.SRGBColorSpace;
+
+      function createStudyGlowHighlight(radiusX, radiusZ, colorHex = 0x2dd4bf) {
+        const group = new THREE.Group();
+        const ringMat = trackMat(new THREE.MeshBasicMaterial({
+          color: colorHex,
+          transparent: true,
+          opacity: 0.8,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+          polygonOffset: true,
+          polygonOffsetFactor: -1,
+          polygonOffsetUnits: -1
+        }));
+        const ringMesh = new THREE.Mesh(trackGeo(new THREE.RingGeometry(0.86, 1.0, 48)), ringMat);
+        ringMesh.rotation.x = -Math.PI / 2;
+        ringMesh.scale.set(radiusX, radiusZ, 1);
+        ringMesh.raycast = () => {};
+
+        const haloMat = trackMat(new THREE.MeshBasicMaterial({
+          map: glowHaloTex,
+          color: colorHex,
+          transparent: true,
+          opacity: 0.35,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          polygonOffset: true,
+          polygonOffsetFactor: -1,
+          polygonOffsetUnits: -1
+        }));
+        const haloMesh = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(radiusX * 2.35, radiusZ * 2.35)), haloMat);
+        haloMesh.rotation.x = -Math.PI / 2;
+        haloMesh.position.y = -0.001;
+        haloMesh.raycast = () => {};
+
+        group.add(haloMesh, ringMesh);
+        group.position.set(0, 0.007, 0);
+        group.visible = false;
+        return { group, ringMat, haloMat };
+      }
+
+      const laptopGlow = createStudyGlowHighlight(0.51, 0.37, 0x2dd4bf);
+      laptopGroup.add(laptopGlow.group);
+
+      const diaryGlow = createStudyGlowHighlight(0.235, 0.295, 0x2dd4bf);
+      diaryGroup.add(diaryGlow.group);
+
       function createLampGlowSprite(hexColor = 0xffdfb0) {
         const c = document.createElement("canvas");
         c.width = 128;
@@ -6848,7 +7735,7 @@
         pos: [2.75, GROUND_Y, 2.95]
       });
 
-      registerGroupDimMats(studyDimMats, roomGroups[1], new Set([lmShadeMat, lmBulbMat, lScr.material, ...roomWindowMats]));
+      registerGroupDimMats(studyDimMats, roomGroups[1], new Set([lmShadeMat, lmBulbMat, lScr.material, diaryPagesMesh.material, laptopGlow.ringMat, laptopGlow.haloMat, diaryGlow.ringMat, diaryGlow.haloMat, ...roomWindowMats]));
       applyStudyLampVisuals(studyLampAnim);
 
       /* ---------------- ROOM 2: KITCHEN (SKILLS & CONTACT — 7 main items: 1 rug, 1 plant, 1 wall art + counter, fridge, spicerack, kettle, bistro) ---------------- */
@@ -7642,6 +8529,26 @@
 
       let avatarGreetingIdx = 0;
       let lastSpokenRoomIdx = -1;
+      const studyGuideState = {
+        greetingDone: false,
+        laptopClicked: false,
+        diaryClicked: false,
+        idleTimer: 0,
+        idlePromptShown: false,
+        line2Timer: 0,
+        doneTimer: 0
+      };
+
+      function clearStudyGreetingTimers() {
+        if (studyGuideState.line2Timer) {
+          clearTimeout(studyGuideState.line2Timer);
+          studyGuideState.line2Timer = 0;
+        }
+        if (studyGuideState.doneTimer) {
+          clearTimeout(studyGuideState.doneTimer);
+          studyGuideState.doneTimer = 0;
+        }
+      }
 
       function positionSpeechBubble() {
         try {
@@ -7661,9 +8568,12 @@
         }
       }
 
-      function showSpeech(text, duration = 4.0) {
+      function showSpeech(text, duration = 4.0, isRoomGreeting = false) {
         try {
           if (!text) return;
+          if (!isRoomGreeting) {
+            clearStudyGreetingTimers();
+          }
           els.speechBubble.textContent = text;
           els.speechBubble.hidden = false;
           avatarState.speechTimer = duration;
@@ -7678,6 +8588,7 @@
       }
 
       function clearRoomSpeech() {
+        clearStudyGreetingTimers();
         avatarState.speechTimer = 0;
         els.speechBubble.hidden = true;
         cancelSpeech();
@@ -7686,9 +8597,34 @@
       function speakRoomGreeting(roomIdx) {
         const rm = ROOM_CONFIG.rooms[roomIdx];
         if (!rm) return;
-        const line = ROOM_SPEECH_LINES[rm.id];
+        clearStudyGreetingTimers();
         lastSpokenRoomIdx = roomIdx;
-        if (line) showSpeech(line, 4.0);
+
+        if (rm.id === "study") {
+          const lines = Array.isArray(rm.speechLines) && rm.speechLines.length > 0
+            ? rm.speechLines
+            : [ROOM_SPEECH_LINES.study];
+          studyGuideState.greetingDone = false;
+          showSpeech(lines[0], 4.0, true);
+          if (lines[1]) {
+            studyGuideState.line2Timer = window.setTimeout(() => {
+              studyGuideState.line2Timer = 0;
+              if (appState.mode !== "3d" || appState.scenePhase !== "room" || appState.activeRoomIdx !== 1) return;
+              showSpeech(lines[1], 4.0, true);
+              studyGuideState.doneTimer = window.setTimeout(() => {
+                studyGuideState.doneTimer = 0;
+                if (appState.mode !== "3d" || appState.activeRoomIdx !== 1) return;
+                studyGuideState.greetingDone = true;
+              }, 4000);
+            }, 4450);
+          } else {
+            studyGuideState.greetingDone = true;
+          }
+          return;
+        }
+
+        const line = ROOM_SPEECH_LINES[rm.id];
+        if (line) showSpeech(line, 4.0, true);
       }
 
       function speakNextAvatarGreeting() {
@@ -7900,6 +8836,9 @@
 
       function enterLaptopFocus(triggerEl = null) {
         if (!houseGroup.visible) return;
+        clearStudyGreetingTimers();
+        studyGuideState.greetingDone = true;
+        studyGuideState.laptopClicked = true;
         laptopFocus.active = true;
         laptopFocus.leaving = false;
         laptopFocus.enterTimer = 0;
@@ -7968,7 +8907,7 @@
       }
 
       function focusLaptopProjects(triggerEl = null) {
-        if (appState.scenePhase === "exterior" || appState.scenePhase === "opening" || appState.scenePhase === "laptop") return;
+        if (appState.scenePhase === "exterior" || appState.scenePhase === "opening" || appState.scenePhase === "laptop" || appState.scenePhase === "diary") return;
         const cl = clampWalkPos(1, laptopGroup.position.x - 1.03, laptopGroup.position.z + 1.0);
         const standPos = new THREE.Vector3(cl.x, GROUND_Y, cl.z);
         walkToTarget(1, standPos, laptopGroup.position, () => {
@@ -7978,6 +8917,187 @@
           }
           enterLaptopFocus(triggerEl || els.roomActionBtn);
         }, false);
+      }
+
+      /* 3D Study Diary Zoom + Cover Flip + 4-Corner Projected Cream Paper Overlay */
+      const DIARY_HALF_W = DIARY_SPREAD_W * 0.5;
+      const DIARY_HALF_H = DIARY_SPREAD_H * 0.5;
+      const _diaryLocalCorners = [
+        new THREE.Vector3(-DIARY_HALF_W,  DIARY_HALF_H, 0),
+        new THREE.Vector3( DIARY_HALF_W,  DIARY_HALF_H, 0),
+        new THREE.Vector3( DIARY_HALF_W, -DIARY_HALF_H, 0),
+        new THREE.Vector3(-DIARY_HALF_W, -DIARY_HALF_H, 0)
+      ];
+      const _diaryWorldCorners = [
+        new THREE.Vector3(),
+        new THREE.Vector3(),
+        new THREE.Vector3(),
+        new THREE.Vector3()
+      ];
+      const _diaryProjPx = [
+        { x: 0, y: 0 },
+        { x: 0, y: 0 },
+        { x: 0, y: 0 },
+        { x: 0, y: 0 }
+      ];
+      const _diaryCenter = new THREE.Vector3();
+      const _diaryNormal = new THREE.Vector3();
+      const _diaryFrontDir = new THREE.Vector3();
+      const _diaryCamDir = new THREE.Vector3();
+      const diaryFocus = {
+        active: false,
+        leaving: false,
+        coverAnim: 0,
+        enterTimer: 0,
+        leaveTimer: 0,
+        overlayShown: false,
+        triggerEl: null
+      };
+
+      function computeDiaryCamGoal(outPos, outLook) {
+        diaryPagesMesh.updateWorldMatrix(true, false);
+        _diaryCenter.set(0, 0, 0).applyMatrix4(diaryPagesMesh.matrixWorld);
+        _diaryNormal.set(0, 0, 1).transformDirection(diaryPagesMesh.matrixWorld).normalize();
+        _diaryFrontDir.set(0, -1, 0).transformDirection(diaryPagesMesh.matrixWorld).normalize();
+        _diaryCamDir.copy(_diaryNormal).multiplyScalar(0.96).addScaledVector(_diaryFrontDir, 0.28).normalize();
+
+        _diaryWorldCorners[0].copy(_diaryLocalCorners[0]).applyMatrix4(diaryPagesMesh.matrixWorld);
+        _diaryWorldCorners[1].copy(_diaryLocalCorners[1]).applyMatrix4(diaryPagesMesh.matrixWorld);
+        _diaryWorldCorners[3].copy(_diaryLocalCorners[3]).applyMatrix4(diaryPagesMesh.matrixWorld);
+
+        const worldW = _diaryWorldCorners[1].distanceTo(_diaryWorldCorners[0]);
+        const worldH = _diaryWorldCorners[0].distanceTo(_diaryWorldCorners[3]);
+        const vTan = Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5));
+        const hTan = vTan * Math.max(0.35, camera.aspect);
+        const distH = (worldH * 0.96) / (2 * 0.55 * vTan);
+        const distW = worldW / (2 * 0.88 * hTan);
+        const dist = Math.max(distH, distW);
+
+        outLook.copy(_diaryCenter);
+        outPos.copy(_diaryCenter).addScaledVector(_diaryCamDir, dist);
+      }
+
+      function updateDiaryOverlay() {
+        if (els.diaryOverlay.hidden) return;
+        const vw = Math.max(320, window.innerWidth);
+        const vh = Math.max(320, window.innerHeight);
+
+        diaryPagesMesh.updateWorldMatrix(true, false);
+        camera.updateMatrixWorld();
+
+        for (let i = 0; i < 4; i++) {
+          _diaryWorldCorners[i].copy(_diaryLocalCorners[i]).applyMatrix4(diaryPagesMesh.matrixWorld).project(camera);
+          _diaryProjPx[i].x = ((_diaryWorldCorners[i].x + 1) * 0.5) * vw;
+          _diaryProjPx[i].y = ((1 - _diaryWorldCorners[i].y) * 0.5) * vh;
+        }
+
+        const pTL = _diaryProjPx[0];
+        const pTR = _diaryProjPx[1];
+        const pBR = _diaryProjPx[2];
+        const pBL = _diaryProjPx[3];
+
+        const topW = Math.hypot(pTR.x - pTL.x, pTR.y - pTL.y);
+        const botW = Math.hypot(pBR.x - pBL.x, pBR.y - pBL.y);
+        const leftH = Math.hypot(pBL.x - pTL.x, pBL.y - pTL.y);
+        const rightH = Math.hypot(pBR.x - pTR.x, pBR.y - pTR.y);
+
+        const projW = Math.max(120, (topW + botW) * 0.5);
+        const projH = Math.max(90, (leftH + rightH) * 0.5);
+        let cx = (pTL.x + pTR.x + pBR.x + pBL.x) * 0.25;
+        let cy = (pTL.y + pTR.y + pBR.y + pBL.y) * 0.25;
+        const angleRad = Math.atan2(pTR.y - pTL.y, pTR.x - pTL.x);
+
+        const isCompact = vw <= 640 || projW < 420;
+        els.diaryOverlay.classList.toggle("is-compact", isCompact);
+
+        let displayW = projW;
+        let displayH = projH;
+        if (isCompact) {
+          displayW = Math.min(vw - 20, Math.max(projW, vw * 0.92));
+          displayH = Math.min(vh - 110, Math.max(projH, Math.min(440, vh * 0.62)));
+          cx = THREE.MathUtils.clamp(cx, displayW * 0.5 + 10, vw - displayW * 0.5 - 10);
+          cy = THREE.MathUtils.clamp(cy, displayH * 0.5 + 58, vh - displayH * 0.5 - 14);
+        }
+
+        els.diaryOverlay.style.width = `${displayW.toFixed(1)}px`;
+        els.diaryOverlay.style.height = `${displayH.toFixed(1)}px`;
+        els.diaryOverlay.style.transform =
+          `translate3d(${(cx - displayW * 0.5).toFixed(1)}px, ${(cy - displayH * 0.5).toFixed(1)}px, 0) rotate(${angleRad.toFixed(4)}rad)`;
+      }
+
+      function enterDiaryFocus(triggerEl = null) {
+        if (!houseGroup.visible) return;
+        clearRoomSpeech();
+        studyGuideState.greetingDone = true;
+        studyGuideState.diaryClicked = true;
+        diaryFocus.active = true;
+        diaryFocus.leaving = false;
+        diaryFocus.enterTimer = 0;
+        diaryFocus.overlayShown = false;
+        diaryFocus.triggerEl = triggerEl || els.roomActionBtn;
+
+        appState.scenePhase = "diary";
+        appState.activeRoomIdx = 1;
+        walkState.active = false;
+        isOrbitDragging = false;
+        hoveredItem = null;
+        els.hoverTooltip.hidden = true;
+        document.body.style.cursor = "default";
+
+        document.body.classList.add("is-diary-focused");
+        els.leaveDiaryBtn.hidden = false;
+
+        renderDiaryPage(0);
+        els.diaryOverlay.classList.remove("is-visible");
+        els.diaryOverlay.hidden = false;
+
+        computeDiaryCamGoal(perspCamState.targetPos, perspCamState.targetLookAt);
+        if (prefersReducedMotion) {
+          diaryFocus.coverAnim = 1;
+          diaryCoverPivot.rotation.z = Math.PI * 0.96;
+          applyCamImmediate(perspCamState.targetPos, perspCamState.targetLookAt);
+          updateDiaryOverlay();
+          els.diaryOverlay.classList.add("is-visible");
+          diaryFocus.overlayShown = true;
+          els.diaryNextBtn.focus();
+        } else {
+          diaryFocus.coverAnim = 0;
+          diaryCoverPivot.rotation.z = 0;
+          updateDiaryOverlay();
+        }
+      }
+
+      function leaveDiaryFocus(immediate = false) {
+        if (appState.scenePhase !== "diary" && !diaryFocus.active && !diaryFocus.leaving) return;
+        diaryFocus.active = false;
+        diaryFocus.overlayShown = false;
+
+        document.body.classList.remove("is-diary-focused");
+        els.leaveDiaryBtn.hidden = true;
+        els.diaryOverlay.classList.remove("is-visible");
+
+        if (immediate || prefersReducedMotion) {
+          diaryFocus.leaving = false;
+          diaryFocus.coverAnim = 0;
+          diaryCoverPivot.rotation.z = 0;
+          els.diaryOverlay.hidden = true;
+        } else {
+          diaryFocus.leaving = true;
+          diaryFocus.leaveTimer = 0;
+        }
+
+        if (appState.scenePhase === "diary") {
+          appState.scenePhase = "room";
+          updateStageBackdrop(ROOM_CONFIG.rooms[appState.activeRoomIdx].id);
+          syncRoomCameraGoal(immediate || prefersReducedMotion);
+          showRoomChip();
+        }
+
+        const restoreEl = diaryFocus.triggerEl;
+        diaryFocus.triggerEl = null;
+        if (!immediate && appState.mode === "3d" && restoreEl && typeof restoreEl.focus === "function") {
+          requestAnimationFrame(() => restoreEl.focus());
+        }
       }
 
       function resetWallFadesImmediate() {
@@ -8000,6 +9120,9 @@
       function returnFromWholeHouseOverview() {
         if (appState.scenePhase !== "overview") return;
         appState.scenePhase = "room";
+        if (appState.activeRoomIdx === 1) {
+          studyGuideState.greetingDone = true;
+        }
         els.wholeHouseBtn.classList.remove("is-active");
         els.wholeHouseBtn.setAttribute("aria-pressed", "false");
         camOrbit.targetYaw = 0;
@@ -8019,6 +9142,12 @@
             applyCamImmediate(perspCamState.targetPos, perspCamState.targetLookAt);
           }
           updateLaptopScreenOverlay();
+        } else if (appState.scenePhase === "diary") {
+          computeDiaryCamGoal(perspCamState.targetPos, perspCamState.targetLookAt);
+          if (immediate || prefersReducedMotion) {
+            applyCamImmediate(perspCamState.targetPos, perspCamState.targetLookAt);
+          }
+          updateDiaryOverlay();
         } else if (appState.scenePhase === "overview") {
           fitBoxPerspective(WHOLE_HOUSE_BOX, immediate, 1.15);
         } else {
@@ -8036,6 +9165,7 @@
 
       function showConnectedHouseImmediate(roomIdx, waveOnEntry = true, customPos = null) {
         leaveLaptopFocus(true);
+        leaveDiaryFocus(true);
         appState.scenePhase = "room";
         appState.activeRoomIdx = roomIdx;
         walkState.active = false;
@@ -8257,6 +9387,7 @@
 
       function goOutside(immediate = false) {
         leaveLaptopFocus(true);
+        leaveDiaryFocus(true);
         knockAnim.active = false;
         walkState.active = false;
         veilFade.active = false;
@@ -8265,7 +9396,7 @@
         clearRoomSpeech();
         els.hoverTooltip.hidden = true;
         hoveredItem = null;
-        document.body.classList.remove("controls-hidden", "is-laptop-focused");
+        document.body.classList.remove("controls-hidden", "is-laptop-focused", "is-diary-focused");
         els.bottomDock.classList.remove("is-collapsed");
         els.dockToggleBtn.setAttribute("aria-expanded", "true");
         els.dockToggleLabel.textContent = "Hide Controls";
@@ -8335,6 +9466,7 @@
         }
 
         walkState.active = false;
+        clearRoomSpeech();
         appState.scenePhase = "overview";
         els.terraceStarA11y.hidden = false;
         updateStageBackdrop("overview");
@@ -8470,7 +9602,7 @@
 
       function onPointerDown(e) {
         try {
-          if (!els.panelBackdrop.hidden || !els.certLightboxBackdrop.hidden || appState.scenePhase === "laptop") return;
+          if (!els.panelBackdrop.hidden || !els.certLightboxBackdrop.hidden || appState.scenePhase === "laptop" || appState.scenePhase === "diary") return;
           if (e.pointerType === "touch" && !e.isPrimary) return;
           updateNDC(e);
           downScreen = { x: e.clientX, y: e.clientY };
@@ -8508,7 +9640,7 @@
 
       function onPointerMove(e) {
         try {
-          if (!els.panelBackdrop.hidden || !els.certLightboxBackdrop.hidden || appState.scenePhase === "laptop") return;
+          if (!els.panelBackdrop.hidden || !els.certLightboxBackdrop.hidden || appState.scenePhase === "laptop" || appState.scenePhase === "diary") return;
           updateNDC(e);
 
           if (isOrbitDragging) {
@@ -8607,6 +9739,10 @@
           if (item.userData.onClick) {
             if (item.userData.id === "vinyl") {
               ensureAudioContext();
+            } else if (item.userData.id === "laptop") {
+              studyGuideState.laptopClicked = true;
+            } else if (item.userData.id === "diary") {
+              studyGuideState.diaryClicked = true;
             }
             const targetRoom = item.userData.roomIdx;
             const standPos = item.userData.standPos
@@ -8760,7 +9896,7 @@
             const entry = fadeWallEntries[i];
             entry.targetAlpha = (entry.isFrontForOverview || entry.isCeiling) ? 0.15 : 1.0;
           }
-        } else if (appState.scenePhase === "laptop") {
+        } else if (appState.scenePhase === "laptop" || appState.scenePhase === "diary") {
           for (let i = 0; i < fadeWallEntries.length; i++) {
             fadeWallEntries[i].targetAlpha = 1.0;
           }
@@ -9037,7 +10173,10 @@
 
             const zone = detectZoneAt(avatarGroup.position, true, walkState.targetRoomIdx);
             if (zone.roomIdx !== appState.activeRoomIdx) {
-              cancelSpeech();
+              clearRoomSpeech();
+              if (appState.activeRoomIdx === 1) {
+                studyGuideState.idleTimer = 0;
+              }
               appState.activeRoomIdx = zone.roomIdx;
               updateRoomUI(zone.roomIdx);
             }
@@ -9063,7 +10202,7 @@
 
         const studyEased = studyLampAnim * studyLampAnim * (3 - 2 * studyLampAnim);
         const bedEased = bedLampAnim * bedLampAnim * (3 - 2 * bedLampAnim);
-        const inRoomView = houseGroup.visible && (appState.scenePhase === "room" || appState.scenePhase === "laptop");
+        const inRoomView = houseGroup.visible && (appState.scenePhase === "room" || appState.scenePhase === "laptop" || appState.scenePhase === "diary");
         const inStudy = inRoomView && appState.activeRoomIdx === 1;
         const inBedroom = inRoomView && appState.activeRoomIdx === 3;
 
@@ -9119,7 +10258,7 @@
           nightSkyDome.visible = false;
         }
 
-        roomFillLight.visible = houseGroup.visible && (appState.scenePhase === "room" || appState.scenePhase === "laptop");
+        roomFillLight.visible = houseGroup.visible && (appState.scenePhase === "room" || appState.scenePhase === "laptop" || appState.scenePhase === "diary");
         if (roomFillLight.visible) {
           const rcb = ROOM_CAM_BOUNDS[appState.activeRoomIdx] || ROOM_CAM_BOUNDS[0];
           const fillTargetY = Math.max(rcb.floorY, avatarGroup.position.y) + 4.05;
@@ -9134,7 +10273,7 @@
           roomFillLight.intensity = (night ? 5.2 : 4.4) * ((inStudy || inBedroom) ? activeEnvScale : 1);
         }
 
-        const shadowMode = (appState.scenePhase === "room" || appState.scenePhase === "laptop") ? "room" : "wide";
+        const shadowMode = (appState.scenePhase === "room" || appState.scenePhase === "laptop" || appState.scenePhase === "diary") ? "room" : "wide";
         if (shadowMode !== lastShadowMode) {
           lastShadowMode = shadowMode;
           const halfSpan = shadowMode === "room" ? 10 : 18;
@@ -9144,7 +10283,7 @@
           sunLight.shadow.camera.bottom = -halfSpan;
           sunLight.shadow.camera.updateProjectionMatrix();
         }
-        if ((appState.scenePhase === "room" || appState.scenePhase === "laptop") && houseGroup.visible) {
+        if ((appState.scenePhase === "room" || appState.scenePhase === "laptop" || appState.scenePhase === "diary") && houseGroup.visible) {
           const rcb = ROOM_CAM_BOUNDS[appState.activeRoomIdx] || ROOM_CAM_BOUNDS[0];
           _sunTargetGoal.set(rcb.centerX, rcb.floorY + 1.2, rcb.centerZ);
         } else {
@@ -9172,6 +10311,8 @@
 
         if (appState.scenePhase === "laptop" && houseGroup.visible) {
           computeLaptopCamGoal(perspCamState.targetPos, perspCamState.targetLookAt);
+        } else if (appState.scenePhase === "diary" && houseGroup.visible) {
+          computeDiaryCamGoal(perspCamState.targetPos, perspCamState.targetLookAt);
         } else if (appState.scenePhase === "room" && houseGroup.visible) {
           computeRoomCamGoal(avatarGroup.position, perspCamState.targetPos, perspCamState.targetLookAt);
         } else if (appState.scenePhase === "overview" && houseGroup.visible) {
@@ -9186,7 +10327,7 @@
           );
         }
 
-        const camRate = appState.scenePhase === "laptop" ? 9.5 : 7.8;
+        const camRate = (appState.scenePhase === "laptop" || appState.scenePhase === "diary") ? 9.5 : 7.8;
         const camDamp = prefersReducedMotion ? 1 : (1 - Math.exp(-camRate * delta));
         perspCamState.curPos.lerp(perspCamState.targetPos, camDamp);
         perspCamState.curLookAt.lerp(perspCamState.targetLookAt, camDamp);
@@ -9226,6 +10367,41 @@
           if (laptopFocus.leaveTimer >= 0.25) {
             laptopFocus.leaving = false;
             els.laptopScreenOverlay.hidden = true;
+          }
+        }
+
+        /* 3a-bis. 4-Corner Study Diary Pages Projection & Cover Flip Timing */
+        if (appState.scenePhase === "diary" && houseGroup.visible) {
+          diaryFocus.enterTimer += delta;
+          if (!prefersReducedMotion && diaryFocus.coverAnim < 1) {
+            diaryFocus.coverAnim = Math.min(1, diaryFocus.coverAnim + delta / 0.45);
+          } else {
+            diaryFocus.coverAnim = 1;
+          }
+          const coverEase = 1 - Math.pow(1 - diaryFocus.coverAnim, 3);
+          diaryCoverPivot.rotation.z = THREE.MathUtils.lerp(0, Math.PI * 0.96, coverEase);
+          updateDiaryOverlay();
+          const distToTarget = perspCamState.curPos.distanceTo(perspCamState.targetPos);
+          if (!diaryFocus.overlayShown && diaryFocus.coverAnim >= 0.85 && (distToTarget < 0.9 || diaryFocus.enterTimer > 0.38)) {
+            diaryFocus.overlayShown = true;
+            els.diaryOverlay.classList.add("is-visible");
+            const firstFocus = els.diaryNextBtn.disabled ? els.diaryPrevBtn : els.diaryNextBtn;
+            firstFocus?.focus();
+          }
+        } else if (diaryFocus.leaving) {
+          diaryFocus.leaveTimer += delta;
+          if (!prefersReducedMotion && diaryFocus.coverAnim > 0) {
+            diaryFocus.coverAnim = Math.max(0, diaryFocus.coverAnim - delta / 0.34);
+          } else {
+            diaryFocus.coverAnim = 0;
+          }
+          const coverEase = diaryFocus.coverAnim * diaryFocus.coverAnim * (3 - 2 * diaryFocus.coverAnim);
+          diaryCoverPivot.rotation.z = THREE.MathUtils.lerp(0, Math.PI * 0.96, coverEase);
+          updateDiaryOverlay();
+          if (diaryFocus.leaveTimer >= 0.28 && diaryFocus.coverAnim <= 0.01) {
+            diaryFocus.leaving = false;
+            diaryCoverPivot.rotation.z = 0;
+            els.diaryOverlay.hidden = true;
           }
         }
 
@@ -9283,6 +10459,40 @@
 
         if (houseGroup.visible) {
           starLabelMeshes.forEach((lbl) => lbl.quaternion.copy(camera.quaternion));
+        }
+
+        /* 4b. Study Room 15-Second Idle Prompt & Laptop/Diary Glow Rings */
+        if (houseGroup.visible && appState.scenePhase === "room" && appState.activeRoomIdx === 1 && !walkState.active) {
+          if (!studyGuideState.idlePromptShown && !studyGuideState.laptopClicked && !studyGuideState.diaryClicked) {
+            studyGuideState.idleTimer += delta;
+            if (studyGuideState.idleTimer >= 15) {
+              studyGuideState.idlePromptShown = true;
+              const studyRm = ROOM_CONFIG.rooms[1];
+              const idleMsg = (studyRm && studyRm.idlePrompt) || "Click the laptop or the diary, I'll show you!";
+              showSpeech(idleMsg, 4.0);
+            }
+          }
+        } else {
+          studyGuideState.idleTimer = 0;
+        }
+
+        const showStudyHighlights = houseGroup.visible && appState.scenePhase === "room" && appState.activeRoomIdx === 1 && studyGuideState.greetingDone;
+        const showLaptopGlow = showStudyHighlights && !studyGuideState.laptopClicked;
+        const showDiaryGlow = showStudyHighlights && !studyGuideState.diaryClicked;
+        laptopGlow.group.visible = showLaptopGlow;
+        diaryGlow.group.visible = showDiaryGlow;
+        if (showLaptopGlow || showDiaryGlow) {
+          const pulse = prefersReducedMotion ? 1 : (0.5 + 0.5 * Math.sin(elapsed * 3.0));
+          const ringAlpha = prefersReducedMotion ? 0.85 : THREE.MathUtils.lerp(0.2, 0.92, pulse);
+          const haloAlpha = prefersReducedMotion ? 0.22 : THREE.MathUtils.lerp(0.08, 0.55, pulse);
+          if (showLaptopGlow) {
+            laptopGlow.ringMat.opacity = ringAlpha;
+            laptopGlow.haloMat.opacity = haloAlpha;
+          }
+          if (showDiaryGlow) {
+            diaryGlow.ringMat.opacity = ringAlpha;
+            diaryGlow.haloMat.opacity = haloAlpha;
+          }
         }
 
         skyStars.visible =
@@ -9359,6 +10569,7 @@
         toggleDayNight,
         focusLaptopProjects,
         leaveLaptopFocus,
+        leaveDiaryFocus,
         showSpeech,
         greetAvatar: speakNextAvatarGreeting,
         refitCamera: () => refitCurrentPhase(false)
@@ -9366,7 +10577,10 @@
 
       appState.threeCleanup = () => {
         disposed = true;
+        clearStudyGreetingTimers();
+        cancelSpeech();
         leaveLaptopFocus(true);
+        leaveDiaryFocus(true);
         cancelAnimationFrame(frameId);
         clearTimeout(frameId);
         clearTimeout(bannerFadeTimer);
@@ -9399,6 +10613,13 @@
     els.leaveLaptopBtn.addEventListener("click", () => {
       if (appState.sceneApi) appState.sceneApi.leaveLaptopFocus(false);
     });
+
+    els.leaveDiaryBtn.addEventListener("click", () => {
+      if (appState.sceneApi) appState.sceneApi.leaveDiaryFocus(false);
+    });
+
+    els.diaryPrevBtn.addEventListener("click", () => stepDiaryPage(-1));
+    els.diaryNextBtn.addEventListener("click", () => stepDiaryPage(1));
 
     /* ==========================================================================
        KEYBOARD & BUTTON HANDLERS
@@ -9696,6 +10917,60 @@
       if (appState.scenePhase === "laptop" && e.key === "Escape") {
         e.preventDefault();
         appState.sceneApi.leaveLaptopFocus(false);
+        return;
+      }
+
+      if (appState.scenePhase === "diary") {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          appState.sceneApi.leaveDiaryFocus(false);
+          return;
+        }
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          stepDiaryPage(-1);
+          return;
+        }
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          stepDiaryPage(1);
+          return;
+        }
+        if (e.key === "Home") {
+          e.preventDefault();
+          selectDiaryPage(0, -1);
+          return;
+        }
+        if (e.key === "End") {
+          e.preventDefault();
+          const lastIdx = Math.max(0, (ROOM_CONFIG.DIARY.pages || []).length - 1);
+          selectDiaryPage(lastIdx, 1);
+          return;
+        }
+        if (e.key === "Tab") {
+          const dialogFocusables = Array.from(
+            els.diaryOverlay.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+          ).filter((el) => el.offsetParent !== null);
+          const focusables = els.leaveDiaryBtn.hidden
+            ? dialogFocusables
+            : [...dialogFocusables, els.leaveDiaryBtn];
+          if (focusables.length === 0) return;
+          const currentIdx = focusables.indexOf(document.activeElement);
+          if (currentIdx === -1) {
+            e.preventDefault();
+            focusables[0].focus();
+            return;
+          }
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
         return;
       }
 
