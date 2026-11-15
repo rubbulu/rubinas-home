@@ -152,7 +152,7 @@
     }
 
     /* ==========================================================================
-       TOP NAVIGATION BAR
+       TOP NAVIGATION BAR (Compact Translucent Overlay)
        ========================================================================== */
     .top-bar {
       position: fixed;
@@ -160,22 +160,30 @@
       left: 0;
       right: 0;
       z-index: 220;
-      height: 52px;
+      height: 44px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      padding: 0 clamp(10px, 2.5vw, 24px);
-      background: var(--hud-surface);
-      border-bottom: 1px solid var(--hud-border);
+      gap: 8px;
+      padding: 0 clamp(10px, 2vw, 20px);
+      background: rgba(10, 14, 34, 0.62);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+      transition: opacity 0.22s var(--ease-out), visibility 0.22s var(--ease-out);
+    }
+
+    body.is-3d-active.controls-hidden .top-bar,
+    body.is-3d-active.controls-hidden .room-banner {
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
     }
 
     .brand-lockup {
       display: inline-flex;
       align-items: center;
-      gap: 9px;
+      gap: 8px;
       font-family: var(--font-display);
-      font-size: 1.06rem;
+      font-size: 0.98rem;
       font-weight: 800;
       letter-spacing: -0.02em;
       white-space: nowrap;
@@ -184,13 +192,13 @@
     }
 
     .brand-badge {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
       background: linear-gradient(135deg, var(--accent-violet) 0%, var(--accent-teal) 100%);
       display: grid;
       place-items: center;
-      font-size: 0.84rem;
+      font-size: 0.78rem;
       color: #060914;
       font-weight: 800;
     }
@@ -198,7 +206,7 @@
     .top-actions {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       flex-wrap: nowrap;
       overflow-x: auto;
       scrollbar-width: none;
@@ -213,13 +221,13 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      min-height: 36px;
-      padding: 6px 12px;
+      min-height: 31px;
+      padding: 4px 10px;
       border-radius: 8px;
-      background: rgba(20, 28, 58, 0.92);
-      border: 1px solid var(--hud-border);
+      background: rgba(18, 26, 56, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.26);
       color: var(--text-light);
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 600;
       white-space: nowrap;
       flex-shrink: 0;
@@ -395,18 +403,18 @@
 
     .room-banner {
       position: fixed;
-      top: 60px;
+      top: 52px;
       left: 14px;
       z-index: 170;
       width: auto;
-      max-width: min(320px, calc(100vw - 28px));
-      padding: 7px 12px;
+      max-width: min(310px, calc(100vw - 28px));
+      padding: 6px 11px;
       border-radius: 10px;
-      background: var(--hud-surface);
-      border: 1px solid var(--hud-border);
-      box-shadow: 0 8px 22px rgba(2, 6, 23, 0.35);
+      background: rgba(10, 14, 34, 0.64);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      box-shadow: 0 8px 20px rgba(2, 6, 23, 0.3);
       text-align: left;
-      transition: opacity 0.4s var(--ease-out), transform 0.25s var(--ease-out);
+      transition: opacity 0.35s var(--ease-out), transform 0.25s var(--ease-out), visibility 0.25s var(--ease-out);
       animation: bannerSlide 0.25s var(--ease-out);
     }
 
@@ -447,50 +455,35 @@
       line-height: 1.28;
     }
 
-    /* Exterior Knock Callout */
+    /* Compact Floating Exterior Knock Trigger (Positioned near the door, never covering the house) */
     .knock-overlay {
       position: fixed;
-      bottom: 28px;
       left: 50%;
+      bottom: 24px;
       transform: translateX(-50%);
       z-index: 205;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      width: min(440px, calc(100vw - 28px));
-      padding: 16px 20px;
-      border-radius: 16px;
-      background: var(--hud-surface);
-      border: 1px solid var(--accent-teal);
-      box-shadow: 0 20px 50px rgba(2, 6, 23, 0.55);
+      gap: 6px;
+      pointer-events: none;
       text-align: center;
-    }
-
-    .knock-hint {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--text-light);
-    }
-
-    .knock-sub {
-      margin: 0;
-      font-size: 0.84rem;
-      color: var(--text-muted);
+      max-width: calc(100vw - 24px);
     }
 
     .knock-btn {
-      min-height: 44px;
-      padding: 10px 26px;
-      border-radius: 10px;
+      pointer-events: auto;
+      min-height: 40px;
+      padding: 8px 22px;
+      border-radius: 999px;
       background: var(--accent-teal);
       color: var(--text-on-teal);
+      border: 2px solid rgba(255, 255, 255, 0.72);
       font-family: var(--font-display);
-      font-size: 1rem;
+      font-size: 0.94rem;
       font-weight: 800;
-      box-shadow: 0 8px 22px rgba(45, 212, 191, 0.35);
+      letter-spacing: 0.01em;
+      box-shadow: 0 10px 26px rgba(45, 212, 191, 0.45), 0 4px 12px rgba(2, 6, 23, 0.45);
       transition: transform 0.16s var(--ease-out), filter 0.16s var(--ease-out);
     }
 
@@ -498,6 +491,19 @@
     .knock-btn:focus-visible {
       transform: translateY(-2px);
       filter: brightness(1.08);
+    }
+
+    .knock-sub {
+      margin: 0;
+      padding: 3px 11px;
+      border-radius: 999px;
+      background: rgba(10, 14, 34, 0.82);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      font-size: 0.76rem;
+      font-weight: 500;
+      color: var(--text-light);
+      white-space: nowrap;
+      box-shadow: 0 6px 16px rgba(2, 6, 23, 0.35);
     }
 
     .hover-tooltip {
@@ -556,9 +562,9 @@
       min-height: 24px;
       padding: 2px 11px;
       border-radius: 999px;
-      background: var(--hud-surface);
-      border: 1px solid var(--hud-border);
-      color: var(--text-muted);
+      background: rgba(10, 14, 34, 0.62);
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      color: var(--text-light);
       font-size: 0.71rem;
       font-weight: 600;
     }
@@ -574,11 +580,11 @@
       position: relative;
       width: auto;
       max-width: 100%;
-      padding: 5px 8px;
+      padding: 4px 7px;
       border-radius: 12px;
-      background: var(--hud-surface);
-      border: 1px solid var(--hud-border);
-      box-shadow: 0 14px 34px rgba(2, 6, 23, 0.45);
+      background: rgba(10, 14, 34, 0.62);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      box-shadow: 0 12px 30px rgba(2, 6, 23, 0.38);
       display: flex;
       align-items: center;
     }
@@ -590,7 +596,7 @@
     .dock-nav-row {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       max-width: 100%;
       overflow-x: auto;
       scrollbar-width: none;
@@ -601,12 +607,12 @@
     }
 
     .arrow-nav-btn {
-      min-height: 34px;
-      padding: 6px 10px;
+      min-height: 31px;
+      padding: 4px 9px;
       border-radius: 8px;
       background: var(--accent-violet-deep);
       color: #ffffff;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
@@ -630,9 +636,9 @@
     }
 
     .bottom-dock .hud-btn {
-      min-height: 34px;
-      padding: 5px 10px;
-      font-size: 0.78rem;
+      min-height: 31px;
+      padding: 4px 9px;
+      font-size: 0.76rem;
     }
 
     .dock-divider {
@@ -865,6 +871,513 @@
     }
 
     /* ==========================================================================
+       3D LAPTOP SCREEN VS CODE OVERLAY (Tracks 4 Projected Mesh Corners)
+       ========================================================================== */
+    body.is-3d-active.is-laptop-focused .top-bar,
+    body.is-3d-active.is-laptop-focused .room-banner,
+    body.is-3d-active.is-laptop-focused .bottom-dock-wrap,
+    body.is-3d-active.is-laptop-focused .hover-tooltip,
+    body.is-3d-active.is-laptop-focused .speech-bubble {
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+    }
+
+    .leave-laptop-btn {
+      position: fixed;
+      top: 14px;
+      right: 16px;
+      z-index: 320;
+      min-height: 36px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(55, 148, 255, 0.55);
+      color: #f8fafc;
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(2, 6, 23, 0.48);
+      transition: background-color 0.16s var(--ease-out), border-color 0.16s var(--ease-out), transform 0.16s var(--ease-out);
+    }
+
+    .leave-laptop-btn:hover,
+    .leave-laptop-btn:focus-visible {
+      background: #0e639c;
+      border-color: #3794ff;
+      transform: translateY(-1px);
+    }
+
+    .laptop-screen-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 260;
+      overflow: hidden;
+      border-radius: 10px;
+      background: #1e1e1e;
+      color: #cccccc;
+      border: 1px solid #3c3c3c;
+      box-shadow: 0 24px 64px rgba(2, 6, 23, 0.78), 0 0 0 1px rgba(55, 148, 255, 0.28);
+      display: flex;
+      flex-direction: column;
+      transform-origin: center center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.24s var(--ease-out);
+    }
+
+    .laptop-screen-overlay.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .vscode-titlebar {
+      height: 28px;
+      flex-shrink: 0;
+      background: #323233;
+      border-bottom: 1px solid #252526;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 0 10px;
+      font-size: 11.5px;
+      color: #cccccc;
+      user-select: none;
+    }
+
+    .vscode-titlebar__left {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 600;
+    }
+
+    .vscode-titlebar__right {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: #9da5b4;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .vscode-workbench {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      background: #1e1e1e;
+    }
+
+    .vscode-activity {
+      width: 36px;
+      flex-shrink: 0;
+      background: #333333;
+      border-right: 1px solid #252526;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 8px;
+      gap: 10px;
+    }
+
+    .vscode-activity-icon {
+      width: 36px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      border-left: 2px solid #ffffff;
+    }
+
+    .vscode-sidebar {
+      width: 192px;
+      flex-shrink: 0;
+      background: #252526;
+      border-right: 1px solid #2b2b2b;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .vscode-sidebar__hdr {
+      padding: 7px 12px 4px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #bbbbbb;
+      text-transform: uppercase;
+    }
+
+    .vscode-folder-row {
+      padding: 4px 10px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #cccccc;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      user-select: none;
+    }
+
+    .vscode-file-list {
+      list-style: none;
+      margin: 0;
+      padding: 0 0 8px;
+    }
+
+    .vscode-file-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 10px 5px 20px;
+      border: 0;
+      background: transparent;
+      color: #cccccc;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .vscode-file-btn:hover {
+      background: #2a2d2e;
+      color: #ffffff;
+    }
+
+    .vscode-file-btn:focus-visible {
+      outline: 2px solid #3794ff;
+      outline-offset: -2px;
+    }
+
+    .vscode-file-btn.is-active {
+      background: #37373d;
+      color: #ffffff;
+    }
+
+    .vscode-ts-badge {
+      flex-shrink: 0;
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #3794ff;
+      letter-spacing: -0.02em;
+    }
+
+    .vscode-file-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .vscode-main {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: #1e1e1e;
+    }
+
+    .vscode-tabs {
+      display: flex;
+      align-items: stretch;
+      background: #252526;
+      border-bottom: 1px solid #2b2b2b;
+      overflow-x: auto;
+      scrollbar-width: none;
+      flex-shrink: 0;
+    }
+
+    .vscode-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .vscode-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      min-height: 32px;
+      border: 0;
+      border-right: 1px solid #252526;
+      border-top: 2px solid transparent;
+      background: #2d2d2d;
+      color: #969696;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      white-space: nowrap;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .vscode-tab:hover {
+      color: #e5e5e5;
+      background: #282828;
+    }
+
+    .vscode-tab:focus-visible {
+      outline: 2px solid #3794ff;
+      outline-offset: -2px;
+    }
+
+    .vscode-tab[aria-selected="true"] {
+      background: #1e1e1e;
+      color: #ffffff;
+      border-top-color: #007acc;
+    }
+
+    .vscode-breadcrumb {
+      padding: 4px 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #8c8c8c;
+      border-bottom: 1px solid #252526;
+      background: #1e1e1e;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 0;
+    }
+
+    .vscode-editor-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      display: flex;
+      align-items: flex-start;
+      padding: 14px 16px 18px 0;
+      background: #1e1e1e;
+    }
+
+    .vscode-editor-scroll:focus-visible {
+      outline: 2px solid #3794ff;
+      outline-offset: -2px;
+    }
+
+    .vscode-gutter {
+      width: 40px;
+      flex-shrink: 0;
+      text-align: right;
+      padding-right: 12px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      line-height: 1.65;
+      color: #6e7681;
+      user-select: none;
+    }
+
+    .vscode-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .vscode-code-comment {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #6a9955;
+    }
+
+    .vscode-proj-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.12rem, 2.2vw, 1.46rem);
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .vscode-team-card {
+      background: #252526;
+      border: 1px solid #333333;
+      border-left: 3px solid #3794ff;
+      border-radius: 0 5px 5px 0;
+      padding: 7px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .vscode-team-label {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #4ec9b0;
+    }
+
+    .vscode-team-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .vscode-proj-desc {
+      margin: 0;
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: #d4d4d4;
+    }
+
+    .vscode-section-lbl {
+      margin: 0 0 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #9cdcfe;
+    }
+
+    .vscode-tech-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .vscode-tech-tag {
+      padding: 3px 9px;
+      border-radius: 4px;
+      background: #264f78;
+      border: 1px solid rgba(55, 148, 255, 0.42);
+      color: #e6f2ff;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .vscode-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 2px;
+    }
+
+    .vscode-btn-primary,
+    .vscode-btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 12.5px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .vscode-btn-primary {
+      background: #0e639c;
+      color: #ffffff;
+      border: 1px solid #1177bb;
+    }
+
+    .vscode-btn-primary:hover,
+    .vscode-btn-primary:focus-visible {
+      background: #1177bb;
+    }
+
+    .vscode-btn-secondary {
+      background: #333333;
+      color: #f3f4f6;
+      border: 1px solid #4d4d4d;
+    }
+
+    .vscode-btn-secondary:hover,
+    .vscode-btn-secondary:focus-visible {
+      background: #3e3e42;
+      border-color: #3794ff;
+    }
+
+    .vscode-statusbar {
+      height: 22px;
+      flex-shrink: 0;
+      background: #007acc;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 0 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      user-select: none;
+    }
+
+    /* Compact / Small-Phone Readable Scaling Mode */
+    .laptop-screen-overlay.is-compact .vscode-activity,
+    .laptop-screen-overlay.is-compact .vscode-gutter,
+    .laptop-screen-overlay.is-compact .vscode-titlebar__right {
+      display: none;
+    }
+
+    .laptop-screen-overlay.is-compact .vscode-workbench {
+      flex-direction: column;
+    }
+
+    .laptop-screen-overlay.is-compact .vscode-sidebar {
+      width: 100%;
+      max-height: 86px;
+      border-right: 0;
+      border-bottom: 1px solid #2b2b2b;
+      flex-shrink: 0;
+    }
+
+    .laptop-screen-overlay.is-compact .vscode-sidebar__hdr,
+    .laptop-screen-overlay.is-compact .vscode-folder-row {
+      display: none;
+    }
+
+    .laptop-screen-overlay.is-compact .vscode-file-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+      gap: 2px;
+      padding: 4px 6px;
+    }
+
+    .laptop-screen-overlay.is-compact .vscode-file-btn {
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .laptop-screen-overlay.is-compact .vscode-tab {
+      font-size: 12px;
+      padding: 7px 10px;
+    }
+
+    .laptop-screen-overlay.is-compact .vscode-editor-scroll {
+      padding: 12px 13px 16px;
+    }
+
+    .laptop-screen-overlay.is-compact .vscode-proj-desc,
+    .laptop-screen-overlay.is-compact .vscode-team-value {
+      font-size: 13.5px;
+    }
+
+    .laptop-screen-overlay.is-compact .vscode-tech-tag,
+    .laptop-screen-overlay.is-compact .vscode-btn-primary,
+    .laptop-screen-overlay.is-compact .vscode-btn-secondary {
+      font-size: 12.5px;
+    }
+
+    /* ==========================================================================
        CLEAN SCROLLING HTML NORMAL VIEW / FALLBACK
        ========================================================================== */
     .normal-view {
@@ -923,7 +1436,7 @@
       }
 
       .room-banner {
-        top: 56px;
+        top: 50px;
         left: 10px;
         max-width: calc(100vw - 20px);
         padding: 5px 10px;
@@ -994,15 +1507,56 @@
       <p id="room-banner-sub" class="room-banner__sub">Click wall frame for About &amp; Resume, or drag items.</p>
     </aside>
 
-    <!-- Exterior Knock Callout (Shown outside) -->
+    <!-- Compact Floating Knock Trigger (Positioned near the front door) -->
     <div id="knock-overlay" class="knock-overlay">
-      <p class="knock-hint">Knock on the door</p>
-      <p class="knock-sub">Click the front door, press Enter, or tap Knock to step inside Rubina's Home.</p>
       <button id="knock-btn" type="button" class="knock-btn">Knock</button>
+      <p class="knock-sub">Click the door, press Enter, or tap Knock</p>
     </div>
 
     <div id="hover-tooltip" class="hover-tooltip" hidden></div>
     <div id="speech-bubble" class="speech-bubble" role="status" aria-live="polite" hidden>Come in!</div>
+
+    <!-- Laptop Focus Exit Trigger & Projected 3D Screen VS Code Editor -->
+    <button id="leave-laptop-btn" type="button" class="leave-laptop-btn" hidden>Leave laptop (Esc)</button>
+    <section id="laptop-screen-overlay" class="laptop-screen-overlay" aria-label="Study Laptop VS Code Projects Editor" hidden>
+      <div class="vscode-titlebar">
+        <div class="vscode-titlebar__left">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M11.6 1.5L14.5 2.9V13.1L11.6 14.5L5.5 9.1L2.7 11.2L1.5 10.4V5.6L2.7 4.8L5.5 6.9L11.6 1.5ZM11.6 4.4L7.2 8L11.6 11.6V4.4Z" fill="#3794ff"/>
+          </svg>
+          <span>rubina-projects — Visual Studio Code</span>
+        </div>
+        <span class="vscode-titlebar__right">Study · Desk IDE</span>
+      </div>
+
+      <div class="vscode-workbench">
+        <div class="vscode-activity" aria-hidden="true">
+          <div class="vscode-activity-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+          </div>
+        </div>
+
+        <aside class="vscode-sidebar" aria-label="Project files explorer">
+          <div class="vscode-sidebar__hdr">Explorer</div>
+          <div class="vscode-folder-row" aria-hidden="true">&#9662; PROJECTS</div>
+          <ul id="vscode-files" class="vscode-file-list"></ul>
+        </aside>
+
+        <div class="vscode-main">
+          <div id="vscode-tabs" class="vscode-tabs" role="tablist" aria-label="Project editor tabs"></div>
+          <div id="vscode-breadcrumb" class="vscode-breadcrumb"></div>
+          <div id="vscode-editor-panel" class="vscode-editor-scroll" role="tabpanel" tabindex="0"></div>
+        </div>
+      </div>
+
+      <div class="vscode-statusbar">
+        <span>main* · <span id="vscode-status-count">5 files</span></span>
+        <span>TypeScript · UTF-8 · Esc to leave</span>
+      </div>
+    </section>
 
     <!-- Compact Single-Row Bottom Navigation Dock -->
     <div id="bottom-dock-wrap" class="bottom-dock-wrap" hidden>
@@ -1105,7 +1659,7 @@
           id: "study",
           name: "Study",
           bannerTitle: "Study: Projects",
-          bannerSub: "Bookshelf: Projects · Laptop: Skills · Lamp: Day/Night.",
+          bannerSub: "Laptop: Projects IDE · Bookshelf: Skills · Lamp: Day/Night.",
           actionLabel: "Open Projects",
           overviewPos: [-5.1, 0, -5.1]
         },
@@ -1322,6 +1876,13 @@
       knockBtn: document.getElementById("knock-btn"),
       hoverTooltip: document.getElementById("hover-tooltip"),
       speechBubble: document.getElementById("speech-bubble"),
+      leaveLaptopBtn: document.getElementById("leave-laptop-btn"),
+      laptopScreenOverlay: document.getElementById("laptop-screen-overlay"),
+      vscodeFiles: document.getElementById("vscode-files"),
+      vscodeTabs: document.getElementById("vscode-tabs"),
+      vscodeBreadcrumb: document.getElementById("vscode-breadcrumb"),
+      vscodeEditorPanel: document.getElementById("vscode-editor-panel"),
+      vscodeStatusCount: document.getElementById("vscode-status-count"),
 
       bottomDockWrap: document.getElementById("bottom-dock-wrap"),
       dockToggleBtn: document.getElementById("dock-toggle-btn"),
@@ -1348,8 +1909,9 @@
     const appState = {
       mode: "3d",
       manualNormalView: false,
-      scenePhase: "exterior", // "exterior" | "opening" | "room" | "overview"
+      scenePhase: "exterior", // "exterior" | "opening" | "room" | "laptop" | "overview"
       activeRoomIdx: 0,
+      activeProjectIdx: 0,
       isNightMode: false,
       musicOn: false,
       lastFocusedEl: null,
@@ -1533,29 +2095,113 @@
       }, triggerEl);
     }
 
-    function openProjectsPanel(triggerEl) {
-      openGlassPanel("STUDY · BOOKSHELF PROJECTS", "Projects", (box) => {
-        ROOM_CONFIG.projects.forEach((p) => {
-          const item = document.createElement("article");
-          item.className = "panel-item";
-          item.innerHTML = `
-            <p class="panel-item-sub">${p.subtitle}</p>
-            <h3 class="panel-item-title">${p.title}</h3>
-            <p class="panel-item-desc">${p.description}</p>
-            <ul class="chip-list">${p.tech.map((t) => `<li class="tech-chip">${t}</li>`).join("")}</ul>
-            <div class="panel-actions">
-              <a href="${p.liveUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary">Live Demo</a>
-              <a href="${p.githubUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary">GitHub</a>
-            </div>
-          `;
-          box.appendChild(item);
+    function selectLaptopProject(idx, focusTab = false) {
+      const list = ROOM_CONFIG.projects;
+      appState.activeProjectIdx = ((idx % list.length) + list.length) % list.length;
+      renderLaptopIde(focusTab);
+    }
+
+    function renderLaptopIde(focusTab = false) {
+      const projects = ROOM_CONFIG.projects;
+      const activeIdx = ((appState.activeProjectIdx % projects.length) + projects.length) % projects.length;
+      const proj = projects[activeIdx];
+      els.vscodeStatusCount.textContent = `${projects.length} files`;
+
+      /* Sidebar file tree */
+      els.vscodeFiles.innerHTML = "";
+      projects.forEach((p, idx) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `vscode-file-btn ${idx === activeIdx ? "is-active" : ""}`;
+        btn.setAttribute("aria-current", idx === activeIdx ? "true" : "false");
+        btn.innerHTML = `<span class="vscode-ts-badge" aria-hidden="true">TS</span><span class="vscode-file-name">${p.id}.ts</span>`;
+        btn.addEventListener("click", () => selectLaptopProject(idx, false));
+        btn.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            const next = els.vscodeFiles.querySelectorAll(".vscode-file-btn")[(idx + 1) % projects.length];
+            next?.focus();
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            const prev = els.vscodeFiles.querySelectorAll(".vscode-file-btn")[(idx - 1 + projects.length) % projects.length];
+            prev?.focus();
+          }
         });
-      }, triggerEl);
+        li.appendChild(btn);
+        els.vscodeFiles.appendChild(li);
+      });
+
+      /* Top ARIA Tabs */
+      els.vscodeTabs.innerHTML = "";
+      projects.forEach((p, idx) => {
+        const isSel = idx === activeIdx;
+        const tab = document.createElement("button");
+        tab.type = "button";
+        tab.id = `vscode-tab-${p.id}`;
+        tab.className = "vscode-tab";
+        tab.setAttribute("role", "tab");
+        tab.setAttribute("aria-selected", String(isSel));
+        tab.setAttribute("aria-controls", "vscode-editor-panel");
+        tab.tabIndex = isSel ? 0 : -1;
+        tab.innerHTML = `<span class="vscode-ts-badge" aria-hidden="true">TS</span><span>${p.id}.ts</span>`;
+        tab.addEventListener("click", () => selectLaptopProject(idx, true));
+        tab.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowRight") {
+            e.preventDefault();
+            selectLaptopProject(idx + 1, true);
+          } else if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            selectLaptopProject(idx - 1, true);
+          } else if (e.key === "Home") {
+            e.preventDefault();
+            selectLaptopProject(0, true);
+          } else if (e.key === "End") {
+            e.preventDefault();
+            selectLaptopProject(projects.length - 1, true);
+          }
+        });
+        els.vscodeTabs.appendChild(tab);
+      });
+
+      els.vscodeBreadcrumb.textContent = `projects  ›  ${proj.id}.ts  ›  ${proj.title}`;
+
+      const lineNums = Array.from({ length: 14 }, (_, i) => String(i + 1).padStart(2, "0")).join("<br>");
+      els.vscodeEditorPanel.setAttribute("aria-labelledby", `vscode-tab-${proj.id}`);
+      els.vscodeEditorPanel.innerHTML = `
+        <div class="vscode-gutter" aria-hidden="true">${lineNums}</div>
+        <article class="vscode-content">
+          <p class="vscode-code-comment">// Project 0${activeIdx + 1} of 0${projects.length} · ${proj.id}.ts</p>
+          <h2 class="vscode-proj-title">${proj.title}</h2>
+          <div class="vscode-team-card">
+            <span class="vscode-team-label">Team &amp; Deployment</span>
+            <span class="vscode-team-value">${proj.subtitle}</span>
+          </div>
+          <p class="vscode-proj-desc">${proj.description}</p>
+          <div>
+            <p class="vscode-section-lbl">Tech Stack</p>
+            <ul class="vscode-tech-list">${proj.tech.map((t) => `<li class="vscode-tech-tag">${t}</li>`).join("")}</ul>
+          </div>
+          <div class="vscode-actions">
+            <a href="${proj.liveUrl}" target="_blank" rel="noopener noreferrer" class="vscode-btn-primary">Live Demo</a>
+            <a href="${proj.githubUrl}" target="_blank" rel="noopener noreferrer" class="vscode-btn-secondary">GitHub Repo</a>
+          </div>
+        </article>
+      `;
+      els.vscodeEditorPanel.scrollTop = 0;
+
+      if (focusTab) {
+        const activeTabEl = document.getElementById(`vscode-tab-${proj.id}`);
+        if (activeTabEl) {
+          activeTabEl.focus();
+          activeTabEl.scrollIntoView({ block: "nearest", inline: "nearest" });
+        }
+      }
     }
 
     function openSkillsPanel(selectedSkill = null, triggerEl = null) {
       openGlassPanel(
-        selectedSkill ? `KITCHEN SPICE JAR · ${selectedSkill.category.toUpperCase()}` : "KITCHEN SPICE RACK & STUDY LAPTOP",
+        selectedSkill ? `KITCHEN SPICE JAR · ${selectedSkill.category.toUpperCase()}` : "KITCHEN SPICE RACK & STUDY BOOKSHELF",
         selectedSkill ? selectedSkill.name : "Technical Skills",
         (box) => {
           if (selectedSkill) {
@@ -1664,7 +2310,7 @@
         </section>
 
         <section aria-labelledby="nv-study-title">
-          <p class="panel-kicker" style="padding-right:0; color:#6d28d9;">STUDY · BOOKSHELF</p>
+          <p class="panel-kicker" style="padding-right:0; color:#6d28d9;">STUDY · LAPTOP PROJECTS</p>
           <h2 id="nv-study-title" class="nv-section-title" style="color:${appState.isNightMode ? "#f8fafc" : "#0f172a"};">Projects</h2>
           <div class="nv-grid">
             ${projects.map((p) => `
@@ -1759,7 +2405,13 @@
 
     function activateNormalView() {
       appState.mode = "2d";
-      document.body.classList.remove("is-3d-active");
+      document.body.classList.remove("is-3d-active", "controls-hidden", "is-laptop-focused");
+      els.laptopScreenOverlay.classList.remove("is-visible");
+      els.laptopScreenOverlay.hidden = true;
+      els.leaveLaptopBtn.hidden = true;
+      els.bottomDock.classList.remove("is-collapsed");
+      els.dockToggleBtn.setAttribute("aria-expanded", "true");
+      els.dockToggleLabel.textContent = "Hide Controls";
       els.homeExperience.hidden = true;
       els.replayIntroBtn.hidden = true;
       els.wholeHouseBtn.hidden = true;
@@ -1791,6 +2443,10 @@
 
       appState.mode = "3d";
       document.body.classList.add("is-3d-active");
+      document.body.classList.remove("controls-hidden");
+      els.bottomDock.classList.remove("is-collapsed");
+      els.dockToggleBtn.setAttribute("aria-expanded", "true");
+      els.dockToggleLabel.textContent = "Hide Controls";
       els.normalView.hidden = true;
       els.homeExperience.hidden = false;
       els.replayIntroBtn.hidden = false;
@@ -1836,51 +2492,69 @@
 
       const scene = new THREE.Scene();
 
-      /* Fixed Isometric Orthographic Camera (+ upward Terrace tilt state) */
-      const ISO_BASE_DIR = new THREE.Vector3(1, 0.72, 1).normalize();
-      const TERRACE_ISO_DIR = new THREE.Vector3(1, 0.45, 1).normalize();
+      /* Perspective Camera (Exterior framing + Inside-Room 35-40° follow & orbit) */
+      const ISO_BASE_DIR = new THREE.Vector3(0.86, 0.62, 0.96).normalize();
       const SCREEN_RIGHT = new THREE.Vector3(1, 0, -1).normalize();
-      const ISO_DIST = 34;
+      const BASE_FOV = 47;
 
-      const camera = new THREE.OrthographicCamera(-6, 6, 6, -6, 0.5, 130);
-      camera.position.copy(ISO_BASE_DIR).multiplyScalar(ISO_DIST);
-      camera.lookAt(0, 1.5, 0);
+      const camera = new THREE.PerspectiveCamera(
+        BASE_FOV,
+        Math.max(0.35, window.innerWidth / Math.max(320, window.innerHeight)),
+        0.15,
+        180
+      );
+      camera.position.set(16, 12, 18);
+      camera.lookAt(0, 2.2, 0);
 
-      const EXTERIOR_BOX = new THREE.Box3(
-        new THREE.Vector3(-6.8, -0.45, -3.5),
-        new THREE.Vector3(6.8, 6.65, 6.7)
+      function updateCameraFovForViewport() {
+        const vw = Math.max(320, window.innerWidth);
+        const vh = Math.max(320, window.innerHeight);
+        const aspect = Math.max(0.35, vw / vh);
+        camera.aspect = aspect;
+        camera.fov = aspect < 1 ? THREE.MathUtils.clamp(BASE_FOV / Math.pow(aspect, 0.28), BASE_FOV, 58) : BASE_FOV;
+        camera.updateProjectionMatrix();
+      }
+      updateCameraFovForViewport();
+
+      const EXTERIOR_SCALE = 1.38;
+      let EXTERIOR_BOX = new THREE.Box3(
+        new THREE.Vector3(-5.4 * EXTERIOR_SCALE, -0.42 * EXTERIOR_SCALE, -4.4 * EXTERIOR_SCALE),
+        new THREE.Vector3(5.4 * EXTERIOR_SCALE, 6.25 * EXTERIOR_SCALE, 4.6 * EXTERIOR_SCALE)
       );
       const DOORWAY_BOX = new THREE.Box3(
-        new THREE.Vector3(-1.45, 0.25, 1.45),
-        new THREE.Vector3(1.45, 2.55, 3.65)
+        new THREE.Vector3(-1.35 * EXTERIOR_SCALE, 0.35 * EXTERIOR_SCALE, 1.55 * EXTERIOR_SCALE),
+        new THREE.Vector3(1.35 * EXTERIOR_SCALE, 2.55 * EXTERIOR_SCALE, 3.65 * EXTERIOR_SCALE)
       );
       const WHOLE_HOUSE_BOX = new THREE.Box3(
         new THREE.Vector3(-12.8, -0.6, -4.4),
-        new THREE.Vector3(14.8, 14.3, 4.4)
+        new THREE.Vector3(14.9, 14.3, 4.4)
       );
 
-      /* Continuous 3-level house spatial constants (Equal 8.4u ground rooms) */
+      /* Continuous 3-level house spatial constants */
       const GROUND_Y = 0;
       const BEDROOM_Y = 5.4;
       const TERRACE_Y = 10.2;
       const STAIR1_STEPS = 11;
       const STAIR2_STEPS = 10;
 
-      const ROOM_FIT_BOXES = [
-        new THREE.Box3(new THREE.Vector3(-12.6, -0.4, -4.2), new THREE.Vector3(-4.2, 4.8, 4.2)),  // 0 Hall (8.4 x 8.4)
-        new THREE.Box3(new THREE.Vector3(-4.2, -0.4, -4.2), new THREE.Vector3(4.2, 4.8, 4.2)),    // 1 Study (8.4 x 8.4)
-        new THREE.Box3(new THREE.Vector3(4.2, -0.4, -4.2), new THREE.Vector3(12.6, 4.8, 4.2)),    // 2 Kitchen (8.4 x 8.4)
-        new THREE.Box3(new THREE.Vector3(-2.4, 5.1, -4.2), new THREE.Vector3(12.6, 9.8, 1.2)),    // 3 Bedroom
-        new THREE.Box3(new THREE.Vector3(-0.4, 9.9, -4.2), new THREE.Vector3(10.8, 14.2, 1.0))    // 4 Terrace
-      ];
-
+      /* Furniture/avatar drag bounds per room (Bedroom expanded to Z ∈ [-4.2, +3.8]) */
       const ROOM_BOUNDS = [
-        { minX: -11.75, maxX: -5.3, minZ: -3.55, maxZ: 3.55, floorY: GROUND_Y },
-        { minX: -3.15, maxX: 3.15, minZ: -3.55, maxZ: 3.55, floorY: GROUND_Y },
-        { minX: 5.3, maxX: 11.75, minZ: -3.55, maxZ: 3.55, floorY: GROUND_Y },
-        { minX: -1.75, maxX: 10.4, minZ: -3.55, maxZ: 0.65, floorY: BEDROOM_Y },
+        { minX: -11.75, maxX: -5.25, minZ: -3.55, maxZ: 3.45, floorY: GROUND_Y },
+        { minX: -3.25, maxX: 3.25, minZ: -3.55, maxZ: 3.45, floorY: GROUND_Y },
+        { minX: 5.25, maxX: 11.75, minZ: -3.55, maxZ: 3.45, floorY: GROUND_Y },
+        { minX: -1.75, maxX: 11.4, minZ: -3.55, maxZ: 3.15, floorY: BEDROOM_Y },
         { minX: 0.45, maxX: 9.9, minZ: -3.55, maxZ: 0.55, floorY: TERRACE_Y }
       ];
+
+      /* Camera stay-inside-room bounds (kept comfortably below ceilings so top walls fill view) */
+      const ROOM_CAM_BOUNDS = [
+        { minX: -11.95, maxX: -4.45, minZ: -3.55, maxZ: 3.65, minY: 2.3, maxY: 4.78, centerX: -8.4, centerZ: 0.0, floorY: GROUND_Y, horiz: 4.95, pitch: 0.64 },
+        { minX: -3.95, maxX: 3.95, minZ: -3.55, maxZ: 3.65, minY: 2.3, maxY: 4.78, centerX: 0.0, centerZ: 0.0, floorY: GROUND_Y, horiz: 4.95, pitch: 0.64 },
+        { minX: 4.45, maxX: 12.25, minZ: -3.55, maxZ: 3.65, minY: 2.3, maxY: 4.78, centerX: 8.4, centerZ: 0.0, floorY: GROUND_Y, horiz: 4.95, pitch: 0.64 },
+        { minX: -2.0, maxX: 12.2, minZ: -3.55, maxZ: 3.35, minY: BEDROOM_Y + 2.2, maxY: TERRACE_Y - 0.34, centerX: 5.1, centerZ: -0.2, floorY: BEDROOM_Y, horiz: 4.6, pitch: 0.64 },
+        { minX: -1.8, maxX: 13.8, minZ: -4.8, maxZ: 4.8, minY: TERRACE_Y + 2.4, maxY: TERRACE_Y + 5.6, centerX: 5.2, centerZ: -1.5, floorY: TERRACE_Y, horiz: 6.1, pitch: 0.50 }
+      ];
+      const STAIR1_CAM_BOUNDS = { minX: 11.4, maxX: 14.3, minZ: -3.75, maxZ: 3.65, minY: 2.3, maxY: 9.4 };
 
       const renderer = new THREE.WebGLRenderer({
         antialias: !isSoftwareGl && !isMobileViewport,
@@ -1914,176 +2588,176 @@
       const dayNightUpdaters = [];
       const stringBulbMats = [];
       const roomWindowMats = [];
+      const starLabelMeshes = [];
 
-      function enableShadows(group) {
+      function enableShadows(group, cast = true, receive = true) {
         group.traverse((obj) => {
           if (obj.isMesh) {
-            obj.castShadow = true;
-            obj.receiveShadow = true;
+            obj.castShadow = cast;
+            obj.receiveShadow = receive;
           }
         });
       }
 
-      /* Camera auto-fit & gentle mouse-only parallax */
-      const _isoUp = new THREE.Vector3();
-      const _camSide = new THREE.Vector3();
-      const _parallaxCamPos = new THREE.Vector3();
-      const parallax = { targetX: 0, targetY: 0, curX: 0, curY: 0 };
+      /* Perspective Camera State, Orbit (±25°), Parallax & Exterior/Overview Box Fit */
+      const MAX_ORBIT_YAW = (25 * Math.PI) / 180;
+      const MIN_ORBIT_PITCH = (-7 * Math.PI) / 180;
+      const MAX_ORBIT_PITCH = (9 * Math.PI) / 180;
+      const BASE_CORNER_AZIMUTH = (42 * Math.PI) / 180; // +X, +Z corner looking into room
 
-      const camFitState = {
-        active: false,
-        curDir: ISO_BASE_DIR.clone(),
-        targetDir: ISO_BASE_DIR.clone(),
-        lookAt: new THREE.Vector3(0, 1.8, 0.5),
-        targetLookAt: new THREE.Vector3(0, 1.8, 0.5),
-        left: -6, right: 6, top: 6, bottom: -6,
-        targetLeft: -6, targetRight: 6, targetTop: 6, targetBottom: -6
+      const parallax = { targetX: 0, targetY: 0, curX: 0, curY: 0 };
+      const camOrbit = { targetYaw: 0, curYaw: 0, targetPitch: 0, curPitch: 0 };
+
+      const perspCamState = {
+        curPos: new THREE.Vector3(16, 12, 18),
+        targetPos: new THREE.Vector3(16, 12, 18),
+        curLookAt: new THREE.Vector3(0, 2.2, 0),
+        targetLookAt: new THREE.Vector3(0, 2.2, 0)
       };
 
       const _fitProbeCam = new THREE.PerspectiveCamera();
       const _fitCorner = new THREE.Vector3();
       const _fitCenter = new THREE.Vector3();
-      const _roomFloorCenter = new THREE.Vector3();
+      const _camSide = new THREE.Vector3();
+      const _camUp = new THREE.Vector3();
+      const _camForward = new THREE.Vector3();
+      const _roomGoalPos = new THREE.Vector3();
+      const _roomGoalLook = new THREE.Vector3();
 
-      function computeSafeFitParams(box, isRoomFit = false, dir = ISO_BASE_DIR, customLookAt = null) {
-        const vw = Math.max(320, window.innerWidth);
-        const vh = Math.max(320, window.innerHeight);
-
-        const topBarEl = document.querySelector(".top-bar");
-        const safeTop = topBarEl ? topBarEl.getBoundingClientRect().bottom + 6 : 58;
-
-        let safeBottom = vh - 8;
-        if (!els.bottomDockWrap.hidden) {
-          const dRect = els.bottomDockWrap.getBoundingClientRect();
-          if (dRect.height > 0) safeBottom = Math.min(safeBottom, dRect.top - 6);
+      function computeBoxCamGoal(box, dir = ISO_BASE_DIR, outPos, outLook, padFactor = 1.18, yawOffset = 0, pitchOffset = 0) {
+        box.getCenter(_fitCenter);
+        const dirUse = _camForward.copy(dir);
+        if (Math.abs(yawOffset) > 0.0001) {
+          dirUse.applyAxisAngle(THREE.Object3D.DEFAULT_UP, yawOffset);
         }
-        if (!els.knockOverlay.hidden) {
-          const kRect = els.knockOverlay.getBoundingClientRect();
-          if (kRect.height > 0) safeBottom = Math.min(safeBottom, kRect.top - 8);
+        if (Math.abs(pitchOffset) > 0.0001) {
+          dirUse.y = THREE.MathUtils.clamp(dirUse.y + pitchOffset, 0.25, 0.92);
         }
+        dirUse.normalize();
 
-        const safeH = Math.max(180, safeBottom - safeTop);
-        const safeW = Math.max(220, vw - (vw < 720 ? 10 : 28));
-        const safeCenterY = (safeTop + safeBottom) * 0.5;
-
-        if (customLookAt) {
-          _fitCenter.copy(customLookAt);
-        } else {
-          box.getCenter(_fitCenter);
-        }
-        _fitProbeCam.position.copy(_fitCenter).addScaledVector(dir, ISO_DIST);
+        _fitProbeCam.position.copy(_fitCenter).addScaledVector(dirUse, 30);
         _fitProbeCam.lookAt(_fitCenter);
         _fitProbeCam.updateMatrixWorld(true);
         _fitProbeCam.matrixWorldInverse.copy(_fitProbeCam.matrixWorld).invert();
 
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        let maxAbsX = 0.01;
+        let maxAbsY = 0.01;
         const { min, max } = box;
         for (let ix = 0; ix < 2; ix++) {
           for (let iy = 0; iy < 2; iy++) {
             for (let iz = 0; iz < 2; iz++) {
               _fitCorner.set(ix ? max.x : min.x, iy ? max.y : min.y, iz ? max.z : min.z);
               _fitCorner.applyMatrix4(_fitProbeCam.matrixWorldInverse);
-              if (_fitCorner.x < minX) minX = _fitCorner.x;
-              if (_fitCorner.x > maxX) maxX = _fitCorner.x;
-              if (_fitCorner.y < minY) minY = _fitCorner.y;
-              if (_fitCorner.y > maxY) maxY = _fitCorner.y;
+              maxAbsX = Math.max(maxAbsX, Math.abs(_fitCorner.x));
+              maxAbsY = Math.max(maxAbsY, Math.abs(_fitCorner.y));
             }
           }
         }
 
-        const projW = maxX - minX;
-        const projH = maxY - minY;
-        const isPortraitMobile = vw < vh && vw < 860;
+        const vTan = Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5));
+        const hTan = vTan * Math.max(0.35, camera.aspect);
+        const distV = maxAbsY / vTan;
+        const distH = maxAbsX / hTan;
+        const boxDepth = box.max.z - box.min.z;
+        const dist = Math.max(distV, distH) * padFactor + boxDepth * 0.36;
 
-        let worldPerPx;
-        if (isRoomFit) {
-          if (isPortraitMobile) {
-            worldPerPx = Math.max(projW / (safeW * 0.74), projH / (safeH * 0.72));
-          } else {
-            worldPerPx = Math.max(projW / (safeW * 0.70), projH / (safeH * 0.70));
-          }
-        } else {
-          const fillW = vw < 720 ? 0.88 : 0.84;
-          const fillH = vw < 720 ? 0.84 : 0.84;
-          worldPerPx = Math.max(projW / (safeW * fillW), projH / (safeH * fillH));
+        outLook.copy(_fitCenter);
+        outPos.copy(_fitCenter).addScaledVector(dirUse, dist);
+      }
+
+      function computeRoomCamGoal(pos, outPos, outLook) {
+        let bA = ROOM_CAM_BOUNDS[appState.activeRoomIdx] || ROOM_CAM_BOUNDS[0];
+        let bB = bA;
+        let t = 0;
+        let onStair1 = false;
+
+        if (pos.y > GROUND_Y + 0.08 && pos.y < BEDROOM_Y - 0.08) {
+          onStair1 = true;
+          bA = ROOM_CAM_BOUNDS[2];
+          bB = ROOM_CAM_BOUNDS[3];
+          t = THREE.MathUtils.clamp((pos.y - GROUND_Y) / (BEDROOM_Y - GROUND_Y), 0, 1);
+        } else if (pos.y > BEDROOM_Y + 0.08 && pos.y < TERRACE_Y - 0.08) {
+          bA = ROOM_CAM_BOUNDS[3];
+          bB = ROOM_CAM_BOUNDS[4];
+          t = THREE.MathUtils.clamp((pos.y - BEDROOM_Y) / (TERRACE_Y - BEDROOM_Y), 0, 1);
+        } else if (pos.y <= GROUND_Y + 0.35 && Math.abs(pos.x + 4.2) < 1.75) {
+          bA = ROOM_CAM_BOUNDS[0];
+          bB = ROOM_CAM_BOUNDS[1];
+          t = THREE.MathUtils.smoothstep(pos.x, -5.95, -2.45);
+        } else if (pos.y <= GROUND_Y + 0.35 && Math.abs(pos.x - 4.2) < 1.75) {
+          bA = ROOM_CAM_BOUNDS[1];
+          bB = ROOM_CAM_BOUNDS[2];
+          t = THREE.MathUtils.smoothstep(pos.x, 2.45, 5.95);
         }
 
-        const frustumW = vw * worldPerPx;
-        const frustumH = vh * worldPerPx;
-        const halfW = frustumW * 0.5;
-        const halfH = frustumH * 0.5;
+        const minX = onStair1 ? Math.min(THREE.MathUtils.lerp(bA.minX, bB.minX, t), STAIR1_CAM_BOUNDS.minX) : THREE.MathUtils.lerp(bA.minX, bB.minX, t);
+        const maxX = onStair1 ? Math.max(THREE.MathUtils.lerp(bA.maxX, bB.maxX, t), STAIR1_CAM_BOUNDS.maxX) : THREE.MathUtils.lerp(bA.maxX, bB.maxX, t);
+        const minZ = THREE.MathUtils.lerp(bA.minZ, bB.minZ, t);
+        const maxZ = THREE.MathUtils.lerp(bA.maxZ, bB.maxZ, t);
+        const minY = onStair1 ? STAIR1_CAM_BOUNDS.minY : THREE.MathUtils.lerp(bA.minY, bB.minY, t);
+        const maxY = onStair1 ? STAIR1_CAM_BOUNDS.maxY : THREE.MathUtils.lerp(bA.maxY, bB.maxY, t);
+        const cx = THREE.MathUtils.lerp(bA.centerX, bB.centerX, t);
+        const cz = THREE.MathUtils.lerp(bA.centerZ, bB.centerZ, t);
+        const horizBase = THREE.MathUtils.lerp(bA.horiz, bB.horiz, t);
+        const pitchBase = THREE.MathUtils.lerp(bA.pitch, bB.pitch, t);
 
-        const midCamX = (minX + maxX) * 0.5;
-        const midCamY = (minY + maxY) * 0.5;
-        const yNdcTarget = 1 - 2 * (safeCenterY / vh);
-        const shiftY = midCamY - yNdcTarget * halfH;
+        /* Look at Rubina torso with gentle room-center anchor so furniture stays framed */
+        const centerBias = (bA === ROOM_CAM_BOUNDS[4] && t === 0) ? 0.36 : 0.24;
+        outLook.set(
+          THREE.MathUtils.lerp(pos.x, cx, centerBias),
+          pos.y + (bA === ROOM_CAM_BOUNDS[4] ? 1.25 : 1.05),
+          THREE.MathUtils.lerp(pos.z, cz, centerBias)
+        );
 
-        return {
-          dir: dir.clone(),
-          lookAt: _fitCenter.clone(),
-          left: -halfW + midCamX,
-          right: halfW + midCamX,
-          top: halfH + shiftY,
-          bottom: -halfH + shiftY
-        };
+        const az = BASE_CORNER_AZIMUTH + camOrbit.curYaw + parallax.curX * 0.08;
+        const effPitch = THREE.MathUtils.clamp(pitchBase + camOrbit.curPitch - parallax.curY * 0.055, 0.44, 0.78);
+
+        let camX = outLook.x + Math.sin(az) * horizBase;
+        let camZ = outLook.z + Math.cos(az) * horizBase;
+        camX = THREE.MathUtils.clamp(camX, minX, maxX);
+        camZ = THREE.MathUtils.clamp(camZ, minZ, maxZ);
+
+        /* Corner relief: if Rubina walks near the +X/+Z wall, pull camera laterally back into open room */
+        let horiz = Math.hypot(camX - outLook.x, camZ - outLook.z);
+        if (horiz < 3.45) {
+          if (outLook.x > (minX + maxX) * 0.5) camX = Math.max(minX, outLook.x - 3.0);
+          if (outLook.z > (minZ + maxZ) * 0.5) camZ = Math.max(minZ, outLook.z - 2.6);
+          horiz = Math.hypot(camX - outLook.x, camZ - outLook.z);
+        }
+
+        const camY = THREE.MathUtils.clamp(outLook.y + Math.max(2.6, horiz) * Math.tan(effPitch), minY, maxY);
+        outPos.set(camX, camY, camZ);
       }
 
-      function applyFitImmediate(fit) {
-        camFitState.curDir.copy(fit.dir);
-        camFitState.targetDir.copy(fit.dir);
-        camFitState.lookAt.copy(fit.lookAt);
-        camFitState.targetLookAt.copy(fit.lookAt);
-        camFitState.left = fit.left;
-        camFitState.right = fit.right;
-        camFitState.top = fit.top;
-        camFitState.bottom = fit.bottom;
-        camFitState.targetLeft = fit.left;
-        camFitState.targetRight = fit.right;
-        camFitState.targetTop = fit.top;
-        camFitState.targetBottom = fit.bottom;
-
-        camera.position.copy(fit.lookAt).addScaledVector(fit.dir, ISO_DIST);
-        camera.lookAt(fit.lookAt);
-        camera.left = fit.left;
-        camera.right = fit.right;
-        camera.top = fit.top;
-        camera.bottom = fit.bottom;
-        camera.zoom = 1;
-        camera.updateProjectionMatrix();
-        camFitState.active = false;
+      function applyCamImmediate(pos, lookAt) {
+        perspCamState.curPos.copy(pos);
+        perspCamState.targetPos.copy(pos);
+        perspCamState.curLookAt.copy(lookAt);
+        perspCamState.targetLookAt.copy(lookAt);
+        camera.position.copy(pos);
+        camera.lookAt(lookAt);
       }
 
-      function fitIsoCamera(box, immediate = false, isRoomFit = false, dir = ISO_BASE_DIR, customLookAt = null) {
-        const fit = computeSafeFitParams(box, isRoomFit, dir, customLookAt);
-        camFitState.targetDir.copy(fit.dir);
-        camFitState.targetLookAt.copy(fit.lookAt);
-        camFitState.targetLeft = fit.left;
-        camFitState.targetRight = fit.right;
-        camFitState.targetTop = fit.top;
-        camFitState.targetBottom = fit.bottom;
-
+      function fitBoxPerspective(box, immediate = false, padFactor = 1.18) {
+        computeBoxCamGoal(box, ISO_BASE_DIR, _roomGoalPos, _roomGoalLook, padFactor);
+        perspCamState.targetPos.copy(_roomGoalPos);
+        perspCamState.targetLookAt.copy(_roomGoalLook);
         if (immediate || prefersReducedMotion) {
-          applyFitImmediate(fit);
-        } else {
-          camFitState.active = true;
+          applyCamImmediate(_roomGoalPos, _roomGoalLook);
         }
       }
 
-      function getTargetDirForRoom(roomIdx) {
-        return roomIdx === 4 ? TERRACE_ISO_DIR : ISO_BASE_DIR;
+      function syncRoomCameraGoal(immediate = false) {
+        if (appState.scenePhase !== "room") return;
+        computeRoomCamGoal(avatarGroup.position, _roomGoalPos, _roomGoalLook);
+        perspCamState.targetPos.copy(_roomGoalPos);
+        perspCamState.targetLookAt.copy(_roomGoalLook);
+        if (immediate || prefersReducedMotion) {
+          applyCamImmediate(_roomGoalPos, _roomGoalLook);
+        }
       }
 
-      function fitRoomToViewport(roomIdx = appState.activeRoomIdx, immediate = false) {
-        const box = ROOM_FIT_BOXES[roomIdx] || ROOM_FIT_BOXES[0];
-        const dir = getTargetDirForRoom(roomIdx);
-        box.getCenter(_roomFloorCenter);
-        _roomFloorCenter.y = (ROOM_BOUNDS[roomIdx]?.floorY ?? 0) + (roomIdx === 4 ? 1.85 : 1.55);
-        fitIsoCamera(box, immediate, true, dir, _roomFloorCenter);
-      }
-
-      fitIsoCamera(EXTERIOR_BOX, true, false, ISO_BASE_DIR);
-
-      /* Lighting (Capped shadow map <= 1024, 512 on mobile) */
+      /* Lighting (Capped shadow map <= 1024, 512 on mobile, + warm interior fill light) */
       const hemiLight = new THREE.HemisphereLight(0xf3e8ff, 0x334155, 0.96);
       scene.add(hemiLight);
 
@@ -2096,13 +2770,18 @@
       sunLight.shadow.mapSize.set(shSize, shSize);
       sunLight.shadow.camera.near = 2;
       sunLight.shadow.camera.far = 75;
-      sunLight.shadow.camera.left = -22;
-      sunLight.shadow.camera.right = 22;
+      sunLight.shadow.camera.left = -18;
+      sunLight.shadow.camera.right = 18;
       sunLight.shadow.camera.top = 18;
       sunLight.shadow.camera.bottom = -18;
       sunLight.shadow.bias = -0.0006;
       sunLight.shadow.normalBias = 0.02;
       scene.add(sunLight);
+
+      const roomFillLight = new THREE.PointLight(0xffe8cc, 3.6, 22, 1.15);
+      roomFillLight.position.set(-8.4, 4.1, 0);
+      roomFillLight.visible = false;
+      scene.add(roomFillLight);
 
       const violetLight = new THREE.PointLight(0x8b5cf6, 5.5, 42, 1.2);
       violetLight.position.set(-7, 7, -3);
@@ -2135,62 +2814,63 @@
          1. EXTERIOR INTRO GROUP (Solid 4-Wall Cottage, Gable Roof, Garden)
          ====================================================================== */
       const exteriorGroup = new THREE.Group();
+      exteriorGroup.scale.setScalar(EXTERIOR_SCALE);
       scene.add(exteriorGroup);
 
-      /* Garden Lawn Slab + Subtle Edge Plinth */
-      const lawn = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(13.2, 0.36, 11.4)), stdMat(0x2d6a4f, 0.88, 0.02));
-      lawn.position.set(0, -0.18, 0.9);
+      /* Tighter Garden Lawn Slab (~1.5u beyond house walls) + Subtle Edge Plinth */
+      const lawn = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(10.6, 0.36, 8.8)), stdMat(0x2d6a4f, 0.88, 0.02));
+      lawn.position.set(0, -0.18, 0.1);
       lawn.receiveShadow = true;
-      const lawnPlinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(13.4, 0.14, 11.6)), stdMat(0x1e293b, 0.72, 0.12));
-      lawnPlinth.position.set(0, -0.32, 0.9);
+      const lawnPlinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(10.8, 0.14, 9.0)), stdMat(0x1e293b, 0.72, 0.12));
+      lawnPlinth.position.set(0, -0.32, 0.1);
       exteriorGroup.add(lawn, lawnPlinth);
 
       /* Stone Path leading cleanly to Front Porch Step */
       const pathMat = stdMat(0xcbd5e1, 0.8, 0.05);
-      for (let p = 0; p < 4; p++) {
-        const stone = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.36, 0.06, 0.68)), pathMat);
-        stone.position.set(0, 0.03, 3.62 + p * 0.82);
+      for (let p = 0; p < 2; p++) {
+        const stone = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.36, 0.06, 0.52)), pathMat);
+        stone.position.set(0, 0.03, 3.64 + p * 0.62);
         stone.receiveShadow = true;
         exteriorGroup.add(stone);
       }
 
-      /* Low White Picket Fence (Front + Side Return Rails) */
+      /* Low White Picket Fence (Tight perimeter around house + garden) */
       const fenceMat = stdMat(0xe2e8f0, 0.7, 0.05);
       const postGeo = trackGeo(new THREE.BoxGeometry(0.14, 0.78, 0.14));
-      for (let fx = -6.15; fx <= 6.15; fx += 1.35) {
-        if (Math.abs(fx) < 1.05) continue;
+      for (let fx = -4.95; fx <= 4.96; fx += 1.2375) {
+        if (Math.abs(fx) < 1.0) continue;
         const post = new THREE.Mesh(postGeo, fenceMat);
-        post.position.set(fx, 0.39, 6.25);
+        post.position.set(fx, 0.39, 4.34);
         post.castShadow = true;
         exteriorGroup.add(post);
       }
-      const frontFenceL = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(5.15, 0.09, 0.08)), fenceMat);
-      frontFenceL.position.set(-3.62, 0.52, 6.25);
+      const frontFenceL = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(4.0, 0.09, 0.08)), fenceMat);
+      frontFenceL.position.set(-3.02, 0.52, 4.34);
       const frontFenceR = frontFenceL.clone();
-      frontFenceR.position.x = 3.62;
+      frontFenceR.position.x = 3.02;
       exteriorGroup.add(frontFenceL, frontFenceR);
 
-      [-6.2, 6.2].forEach((sx) => {
-        for (let fz = 0.8; fz <= 5.5; fz += 1.55) {
+      [-5.05, 5.05].forEach((sx) => {
+        for (let fz = -3.8; fz <= 4.35; fz += 2.02) {
           const sp = new THREE.Mesh(postGeo, fenceMat);
           sp.position.set(sx, 0.39, fz);
           sp.castShadow = true;
           exteriorGroup.add(sp);
         }
-        const sRail = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.08, 0.09, 5.6)), fenceMat);
-        sRail.position.set(sx, 0.52, 3.5);
+        const sRail = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.08, 0.09, 8.2)), fenceMat);
+        sRail.position.set(sx, 0.52, 0.25);
         exteriorGroup.add(sRail);
       });
 
       /* Bushes */
       const bushMat = stdMat(0x10b981, 0.72, 0.04);
       [
-        [-3.4, 3.3, 0.5],
-        [-2.7, 4.9, 0.44],
-        [3.4, 3.3, 0.48],
-        [2.9, 5.1, 0.45],
-        [-5.2, 5.3, 0.52],
-        [5.1, 5.2, 0.5]
+        [-3.4, 3.25, 0.44],
+        [-2.5, 3.85, 0.38],
+        [3.4, 3.25, 0.44],
+        [2.55, 3.85, 0.38],
+        [-4.5, 3.92, 0.42],
+        [4.5, 3.92, 0.42]
       ].forEach(([bx, bz, r]) => {
         const bush = new THREE.Mesh(trackGeo(new THREE.IcosahedronGeometry(r, 1)), bushMat);
         bush.position.set(bx, r * 0.75, bz);
@@ -2200,7 +2880,7 @@
 
       /* One Small Cute Tree on the Front-Left Lawn */
       const smallTree = new THREE.Group();
-      smallTree.position.set(-4.85, 0, 3.35);
+      smallTree.position.set(-4.4, 0, 2.85);
       const trTrunk = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.14, 0.2, 1.35, 8)), stdMat(0x78350f, 0.82, 0.04));
       trTrunk.position.y = 0.675;
       const trLeafMat = stdMat(0x059669, 0.68, 0.04);
@@ -2225,10 +2905,10 @@
       const flowerColors = [0xf472b6, 0xa78bfa, 0x2dd4bf, 0xfacc15];
       const flowerMats = flowerColors.map((col) => stdMat(col, 0.5, 0.08, { emissive: col, emissiveIntensity: 0.14 }));
       [
-        [-1.08, 3.85], [-1.15, 4.45], [-1.06, 5.1],
-        [1.08, 3.95], [1.14, 4.55],
-        [-2.25, 3.15], [-1.95, 3.22], [2.25, 3.15], [2.55, 3.22],
-        [-4.2, 4.65], [-3.85, 4.85], [4.15, 4.25], [4.45, 4.5]
+        [-1.06, 3.6], [-1.1, 4.02],
+        [1.06, 3.6], [1.1, 4.02],
+        [-2.25, 3.12], [-1.92, 3.2], [2.25, 3.12], [2.52, 3.2],
+        [-3.95, 3.75], [-3.65, 3.95], [3.95, 3.75], [4.2, 3.92]
       ].forEach(([fx, fz], idx) => {
         const fl = new THREE.Group();
         const st = new THREE.Mesh(stemGeo, stemMat);
@@ -2242,7 +2922,7 @@
 
       /* Mailbox beside the Front Path */
       const mailboxGroup = new THREE.Group();
-      mailboxGroup.position.set(1.65, 0, 5.45);
+      mailboxGroup.position.set(1.48, 0, 3.92);
       const mbPost = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.06, 0.06, 0.92, 8)), stdMat(0x78350f, 0.7, 0.05));
       mbPost.position.y = 0.46;
       const mbBox = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.42, 0.28, 0.56)), stdMat(0x8b5cf6, 0.4, 0.2));
@@ -2302,9 +2982,9 @@
         opacity: 0,
         depthWrite: false
       }));
-      const lightSpillMesh = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(2.1, 2.2)), lightSpillMat);
+      const lightSpillMesh = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(1.9, 1.7)), lightSpillMat);
       lightSpillMesh.rotation.x = -Math.PI / 2;
-      lightSpillMesh.position.set(0, 0.065, 3.85);
+      lightSpillMesh.position.set(0, 0.065, 3.55);
       exteriorGroup.add(lightSpillMesh);
 
       /* Stone Porch Threshold Step */
@@ -2422,7 +3102,6 @@
         const sMat = trackMat(new THREE.MeshBasicMaterial({ color: 0xf8fafc, transparent: true, opacity: 0.45 }));
         const sm = new THREE.Mesh(smokeGeo, sMat);
         sm.position.set(2.2, 6.02 + s * 0.42, -1.35);
-        roofGroup.add(sm);
         chimneySmoke.push({ mesh: sm, mat: sMat, phase: s * 0.45 });
       }
       exteriorGroup.add(roofGroup);
@@ -2477,6 +3156,15 @@
       doorPlateMesh.position.set(0, 3.03, 2.86);
       exteriorGroup.add(plateBacking, doorPlateMesh, doorPivot);
       enableShadows(exteriorGroup);
+
+      /* Compute exact non-smoke Exterior Bounding Box and fit camera immediately */
+      exteriorGroup.updateMatrixWorld(true);
+      EXTERIOR_BOX = new THREE.Box3().setFromObject(exteriorGroup);
+      EXTERIOR_BOX.expandByVector(new THREE.Vector3(0.18, 0.22, 0.18));
+      fitBoxPerspective(EXTERIOR_BOX, true, 1.18);
+
+      /* Attach smoke AFTER computing EXTERIOR_BOX so rising particles don't shrink framing */
+      chimneySmoke.forEach((s) => roofGroup.add(s.mesh));
 
       /* ======================================================================
          2. SHARED PROCEDURAL TEXTURES (Laptop Code, Frame, Whiteboard, Night Sky)
@@ -2551,36 +3239,60 @@
       const wbTex = trackTex(new THREE.CanvasTexture(wbCanvas));
       wbTex.colorSpace = THREE.SRGBColorSpace;
 
-      /* Night Sky Gradient Texture for Terrace Backdrop Walls */
-      const nightSkyCanvas = document.createElement("canvas");
-      nightSkyCanvas.width = 512;
-      nightSkyCanvas.height = 288;
-      const nsCtx = nightSkyCanvas.getContext("2d");
-      const nsGrad = nsCtx.createLinearGradient(0, 0, 0, 288);
-      nsGrad.addColorStop(0, "#050919");
-      nsGrad.addColorStop(0.55, "#151a40");
-      nsGrad.addColorStop(1, "#2a1f52");
-      nsCtx.fillStyle = nsGrad;
-      nsCtx.fillRect(0, 0, 512, 288);
-      for (let s = 0; s < 55; s++) {
-        const sx = (s * 97 + 23) % 500 + 6;
-        const sy = (s * 53 + 11) % 210 + 10;
-        const sr = (s % 3 === 0) ? 2.1 : 1.1;
-        nsCtx.fillStyle = s % 5 === 0 ? "#99f6e4" : "#f8fafc";
-        nsCtx.beginPath();
-        nsCtx.arc(sx, sy, sr, 0, Math.PI * 2);
-        nsCtx.fill();
+      /* Panoramic Night Sky Dome Texture for Rooftop Terrace */
+      const skyDomeCanvas = document.createElement("canvas");
+      skyDomeCanvas.width = 1024;
+      skyDomeCanvas.height = 512;
+      const sdCtx = skyDomeCanvas.getContext("2d");
+      const sdGrad = sdCtx.createLinearGradient(0, 0, 0, 512);
+      sdGrad.addColorStop(0.0, "#030614");
+      sdGrad.addColorStop(0.38, "#0b1130");
+      sdGrad.addColorStop(0.66, "#191745");
+      sdGrad.addColorStop(1.0, "#0b1026");
+      sdCtx.fillStyle = sdGrad;
+      sdCtx.fillRect(0, 0, 1024, 512);
+
+      /* Subtle violet/teal aurora nebula wash across upper sky */
+      const neb1 = sdCtx.createRadialGradient(340, 165, 20, 340, 165, 260);
+      neb1.addColorStop(0, "rgba(139, 92, 246, 0.22)");
+      neb1.addColorStop(1, "rgba(139, 92, 246, 0)");
+      sdCtx.fillStyle = neb1;
+      sdCtx.fillRect(0, 0, 1024, 512);
+
+      const neb2 = sdCtx.createRadialGradient(740, 190, 20, 740, 190, 240);
+      neb2.addColorStop(0, "rgba(45, 212, 191, 0.16)");
+      neb2.addColorStop(1, "rgba(45, 212, 191, 0)");
+      sdCtx.fillStyle = neb2;
+      sdCtx.fillRect(0, 0, 1024, 512);
+
+      for (let s = 0; s < 340; s++) {
+        const sx = (s * 173 + 41) % 1018 + 3;
+        const sy = (s * 97 + 19) % 340 + 8;
+        const sr = (s % 7 === 0) ? 2.1 : ((s % 3 === 0) ? 1.4 : 0.9);
+        sdCtx.fillStyle = s % 9 === 0 ? "rgba(153, 246, 228, 0.9)" : (s % 11 === 0 ? "rgba(221, 214, 254, 0.9)" : "rgba(248, 250, 252, 0.85)");
+        sdCtx.beginPath();
+        sdCtx.arc(sx, sy, sr, 0, Math.PI * 2);
+        sdCtx.fill();
       }
-      nsCtx.fillStyle = "rgba(254, 240, 138, 0.9)";
-      nsCtx.beginPath();
-      nsCtx.arc(425, 58, 18, 0, Math.PI * 2);
-      nsCtx.fill();
-      nsCtx.fillStyle = "#0b1027";
-      nsCtx.beginPath();
-      nsCtx.arc(432, 53, 15, 0, Math.PI * 2);
-      nsCtx.fill();
-      const nightSkyTex = trackTex(new THREE.CanvasTexture(nightSkyCanvas));
-      nightSkyTex.colorSpace = THREE.SRGBColorSpace;
+      /* Glowing crescent moon in upper sky */
+      sdCtx.fillStyle = "rgba(254, 240, 138, 0.95)";
+      sdCtx.beginPath();
+      sdCtx.arc(720, 118, 22, 0, Math.PI * 2);
+      sdCtx.fill();
+      sdCtx.fillStyle = "#090f29";
+      sdCtx.beginPath();
+      sdCtx.arc(729, 111, 18, 0, Math.PI * 2);
+      sdCtx.fill();
+
+      const skyDomeTex = trackTex(new THREE.CanvasTexture(skyDomeCanvas));
+      skyDomeTex.colorSpace = THREE.SRGBColorSpace;
+      const nightSkyDome = new THREE.Mesh(
+        trackGeo(new THREE.SphereGeometry(52, 32, 20)),
+        trackMat(new THREE.MeshBasicMaterial({ map: skyDomeTex, side: THREE.BackSide, depthWrite: false }))
+      );
+      nightSkyDome.position.set(5.2, 10.2, -1.5);
+      nightSkyDome.visible = false;
+      scene.add(nightSkyDome);
 
       /* Helper to create crisp sprite label for Terrace Hackathon Stars */
       function createStarLabelTexture(text, accentHex) {
@@ -2609,9 +3321,15 @@
          3. ONE CONNECTED 3-LEVEL CUTAWAY HOUSE (Ground: Hall/Study/Kitchen,
             Staircase 1 -> Upper: Bedroom, Staircase 2 -> Top: Terrace)
          ====================================================================== */
+      /* ======================================================================
+         3. ONE CONNECTED 3-LEVEL CLOSED HOUSE (Ground: Hall/Study/Kitchen,
+            Staircase 1 -> Upper: Bedroom, Staircase 2 -> Top: Open Terrace)
+         ====================================================================== */
       const WALL_T = 0.3;
       const Z_BACK = -4.2;
       const Z_BACK_INNER = Z_BACK + WALL_T; // -3.9
+      const Z_FRONT = 4.2;
+      const Z_FRONT_INNER = Z_FRONT - WALL_T; // +3.9
       const X_HALL_LEFT = -12.6;
       const X_HALL_INNER = X_HALL_LEFT + WALL_T; // -12.3
 
@@ -2621,6 +3339,7 @@
       scene.add(houseGroup);
 
       const roomGroups = [];
+      const roomCeilings = [];
       for (let i = 0; i < 5; i++) {
         const rg = new THREE.Group();
         houseGroup.add(rg);
@@ -2628,6 +3347,53 @@
       }
       const roomInteractiveItems = [[], [], [], [], []];
       const houseWalkSurfaces = [];
+
+      /* Per-segment Occlusion Fade Registry (independent material instances so fading never leaks across walls) */
+      const fadeWallEntries = [];
+      const occludableWallMeshes = [];
+      const wallFadeRaycaster = new THREE.Raycaster();
+
+      function makeSegWallMat(dayHex, nightHex, roughness = 0.86, metalness = 0.02) {
+        const mat = stdMat(dayHex, roughness, metalness);
+        dayNightUpdaters.push((night) => {
+          mat.color.setHex(night ? nightHex : dayHex);
+        });
+        return mat;
+      }
+
+      function registerFadeEntry(meshes, opts = {}) {
+        const matsMap = new Map();
+        meshes.forEach((m) => {
+          if (!m || !m.isMesh) return;
+          m.castShadow = false;
+          m.receiveShadow = true;
+          const arr = Array.isArray(m.material) ? m.material : [m.material];
+          arr.forEach((mat) => {
+            if (!matsMap.has(mat)) {
+              matsMap.set(mat, {
+                mat,
+                baseOpacity: mat.opacity,
+                baseDepthWrite: mat.depthWrite,
+                baseTransparent: mat.transparent
+              });
+            }
+          });
+        });
+        const entry = {
+          meshes: meshes.filter((m) => m && m.isMesh),
+          mats: Array.from(matsMap.values()),
+          curAlpha: 1,
+          targetAlpha: 1,
+          isFrontForOverview: !!opts.isFrontForOverview,
+          isCeiling: !!opts.isCeiling
+        };
+        entry.meshes.forEach((m) => {
+          m.userData.fadeEntry = entry;
+          occludableWallMeshes.push(m);
+        });
+        fadeWallEntries.push(entry);
+        return entry;
+      }
 
       /* Shared + Per-Room Architectural Materials (Distinct Floor & Wall Tints, Day/Night aware) */
       const hPlinthMat = stdMat(0x1e293b, 0.6, 0.25);
@@ -2649,7 +3415,6 @@
       const bedFloorMat = stdMat(0xdad0fa, 0.78, 0.04);
       const bedWallMat = stdMat(0xe8e1ff, 0.86, 0.02);
       const hTerraceMat = stdMat(0x131c3d, 0.82, 0.08);
-      const tAlcoveWallMat = stdMat(0x1a2652, 0.78, 0.1);
 
       /* Lighter, High-Visibility Staircase Materials */
       const hStairTreadMat = stdMat(0xf5d6a4, 0.52, 0.04);
@@ -2667,7 +3432,6 @@
         bedFloorMat.color.setHex(night ? 0x282147 : 0xdad0fa);
         bedWallMat.color.setHex(night ? 0x332a59 : 0xe8e1ff);
         hTerraceMat.color.setHex(night ? 0x0b1026 : 0x131c3d);
-        tAlcoveWallMat.color.setHex(night ? 0x101736 : 0x1a2652);
         hPlinthMat.color.setHex(night ? 0x090f24 : 0x1e293b);
         hCapMat.color.setHex(night ? 0x475569 : 0x94a3b8);
         hBaseMat.color.setHex(night ? 0x334155 : 0xcbd5e1);
@@ -2676,8 +3440,11 @@
         hStairFrameMat.color.setHex(night ? 0x64748b : 0x94a3b8);
       });
 
-      const houseShell = new THREE.Group();
-      houseGroup.add(houseShell);
+      const partition01Group = new THREE.Group();
+      const partition12Group = new THREE.Group();
+      const staircase1Group = new THREE.Group();
+      const staircase2Group = new THREE.Group();
+      houseGroup.add(partition01Group, partition12Group, staircase1Group, staircase2Group);
 
       function addWalkSurface(w, d, x, y, z, meta, rotX = 0) {
         const surf = new THREE.Mesh(
@@ -2692,64 +3459,186 @@
         return surf;
       }
 
-      /* ---------- GROUND FLOOR CONTINUOUS SLAB (Equal 8.4-wide Hall | Study | Kitchen + Stair 1 Bay) ---------- */
-      /* Base slab spans X ∈ [-12.6, +14.6] (27.2), Z ∈ [-4.2, +4.2] (8.4), topped flush at Y = 0 by room-colored floor tiles */
-      const groundSlab = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(27.2, 0.4, 8.4)), hPlinthMat);
-      groundSlab.position.set(1.0, -0.22, 0);
-      groundSlab.receiveShadow = true;
+      /* ---------- GROUND FLOOR PER-ROOM SLABS, CLOSED WALLS & CEILINGS ---------- */
+      const roomSlabGeo = trackGeo(new THREE.BoxGeometry(8.4, 0.4, 8.4));
+      const roomTileGeo = trackGeo(new THREE.BoxGeometry(8.4, 0.02, 8.4));
+      const roomFrontTrimGeo = trackGeo(new THREE.BoxGeometry(8.42, 0.08, 0.08));
+      const roomBackBaseGeo = trackGeo(new THREE.BoxGeometry(8.4, 0.18, 0.06));
+      const roomBackCapGeo = trackGeo(new THREE.BoxGeometry(8.42, 0.08, WALL_T + 0.05));
+      const roomFrontWallGeo = trackGeo(new THREE.BoxGeometry(8.4, BEDROOM_Y, WALL_T));
+      const roomFrontBaseGeo = trackGeo(new THREE.BoxGeometry(8.3, 0.18, 0.06));
+      const roomCeilGeo = trackGeo(new THREE.BoxGeometry(8.4, 0.28, 8.4));
 
-      const hallFloorTile = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, 0.02, 8.4)), hallFloorMat);
+      /* Hall (Room 0: X ∈ [-12.6, -4.2], closed 4 walls + ceiling) */
+      const hallFloorSlab = new THREE.Mesh(roomSlabGeo, hPlinthMat);
+      hallFloorSlab.position.set(-8.4, -0.22, 0);
+      hallFloorSlab.receiveShadow = true;
+      const hallFloorTile = new THREE.Mesh(roomTileGeo, hallFloorMat);
       hallFloorTile.position.set(-8.4, -0.01, 0);
       hallFloorTile.receiveShadow = true;
+      const hallPlinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.54, 0.16, 8.66)), hPlinthMat);
+      hallPlinth.position.set(-8.47, -0.35, 0);
+      hallPlinth.receiveShadow = true;
+      const hallFrontTrim = new THREE.Mesh(roomFrontTrimGeo, hTrimMat);
+      hallFrontTrim.position.set(-8.4, -0.02, 4.2);
 
-      const studyFloorTile = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, 0.02, 8.4)), studyFloorMat);
-      studyFloorTile.position.set(0.0, -0.01, 0);
-      studyFloorTile.receiveShadow = true;
-
-      const kitchenFloorTile = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(10.4, 0.02, 8.4)), kitchenFloorMat);
-      kitchenFloorTile.position.set(9.4, -0.01, 0);
-      kitchenFloorTile.receiveShadow = true;
-
-      const groundPlinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(27.46, 0.16, 8.66)), hPlinthMat);
-      groundPlinth.position.set(1.0, -0.35, 0);
-      groundPlinth.receiveShadow = true;
-      const groundFrontTrim = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(27.3, 0.08, 0.08)), hTrimMat);
-      groundFrontTrim.position.set(1.0, -0.02, 4.2);
-      const groundRightTrim = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.08, 0.08, 8.5)), hTrimMat);
-      groundRightTrim.position.set(14.6, -0.02, 0);
-      houseShell.add(groundSlab, hallFloorTile, studyFloorTile, kitchenFloorTile, groundPlinth, groundFrontTrim, groundRightTrim);
-
-      /* Full-height Ground Back Wall (color-blocked per room) & Hall Left Wall (Front & Right cut away) */
       const gBackWallHall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, BEDROOM_Y, WALL_T)), hallWallMat);
       gBackWallHall.position.set(-8.4, BEDROOM_Y * 0.5, Z_BACK + WALL_T * 0.5);
       gBackWallHall.receiveShadow = true;
-      gBackWallHall.castShadow = true;
-
-      const gBackWallStudy = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, BEDROOM_Y, WALL_T)), studyWallMat);
-      gBackWallStudy.position.set(0.0, BEDROOM_Y * 0.5, Z_BACK + WALL_T * 0.5);
-      gBackWallStudy.receiveShadow = true;
-      gBackWallStudy.castShadow = true;
-
-      const gBackWallKitchen = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(10.4, BEDROOM_Y, WALL_T)), kitchenWallMat);
-      gBackWallKitchen.position.set(9.4, BEDROOM_Y * 0.5, Z_BACK + WALL_T * 0.5);
-      gBackWallKitchen.receiveShadow = true;
-      gBackWallKitchen.castShadow = true;
-
       const gLeftWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, BEDROOM_Y, 8.4)), hallWallMat);
       gLeftWall.position.set(X_HALL_LEFT + WALL_T * 0.5, BEDROOM_Y * 0.5, 0);
       gLeftWall.receiveShadow = true;
-      gLeftWall.castShadow = true;
-
       const gLeftCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T + 0.05, 0.08, 8.44)), hCapMat);
       gLeftCap.position.set(X_HALL_LEFT + WALL_T * 0.5, BEDROOM_Y + 0.04, 0);
-      const gBackHallCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(10.2, 0.08, WALL_T + 0.05)), hCapMat);
-      gBackHallCap.position.set(-7.5, BEDROOM_Y + 0.04, Z_BACK + WALL_T * 0.5);
-
-      const gBackBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(26.9, 0.18, 0.06)), hBaseMat);
-      gBackBase.position.set(1.15, 0.09, Z_BACK_INNER + 0.02);
+      const gBackHallCap = new THREE.Mesh(roomBackCapGeo, hCapMat);
+      gBackHallCap.position.set(-8.4, BEDROOM_Y + 0.04, Z_BACK + WALL_T * 0.5);
+      const gBackBaseHall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.1, 0.18, 0.06)), hBaseMat);
+      gBackBaseHall.position.set(-8.25, 0.09, Z_BACK_INNER + 0.02);
       const gLeftBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.06, 0.18, 8.1)), hBaseMat);
       gLeftBase.position.set(X_HALL_INNER + 0.02, 0.09, 0.15);
-      houseShell.add(gBackWallHall, gBackWallStudy, gBackWallKitchen, gLeftWall, gLeftCap, gBackHallCap, gBackBase, gLeftBase);
+
+      const gFrontWallHall = new THREE.Mesh(roomFrontWallGeo, makeSegWallMat(0xfaf5e8, 0x413a52));
+      gFrontWallHall.position.set(-8.4, BEDROOM_Y * 0.5, Z_FRONT - WALL_T * 0.5);
+      const gFrontBaseHall = new THREE.Mesh(roomFrontBaseGeo, makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08));
+      gFrontBaseHall.position.set(-8.4, 0.09, Z_FRONT_INNER - 0.02);
+      const gFrontCapHall = new THREE.Mesh(roomBackCapGeo, makeSegWallMat(0x94a3b8, 0x475569, 0.55, 0.15));
+      gFrontCapHall.position.set(-8.4, BEDROOM_Y + 0.04, Z_FRONT - WALL_T * 0.5);
+      registerFadeEntry([gFrontWallHall, gFrontBaseHall, gFrontCapHall], { isFrontForOverview: true });
+
+      const hallCeiling = new THREE.Mesh(roomCeilGeo, makeSegWallMat(0xf7f0df, 0x373147));
+      hallCeiling.position.set(-8.4, BEDROOM_Y - 0.14, 0);
+      registerFadeEntry([hallCeiling], { isCeiling: true });
+      roomCeilings[0] = hallCeiling;
+
+      roomGroups[0].add(
+        hallFloorSlab, hallFloorTile, hallPlinth, hallFrontTrim,
+        gBackWallHall, gLeftWall, gLeftCap, gBackHallCap, gBackBaseHall, gLeftBase,
+        gFrontWallHall, gFrontBaseHall, gFrontCapHall, hallCeiling
+      );
+
+      /* Study (Room 1: X ∈ [-4.2, +4.2], closed 4 walls + ceiling) */
+      const studyFloorSlab = new THREE.Mesh(roomSlabGeo, hPlinthMat);
+      studyFloorSlab.position.set(0, -0.22, 0);
+      studyFloorSlab.receiveShadow = true;
+      const studyFloorTile = new THREE.Mesh(roomTileGeo, studyFloorMat);
+      studyFloorTile.position.set(0, -0.01, 0);
+      studyFloorTile.receiveShadow = true;
+      const studyPlinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, 0.16, 8.66)), hPlinthMat);
+      studyPlinth.position.set(0, -0.35, 0);
+      studyPlinth.receiveShadow = true;
+      const studyFrontTrim = new THREE.Mesh(roomFrontTrimGeo, hTrimMat);
+      studyFrontTrim.position.set(0, -0.02, 4.2);
+      const gBackWallStudy = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, BEDROOM_Y, WALL_T)), studyWallMat);
+      gBackWallStudy.position.set(0, BEDROOM_Y * 0.5, Z_BACK + WALL_T * 0.5);
+      gBackWallStudy.receiveShadow = true;
+      const gBackStudyCap = new THREE.Mesh(roomBackCapGeo, hCapMat);
+      gBackStudyCap.position.set(0, BEDROOM_Y + 0.04, Z_BACK + WALL_T * 0.5);
+      const gBackBaseStudy = new THREE.Mesh(roomBackBaseGeo, hBaseMat);
+      gBackBaseStudy.position.set(0, 0.09, Z_BACK_INNER + 0.02);
+
+      const gFrontWallStudy = new THREE.Mesh(roomFrontWallGeo, makeSegWallMat(0x243563, 0x172347));
+      gFrontWallStudy.position.set(0, BEDROOM_Y * 0.5, Z_FRONT - WALL_T * 0.5);
+      const gFrontBaseStudy = new THREE.Mesh(roomFrontBaseGeo, makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08));
+      gFrontBaseStudy.position.set(0, 0.09, Z_FRONT_INNER - 0.02);
+      const gFrontCapStudy = new THREE.Mesh(roomBackCapGeo, makeSegWallMat(0x94a3b8, 0x475569, 0.55, 0.15));
+      gFrontCapStudy.position.set(0, BEDROOM_Y + 0.04, Z_FRONT - WALL_T * 0.5);
+      registerFadeEntry([gFrontWallStudy, gFrontBaseStudy, gFrontCapStudy], { isFrontForOverview: true });
+
+      const studyCeiling = new THREE.Mesh(roomCeilGeo, makeSegWallMat(0x1f2e56, 0x141e3d));
+      studyCeiling.position.set(0, BEDROOM_Y - 0.14, 0);
+      registerFadeEntry([studyCeiling], { isCeiling: true });
+      roomCeilings[1] = studyCeiling;
+
+      roomGroups[1].add(
+        studyFloorSlab, studyFloorTile, studyPlinth, studyFrontTrim,
+        gBackWallStudy, gBackStudyCap, gBackBaseStudy,
+        gFrontWallStudy, gFrontBaseStudy, gFrontCapStudy, studyCeiling
+      );
+
+      /* Kitchen (Room 2: X ∈ [+4.2, +12.6], closed walls + ceiling + Stair 1 doorway) */
+      const kitchenFloorSlab = new THREE.Mesh(roomSlabGeo, hPlinthMat);
+      kitchenFloorSlab.position.set(8.4, -0.22, 0);
+      kitchenFloorSlab.receiveShadow = true;
+      const kitchenFloorTile = new THREE.Mesh(roomTileGeo, kitchenFloorMat);
+      kitchenFloorTile.position.set(8.4, -0.01, 0);
+      kitchenFloorTile.receiveShadow = true;
+      const kitchenPlinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, 0.16, 8.66)), hPlinthMat);
+      kitchenPlinth.position.set(8.4, -0.35, 0);
+      kitchenPlinth.receiveShadow = true;
+      const kitchenFrontTrim = new THREE.Mesh(roomFrontTrimGeo, hTrimMat);
+      kitchenFrontTrim.position.set(8.4, -0.02, 4.2);
+      const gBackWallKitchen = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(8.4, BEDROOM_Y, WALL_T)), kitchenWallMat);
+      gBackWallKitchen.position.set(8.4, BEDROOM_Y * 0.5, Z_BACK + WALL_T * 0.5);
+      gBackWallKitchen.receiveShadow = true;
+      const gBackKitchenCap = new THREE.Mesh(roomBackCapGeo, hCapMat);
+      gBackKitchenCap.position.set(8.4, BEDROOM_Y + 0.04, Z_BACK + WALL_T * 0.5);
+      const gBackBaseKitchen = new THREE.Mesh(roomBackBaseGeo, hBaseMat);
+      gBackBaseKitchen.position.set(8.4, 0.09, Z_BACK_INNER + 0.02);
+
+      const gFrontWallKitchen = new THREE.Mesh(roomFrontWallGeo, makeSegWallMat(0xfbeab8, 0x4b4129));
+      gFrontWallKitchen.position.set(8.4, BEDROOM_Y * 0.5, Z_FRONT - WALL_T * 0.5);
+      const gFrontBaseKitchen = new THREE.Mesh(roomFrontBaseGeo, makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08));
+      gFrontBaseKitchen.position.set(8.4, 0.09, Z_FRONT_INNER - 0.02);
+      const gFrontCapKitchen = new THREE.Mesh(roomBackCapGeo, makeSegWallMat(0x94a3b8, 0x475569, 0.55, 0.15));
+      gFrontCapKitchen.position.set(8.4, BEDROOM_Y + 0.04, Z_FRONT - WALL_T * 0.5);
+      registerFadeEntry([gFrontWallKitchen, gFrontBaseKitchen, gFrontCapKitchen], { isFrontForOverview: true });
+
+      const kitchenCeiling = new THREE.Mesh(roomCeilGeo, makeSegWallMat(0xf5e2ac, 0x413824));
+      kitchenCeiling.position.set(8.4, BEDROOM_Y - 0.14, 0);
+      registerFadeEntry([kitchenCeiling], { isCeiling: true });
+      roomCeilings[2] = kitchenCeiling;
+
+      roomGroups[2].add(
+        kitchenFloorSlab, kitchenFloorTile, kitchenPlinth, kitchenFrontTrim,
+        gBackWallKitchen, gBackKitchenCap, gBackBaseKitchen,
+        gFrontWallKitchen, gFrontBaseKitchen, gFrontCapKitchen, kitchenCeiling
+      );
+
+      /* Staircase 1 Ground-to-Bedroom Enclosed Bay (X ∈ [+12.6, +14.6], Y ∈ [0, TERRACE_Y]) */
+      const stair1BaySlab = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.4, 8.4)), hPlinthMat);
+      stair1BaySlab.position.set(13.6, -0.22, 0);
+      stair1BaySlab.receiveShadow = true;
+      const stair1BayTile = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.02, 8.4)), kitchenFloorMat);
+      stair1BayTile.position.set(13.6, -0.01, 0);
+      stair1BayTile.receiveShadow = true;
+      const stair1BayPlinth = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.13, 0.16, 8.66)), hPlinthMat);
+      stair1BayPlinth.position.set(13.66, -0.35, 0);
+      stair1BayPlinth.receiveShadow = true;
+      const stair1BayFrontTrim = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.04, 0.08, 0.08)), hTrimMat);
+      stair1BayFrontTrim.position.set(13.6, -0.02, 4.2);
+      const groundRightTrim = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.08, 0.08, 8.5)), hTrimMat);
+      groundRightTrim.position.set(14.6, -0.02, 0);
+      const stair1BayBackWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, TERRACE_Y, WALL_T)), kitchenWallMat);
+      stair1BayBackWall.position.set(13.6, TERRACE_Y * 0.5, Z_BACK + WALL_T * 0.5);
+      stair1BayBackWall.receiveShadow = true;
+      const stair1BayBackBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.18, 0.06)), hBaseMat);
+      stair1BayBackBase.position.set(13.6, 0.09, Z_BACK_INNER + 0.02);
+
+      /* Right Outer Wall + Front Stairwell Wall + Stairwell Roof (all fadeable) */
+      const stair1RightWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, TERRACE_Y, 8.4)), makeSegWallMat(0xe8e1ff, 0x332a59));
+      stair1RightWall.position.set(14.6 - WALL_T * 0.5, TERRACE_Y * 0.5, 0);
+      registerFadeEntry([stair1RightWall], { isFrontForOverview: true });
+
+      const stair1FrontWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, TERRACE_Y, WALL_T)), makeSegWallMat(0xfbeab8, 0x4b4129));
+      stair1FrontWall.position.set(13.6, TERRACE_Y * 0.5, Z_FRONT - WALL_T * 0.5);
+      registerFadeEntry([stair1FrontWall], { isFrontForOverview: true });
+
+      const stair1Roof = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.28, 8.4)), makeSegWallMat(0xdcd3f7, 0x2b234d));
+      stair1Roof.position.set(13.6, TERRACE_Y - 0.14, 0);
+      registerFadeEntry([stair1Roof], { isCeiling: true });
+
+      /* Kitchen <-> Stair 1 Wall at X = 12.6 (solid wall Z ∈ [-4.2, 1.85], cased doorway Z ∈ [1.85, 3.9], lintel Y ∈ [3.35, 5.4]) */
+      const kStairPier = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, BEDROOM_Y, 6.05)), makeSegWallMat(0xfbeab8, 0x4b4129));
+      kStairPier.position.set(12.6, BEDROOM_Y * 0.5, -1.175);
+      const kStairHeader = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, BEDROOM_Y - 3.35, 2.35)), makeSegWallMat(0xfbeab8, 0x4b4129));
+      kStairHeader.position.set(12.6, 3.35 + (BEDROOM_Y - 3.35) * 0.5, 3.025);
+      registerFadeEntry([kStairPier, kStairHeader]);
+
+      staircase1Group.add(
+        stair1BaySlab, stair1BayTile, stair1BayPlinth, stair1BayFrontTrim, groundRightTrim,
+        stair1BayBackWall, stair1BayBackBase, stair1RightWall, stair1FrontWall, stair1Roof,
+        kStairPier, kStairHeader
+      );
 
       /* Small Crisp Room-Name Doorway Signs */
       function createDoorwaySignTexture(text, accentHex = "#2dd4bf") {
@@ -2774,7 +3663,7 @@
         return tex;
       }
 
-      function addDoorwaySign(label, accentHex, x, y, z, rotY = 0) {
+      function addDoorwaySign(targetGroup, label, accentHex, x, y, z, rotY = 0) {
         const sg = new THREE.Group();
         const plaque = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.18, 0.34, 0.06)), hPlinthMat);
         const face = new THREE.Mesh(
@@ -2785,122 +3674,166 @@
         sg.add(plaque, face);
         sg.position.set(x, y, z);
         sg.rotation.y = rotY;
-        houseShell.add(sg);
+        targetGroup.add(sg);
       }
 
-      /* Slim Low-Cutaway Partition Walls between Hall | Study (X = -4.2) and Study | Kitchen (X = +4.2) */
-      /* Wide Open Doorways Z ∈ [-1.25, +2.15]; front-facing edge reduced to a low floor curb (0.22 tall) for clear sightlines */
-      const partBackGeo = trackGeo(new THREE.BoxGeometry(0.12, 1.32, 2.65));
-      const partFrontCurbGeo = trackGeo(new THREE.BoxGeometry(0.12, 0.22, 2.05));
-      const partCapBackGeo = trackGeo(new THREE.BoxGeometry(0.16, 0.06, 2.7));
-      const partCapFrontGeo = trackGeo(new THREE.BoxGeometry(0.16, 0.05, 2.08));
-      const threshGeo = trackGeo(new THREE.BoxGeometry(0.14, 0.024, 3.4));
+      /* Full-Height Partition Walls with Real Cased Doorway Openings (Hall|Study X = -4.2, Study|Kitchen X = +4.2) */
+      /* Doorway Opening: Z ∈ [-1.15, +2.05] (3.20 wide), Y ∈ [0, 3.35] */
+      const partBackPierGeo = trackGeo(new THREE.BoxGeometry(0.22, BEDROOM_Y, 3.05));
+      const partFrontPierGeo = trackGeo(new THREE.BoxGeometry(0.22, BEDROOM_Y, 2.15));
+      const partHeaderGeo = trackGeo(new THREE.BoxGeometry(0.22, BEDROOM_Y - 3.35, 3.2));
+      const doorJambVGeo = trackGeo(new THREE.BoxGeometry(0.26, 3.35, 0.1));
+      const doorJambHGeo = trackGeo(new THREE.BoxGeometry(0.26, 0.12, 3.32));
+      const threshGeo = trackGeo(new THREE.BoxGeometry(0.24, 0.024, 3.2));
+
       [
-        { px: -4.2, mat: studyWallMat, label: "HALL ⇄ STUDY", accent: "#2dd4bf" },
-        { px: 4.2, mat: kitchenWallMat, label: "STUDY ⇄ KITCHEN", accent: "#fbbf24" }
-      ].forEach(({ px, mat, label, accent }) => {
-        const pb = new THREE.Mesh(partBackGeo, mat);
-        pb.position.set(px, 0.66, -2.575);
-        pb.castShadow = true;
-        pb.receiveShadow = true;
-        const pf = new THREE.Mesh(partFrontCurbGeo, mat);
-        pf.position.set(px, 0.11, 3.175);
-        pf.receiveShadow = true;
-        const cb = new THREE.Mesh(partCapBackGeo, hCapMat);
-        cb.position.set(px, 1.35, -2.575);
-        const cf = new THREE.Mesh(partCapFrontGeo, hCapMat);
-        cf.position.set(px, 0.245, 3.175);
+        { grp: partition01Group, px: -4.2, dayHex: 0xe6e0d4, nightHex: 0x2b2944, label: "HALL ⇄ STUDY", accent: "#2dd4bf" },
+        { grp: partition12Group, px: 4.2, dayHex: 0x3b4973, nightHex: 0x222c4a, label: "STUDY ⇄ KITCHEN", accent: "#fbbf24" }
+      ].forEach(({ grp, px, dayHex, nightHex, label, accent }) => {
+        const segMat = makeSegWallMat(dayHex, nightHex);
+        const frameMat = makeSegWallMat(0x334155, 0x1e293b, 0.55, 0.2);
+
+        const pb = new THREE.Mesh(partBackPierGeo, segMat);
+        pb.position.set(px, BEDROOM_Y * 0.5, -2.675);
+        const pf = new THREE.Mesh(partFrontPierGeo, segMat);
+        pf.position.set(px, BEDROOM_Y * 0.5, 3.125);
+        const ph = new THREE.Mesh(partHeaderGeo, segMat);
+        ph.position.set(px, 3.35 + (BEDROOM_Y - 3.35) * 0.5, 0.45);
+
+        const jambB = new THREE.Mesh(doorJambVGeo, frameMat);
+        jambB.position.set(px, 1.675, -1.12);
+        const jambF = new THREE.Mesh(doorJambVGeo, frameMat);
+        jambF.position.set(px, 1.675, 2.02);
+        const jambTop = new THREE.Mesh(doorJambHGeo, frameMat);
+        jambTop.position.set(px, 3.35, 0.45);
+
         const thr = new THREE.Mesh(threshGeo, hStripMat);
         thr.position.set(px, 0.012, 0.45);
         thr.receiveShadow = true;
-        houseShell.add(pb, pf, cb, cf, thr);
-        addDoorwaySign(label, accent, px, 1.62, -1.35, 0.28);
+
+        registerFadeEntry([pb, pf, ph, jambB, jambF, jambTop]);
+        grp.add(pb, pf, ph, jambB, jambF, jambTop, thr);
+        addDoorwaySign(grp, label, accent, px, 3.72, 0.45, Math.PI * 0.5);
       });
 
       /* Thin floor strip & doorway sign at Staircase 1 entry (Kitchen -> Bedroom) */
-      const stair1Strip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.024, 2.2)), hStripMat);
-      stair1Strip.position.set(12.6, 0.012, 3.0);
-      houseShell.add(stair1Strip);
-      addDoorwaySign("↑ BEDROOM", "#a78bfa", 13.6, 1.55, 3.35, -0.35);
+      const stair1Strip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.024, 2.15)), hStripMat);
+      stair1Strip.position.set(12.6, 0.012, 2.95);
+      staircase1Group.add(stair1Strip);
+      addDoorwaySign(staircase1Group, "↑ BEDROOM", "#a78bfa", 12.6, 3.65, 3.0, -Math.PI * 0.5);
 
-      /* ---------- UPPER FLOOR: BEDROOM (Lavender tint, above Study & Kitchen) ---------- */
-      /* Main deck: X ∈ [-2.4, +12.6] (15.0), Z ∈ [-4.2, +1.2] (5.4), top at BEDROOM_Y = 5.4 */
-      const bedSlab = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.0, 0.36, 5.4)), bedFloorMat);
-      bedSlab.position.set(5.1, BEDROOM_Y - 0.18, -1.5);
-      bedSlab.castShadow = true;
+      /* ---------- UPPER FLOOR: CLOSED BEDROOM (Lavender tint, expanded Z ∈ [-4.2, +3.8]) ---------- */
+      /* Main deck: X ∈ [-2.4, +12.6] (15.0), Z ∈ [-4.2, +3.8] (8.0), top at BEDROOM_Y = 5.4 */
+      const bedSlab = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.0, 0.36, 8.0)), bedFloorMat);
+      bedSlab.position.set(5.1, BEDROOM_Y - 0.18, -0.2);
       bedSlab.receiveShadow = true;
-      /* Right stair 1 landing flush at X ∈ [+12.6, +14.6], Z ∈ [-4.2, -2.0] */
+
+      /* Structural support post under Bedroom's front-left corner so exterior/overview stays grounded */
+      const bedSupportPost = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, BEDROOM_Y - 0.36, 0.22)), hPlinthMat);
+      bedSupportPost.position.set(-2.24, (BEDROOM_Y - 0.36) * 0.5, 3.64);
+      bedSupportPost.castShadow = true;
+
+      const bedWallH = TERRACE_Y - BEDROOM_Y; // 4.8
+      const bBackWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.0, bedWallH, WALL_T)), bedWallMat);
+      bBackWall.position.set(5.1, BEDROOM_Y + bedWallH * 0.5, Z_BACK + WALL_T * 0.5);
+      bBackWall.receiveShadow = true;
+
+      const bLeftWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, bedWallH, 8.0)), makeSegWallMat(0xe8e1ff, 0x332a59));
+      bLeftWall.position.set(-2.4 + WALL_T * 0.5, BEDROOM_Y + bedWallH * 0.5, -0.2);
+      const bLeftCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T + 0.05, 0.08, 8.04)), makeSegWallMat(0x94a3b8, 0x475569, 0.55, 0.15));
+      bLeftCap.position.set(-2.4 + WALL_T * 0.5, TERRACE_Y + 0.04, -0.2);
+      const bLeftBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.06, 0.16, 7.7)), makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08));
+      bLeftBase.position.set(-2.08, BEDROOM_Y + 0.08, -0.05);
+      registerFadeEntry([bLeftWall, bLeftCap, bLeftBase]);
+
+      const bBackCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.02, 0.08, WALL_T + 0.05)), hCapMat);
+      bBackCap.position.set(5.1, TERRACE_Y + 0.04, Z_BACK + WALL_T * 0.5);
+      const bBackBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(14.7, 0.16, 0.06)), hBaseMat);
+      bBackBase.position.set(5.25, BEDROOM_Y + 0.08, Z_BACK_INNER + 0.02);
+
+      /* Bedroom Front Wall (Z ∈ [+3.5, +3.8], fadeable) */
+      const bFrontWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.0, bedWallH, WALL_T)), makeSegWallMat(0xe8e1ff, 0x332a59));
+      bFrontWall.position.set(5.1, BEDROOM_Y + bedWallH * 0.5, 3.8 - WALL_T * 0.5);
+      const bFrontBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(14.7, 0.16, 0.06)), makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08));
+      bFrontBase.position.set(5.1, BEDROOM_Y + 0.08, 3.48);
+      const bFrontCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(15.02, 0.08, WALL_T + 0.05)), makeSegWallMat(0x94a3b8, 0x475569, 0.55, 0.15));
+      bFrontCap.position.set(5.1, TERRACE_Y + 0.04, 3.8 - WALL_T * 0.5);
+      registerFadeEntry([bFrontWall, bFrontBase, bFrontCap], { isFrontForOverview: true });
+
+      /* Bedroom Right Wall at X = 12.6 (doorway Z ∈ [-4.2, -2.0] into Stair 1 landing, solid Z ∈ [-2.0, +3.8]) */
+      const bRightWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, bedWallH, 5.8)), makeSegWallMat(0xe8e1ff, 0x332a59));
+      bRightWall.position.set(12.6 - WALL_T * 0.5, BEDROOM_Y + bedWallH * 0.5, 0.9);
+      const bRightHeader = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, bedWallH - 3.35, 2.2)), makeSegWallMat(0xe8e1ff, 0x332a59));
+      bRightHeader.position.set(12.6 - WALL_T * 0.5, BEDROOM_Y + 3.35 + (bedWallH - 3.35) * 0.5, -3.1);
+      const bRightBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.06, 0.16, 5.5)), makeSegWallMat(0xcbd5e1, 0x334155, 0.6, 0.08));
+      bRightBase.position.set(12.28, BEDROOM_Y + 0.08, 0.9);
+      registerFadeEntry([bRightWall, bRightHeader, bRightBase]);
+
+      /* Bedroom Ceiling Group (hidden while inside Bedroom, with Staircase 2 opening at [10.8, 12.6] x [-4.2, +0.6]) */
+      const bedCeilingGroup = new THREE.Group();
+      const bCeilMain = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(13.2, 0.28, 8.0)), makeSegWallMat(0xdcd3f7, 0x2b234d));
+      bCeilMain.position.set(4.2, TERRACE_Y - 0.14, -0.2);
+      const bCeilStairFront = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.8, 0.28, 3.2)), makeSegWallMat(0xdcd3f7, 0x2b234d));
+      bCeilStairFront.position.set(11.7, TERRACE_Y - 0.14, 2.2);
+      registerFadeEntry([bCeilMain, bCeilStairFront], { isCeiling: true });
+      bedCeilingGroup.add(bCeilMain, bCeilStairFront);
+      roomCeilings[3] = bedCeilingGroup;
+
+      roomGroups[3].add(
+        bedSlab, bedSupportPost, bBackWall, bLeftWall, bLeftCap, bBackCap, bBackBase, bLeftBase,
+        bFrontWall, bFrontBase, bFrontCap, bRightWall, bRightHeader, bRightBase, bedCeilingGroup
+      );
+
+      /* Right stair 1 landing flush at X ∈ [+12.6, +14.6], Z ∈ [-4.2, -2.0] (part of staircase1Group) */
       const stair1Landing = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.36, 2.2)), bedFloorMat);
       stair1Landing.position.set(13.6, BEDROOM_Y - 0.18, -3.1);
       stair1Landing.castShadow = true;
       stair1Landing.receiveShadow = true;
+      const stair1LandingBackCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.02, 0.08, WALL_T + 0.05)), hCapMat);
+      stair1LandingBackCap.position.set(13.6, TERRACE_Y + 0.04, Z_BACK + WALL_T * 0.5);
+      const stair1LandingBackBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.0, 0.16, 0.06)), hBaseMat);
+      stair1LandingBackBase.position.set(13.6, BEDROOM_Y + 0.08, Z_BACK_INNER + 0.02);
+      staircase1Group.add(stair1Landing, stair1LandingBackCap, stair1LandingBackBase);
 
-      /* Structural support post under Bedroom's front-left corner so nothing floats */
-      const bedSupportPost = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.22, BEDROOM_Y - 0.36, 0.22)), hPlinthMat);
-      bedSupportPost.position.set(-2.24, (BEDROOM_Y - 0.36) * 0.5, 1.04);
-      bedSupportPost.castShadow = true;
-
-      /* Full-height Bedroom Back & Left Walls (Soft Lavender) */
-      const bedWallH = TERRACE_Y - BEDROOM_Y; // 4.8
-      const bBackWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(17.0, bedWallH, WALL_T)), bedWallMat);
-      bBackWall.position.set(6.1, BEDROOM_Y + bedWallH * 0.5, Z_BACK + WALL_T * 0.5);
-      bBackWall.receiveShadow = true;
-      bBackWall.castShadow = true;
-      const bLeftWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T, bedWallH, 5.4)), bedWallMat);
-      bLeftWall.position.set(-2.4 + WALL_T * 0.5, BEDROOM_Y + bedWallH * 0.5, -1.5);
-      bLeftWall.receiveShadow = true;
-      bLeftWall.castShadow = true;
-      const bLeftCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(WALL_T + 0.05, 0.08, 5.44)), hCapMat);
-      bLeftCap.position.set(-2.4 + WALL_T * 0.5, TERRACE_Y + 0.04, -1.5);
-      const bBackCap = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(17.04, 0.08, WALL_T + 0.05)), hCapMat);
-      bBackCap.position.set(6.1, TERRACE_Y + 0.04, Z_BACK + WALL_T * 0.5);
-      const bBackBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(16.7, 0.16, 0.06)), hBaseMat);
-      bBackBase.position.set(6.25, BEDROOM_Y + 0.08, Z_BACK_INNER + 0.02);
-      const bLeftBase = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.06, 0.16, 5.1)), hBaseMat);
-      bLeftBase.position.set(-2.08, BEDROOM_Y + 0.08, -1.35);
-
-      houseShell.add(bedSlab, stair1Landing, bedSupportPost, bBackWall, bLeftWall, bLeftCap, bBackCap, bBackBase, bLeftBase);
-
-      /* Slim & Low Cutaway Railings (front edges very low so furniture stays completely visible) */
-      const lowPostGeo = trackGeo(new THREE.CylinderGeometry(0.024, 0.024, 0.38, 8));
-      const backPostGeo = trackGeo(new THREE.CylinderGeometry(0.028, 0.028, 0.56, 8));
-      function addRailingSegment(x1, z1, x2, z2, baseY, lowFront = false) {
+      /* Slim Railings (Terrace perimeter + stairwell openings) */
+      const lowPostGeo = trackGeo(new THREE.CylinderGeometry(0.024, 0.024, 0.52, 8));
+      const backPostGeo = trackGeo(new THREE.CylinderGeometry(0.028, 0.028, 0.68, 8));
+      function addRailingSegment(targetGroup, x1, z1, x2, z2, baseY, lowFront = false) {
         const dx = x2 - x1;
         const dz = z2 - z1;
         const len = Math.hypot(dx, dz);
         const angle = Math.atan2(dx, dz);
         const midX = (x1 + x2) * 0.5;
         const midZ = (z1 + z2) * 0.5;
-        const h = lowFront ? 0.38 : 0.56;
+        const h = lowFront ? 0.52 : 0.68;
         const pGeo = lowFront ? lowPostGeo : backPostGeo;
-        const count = Math.max(2, Math.round(len / 2.8) + 1);
+        const count = Math.max(2, Math.round(len / 2.2) + 1);
         for (let i = 0; i < count; i++) {
           const t = i / (count - 1);
           const p = new THREE.Mesh(pGeo, hRailMat);
           p.position.set(x1 + dx * t, baseY + h * 0.5, z1 + dz * t);
-          houseShell.add(p);
+          targetGroup.add(p);
         }
-        const bar = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.032, 0.032, len + 0.04)), hRailMat);
+        const bar = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.036, 0.036, len + 0.04)), hRailMat);
         bar.position.set(midX, baseY + h, midZ);
         bar.rotation.y = angle;
-        houseShell.add(bar);
+        targetGroup.add(bar);
       }
 
-      /* Bedroom Open Front & Right Edge Railings (ultra-low 0.38 front curb rail + open Stair 1 landing) */
-      addRailingSegment(-2.22, 1.08, 12.48, 1.08, BEDROOM_Y, true);
-      addRailingSegment(12.48, -1.9, 12.48, 1.08, BEDROOM_Y, true);
-      addRailingSegment(12.6, -4.02, 14.48, -4.02, BEDROOM_Y, false);
-      addRailingSegment(14.48, -4.02, 14.48, -2.05, BEDROOM_Y, true);
+      /* Safety railing along Staircase 2 opening inside Bedroom + Stair 1 landing edge */
+      addRailingSegment(roomGroups[3], 10.75, -2.9, 10.75, 0.45, BEDROOM_Y, false);
+      addRailingSegment(staircase1Group, 12.65, -2.0, 14.48, -2.0, BEDROOM_Y, true);
 
       /* Thin floor strips & signs at Stair 1 arrival + Stair 2 entry */
       const stair1TopStrip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.024, 2.0)), hStripMat);
       stair1TopStrip.position.set(12.6, BEDROOM_Y + 0.012, -3.1);
+      staircase1Group.add(stair1TopStrip);
       const stair2Strip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.68, 0.024, 0.14)), hStripMat);
       stair2Strip.position.set(11.7, BEDROOM_Y + 0.012, 0.5);
-      houseShell.add(stair1TopStrip, stair2Strip);
-      addDoorwaySign("↑ TERRACE", "#5eead4", 11.7, BEDROOM_Y + 1.45, 0.55, -0.35);
+      staircase2Group.add(stair2Strip);
+      addDoorwaySign(staircase2Group, "↑ TERRACE", "#5eead4", 11.7, BEDROOM_Y + 1.45, 0.55, -0.35);
 
-      function buildStaircase(cx, width, zBottom, zTop, yBottom, yTop, steps) {
+      function buildStaircase(targetGroup, cx, width, zBottom, zTop, yBottom, yTop, steps) {
         const sg = new THREE.Group();
         const spanZ = zTop - zBottom;
         const riseY = yTop - yBottom;
@@ -2948,41 +3881,38 @@
           });
           sg.add(str, rail);
         });
-        houseShell.add(sg);
+        targetGroup.add(sg);
       }
 
       /* Staircase 1: Right end of Kitchen (13.6, 0, +3.2) -> Bedroom landing (13.6, 5.4, -2.0) */
-      buildStaircase(13.6, 1.85, 3.2, -2.0, GROUND_Y, BEDROOM_Y, STAIR1_STEPS);
+      buildStaircase(staircase1Group, 13.6, 1.85, 3.2, -2.0, GROUND_Y, BEDROOM_Y, STAIR1_STEPS);
 
-      /* ---------- TOP LEVEL: ROOFTOP TERRACE (Dark Night Blue, above Bedroom) ---------- */
+      /* ---------- TOP LEVEL: OPEN ROOFTOP TERRACE (Dark Night Blue under Night Sky Dome) ---------- */
       /* Deck: X ∈ [-0.4, +10.8] (11.2), Z ∈ [-4.2, +1.0] (5.2), top at TERRACE_Y = 10.2 */
       const terraceSlab = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(11.2, 0.36, 5.2)), hTerraceMat);
       terraceSlab.position.set(5.2, TERRACE_Y - 0.18, -1.6);
-      terraceSlab.castShadow = true;
       terraceSlab.receiveShadow = true;
-      const tLanding = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.8, 0.36, 1.3)), hTerraceMat);
-      tLanding.position.set(11.7, TERRACE_Y - 0.18, -3.55);
-      tLanding.castShadow = true;
-      tLanding.receiveShadow = true;
       const tTrimFront = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(11.26, 0.06, 0.06)), hRailMat);
       tTrimFront.position.set(5.2, TERRACE_Y - 0.02, 1.0);
-      const tSupportPost = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.2, TERRACE_Y - BEDROOM_Y - 0.36, 0.2)), hPlinthMat);
-      tSupportPost.position.set(-0.22, BEDROOM_Y + (TERRACE_Y - BEDROOM_Y - 0.36) * 0.5, 0.85);
-      tSupportPost.castShadow = true;
+      roomGroups[4].add(terraceSlab, tTrimFront);
+
+      const tLanding = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.8, 0.36, 1.3)), hTerraceMat);
+      tLanding.position.set(11.7, TERRACE_Y - 0.18, -3.55);
+      tLanding.receiveShadow = true;
       const tStairStrip = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.14, 0.024, 1.25)), hStripMat);
       tStairStrip.position.set(10.8, TERRACE_Y + 0.012, -3.55);
-      houseShell.add(terraceSlab, tLanding, tTrimFront, tSupportPost, tStairStrip);
+      staircase2Group.add(tLanding, tStairStrip);
 
-      /* Terrace Perimeter Railings (back normal slim, front & right very low 0.38 so stars & furniture stay open) */
-      addRailingSegment(-0.28, -4.06, 10.68, -4.06, TERRACE_Y, false);
-      addRailingSegment(-0.28, -4.06, -0.28, 0.88, TERRACE_Y, false);
-      addRailingSegment(-0.28, 0.88, 10.68, 0.88, TERRACE_Y, true);
-      addRailingSegment(10.68, -2.85, 10.68, 0.88, TERRACE_Y, true);
-      addRailingSegment(10.8, -4.06, 12.5, -4.06, TERRACE_Y, false);
-      addRailingSegment(12.5, -4.06, 12.5, -2.95, TERRACE_Y, true);
+      /* Terrace Full Perimeter Railings (Open deck under Night Sky Dome) */
+      addRailingSegment(roomGroups[4], -0.28, -4.06, 10.68, -4.06, TERRACE_Y, false);
+      addRailingSegment(roomGroups[4], -0.28, -4.06, -0.28, 0.88, TERRACE_Y, false);
+      addRailingSegment(roomGroups[4], -0.28, 0.88, 10.68, 0.88, TERRACE_Y, true);
+      addRailingSegment(roomGroups[4], 10.68, -2.85, 10.68, 0.88, TERRACE_Y, true);
+      addRailingSegment(staircase2Group, 10.8, -4.06, 12.5, -4.06, TERRACE_Y, false);
+      addRailingSegment(staircase2Group, 12.5, -4.06, 12.5, -2.95, TERRACE_Y, true);
 
       /* Staircase 2: Bedroom (11.7, 5.4, +0.4) -> Rooftop Terrace landing (11.7, 10.2, -2.9) */
-      buildStaircase(11.7, 1.68, 0.4, -2.9, BEDROOM_Y, TERRACE_Y, STAIR2_STEPS);
+      buildStaircase(staircase2Group, 11.7, 1.68, 0.4, -2.9, BEDROOM_Y, TERRACE_Y, STAIR2_STEPS);
 
       /* Walk-surface proxies (for smooth drag-and-snap anywhere across all 3 levels & both stairs) */
       addWalkSurface(8.2, 8.0, -8.4, GROUND_Y, 0, { zone: "hall", roomIdx: 0 });
@@ -2991,7 +3921,7 @@
       addWalkSurface(1.9, Math.hypot(5.2, BEDROOM_Y), 13.6, BEDROOM_Y * 0.5, 0.6, {
         zone: "stair1", roomIdx: 2, y0: GROUND_Y, y1: BEDROOM_Y, z0: 3.2, z1: -2.0, steps: STAIR1_STEPS
       }, Math.atan2(BEDROOM_Y, 5.2));
-      addWalkSurface(14.8, 5.2, 5.1, BEDROOM_Y, -1.5, { zone: "bedroom", roomIdx: 3 });
+      addWalkSurface(14.8, 7.8, 5.1, BEDROOM_Y, -0.2, { zone: "bedroom", roomIdx: 3 });
       addWalkSurface(2.0, 2.2, 13.6, BEDROOM_Y, -3.1, { zone: "bedroom", roomIdx: 3 });
       addWalkSurface(1.75, Math.hypot(3.3, TERRACE_Y - BEDROOM_Y), 11.7, (BEDROOM_Y + TERRACE_Y) * 0.5, -1.25, {
         zone: "stair2", roomIdx: 3, y0: BEDROOM_Y, y1: TERRACE_Y, z0: 0.4, z1: -2.9, steps: STAIR2_STEPS
@@ -3246,12 +4176,12 @@
       }
       registerRoomItem(1, bookshelf, {
         id: "bookshelf",
-        tooltip: "Bookshelf: Projects (Click or drag)",
+        tooltip: "Bookshelf: Skills Notes (Click or drag)",
         pos: [-2.35, GROUND_Y, -3.4],
         standPos: [-2.3, GROUND_Y, -1.9],
         scale: 1.32,
         gesture: "point",
-        onClick: () => openProjectsPanel(els.roomActionBtn)
+        onClick: () => openSkillsPanel(null, els.roomActionBtn)
       });
 
       /* Study Desk + Chair + Laptop + Lamp */
@@ -3305,13 +4235,13 @@
       laptopGroup.add(lBase, lPivot);
       registerRoomItem(1, laptopGroup, {
         id: "laptop",
-        tooltip: "Laptop: Skills Overview (Click or drag)",
+        tooltip: "Laptop: Projects IDE (Click or drag)",
         pos: [1.35, STUDY_DESK_Y, -2.92],
-        standPos: [1.35, GROUND_Y, -1.75],
+        standPos: [0.32, GROUND_Y, -1.92],
         scale: 1.35,
         isDeskTop: true,
         gesture: "point",
-        onClick: () => openSkillsPanel(null, els.roomActionBtn)
+        onClick: () => enterLaptopFocus(els.roomActionBtn)
       });
 
       const lampGroup = new THREE.Group();
@@ -3594,21 +4524,8 @@
         pos: [9.8, BEDROOM_Y, -3.3]
       });
 
-      /* ---------------- ROOM 4: TERRACE (HACKATHONS — 6 main items: 1 rug, 1 plant, 1 wall art + bench, table, lantern + constellation) ---------------- */
-      /* Cozy Terrace Corner Starry Sky Alcove (slim & dark night blue) */
-      const tAlcoveWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.16, 2.75, 2.6)), tAlcoveWallMat);
-      tAlcoveWall.position.set(-0.22, TERRACE_Y + 1.375, -2.8);
-      const tBackPlaqueWall = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(4.3, 2.75, 0.16)), tAlcoveWallMat);
-      tBackPlaqueWall.position.set(1.85, TERRACE_Y + 1.375, -4.02);
-      const tSkyPanel = new THREE.Mesh(
-        trackGeo(new THREE.PlaneGeometry(2.0, 1.15)),
-        trackMat(new THREE.MeshBasicMaterial({ map: nightSkyTex }))
-      );
-      tSkyPanel.position.set(2.95, TERRACE_Y + 1.68, -3.9);
-      roomGroups[4].add(tAlcoveWall, tBackPlaqueWall, tSkyPanel);
-
-      addRoomWindowAt(4, -0.1, TERRACE_Y + 1.65, -2.7, Math.PI / 2, 1.45, 1.2);
-      addWallArtAt(4, 0.9, TERRACE_Y + 1.68, -3.88, 0, 1.3, 1.0, 0x1e1b4b, 0x2dd4bf);
+      /* ---------------- ROOM 4: TERRACE (HACKATHONS — Open Railed Deck under Night Sky Dome) ---------------- */
+      addWallArtAt(4, 1.6, TERRACE_Y + 0.72, -3.96, 0, 1.25, 0.9, 0x1e1b4b, 0x2dd4bf);
       addRoomRugAt(4, 5.1, TERRACE_Y, -1.05, 4.1, 2.5, 0x1e293b, 0x0f766e);
 
       const terraceBench = new THREE.Group();
@@ -3758,11 +4675,17 @@
         starG.add(halo);
 
         const lblTex = createStarLabelTexture(hack.name, hack.color);
-        const lblMat = trackMat(new THREE.SpriteMaterial({ map: lblTex, transparent: true, opacity: 0.96, depthWrite: false }));
-        const lblSprite = new THREE.Sprite(lblMat);
-        lblSprite.scale.set(2.45, 0.46, 1);
-        lblSprite.position.set(0, 0.72, 0);
-        starG.add(lblSprite);
+        const lblMat = trackMat(new THREE.MeshBasicMaterial({
+          map: lblTex,
+          transparent: true,
+          opacity: 0.96,
+          depthWrite: false,
+          side: THREE.DoubleSide
+        }));
+        const lblMesh = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(2.45, 0.46)), lblMat);
+        lblMesh.position.set(0, 0.72, 0);
+        starG.add(lblMesh);
+        starLabelMeshes.push(lblMesh);
 
         registerRoomItem(4, starG, {
           id: `star-${hack.id}`,
@@ -3874,9 +4797,11 @@
 
       enableShadows(avatarGroup);
 
-      const EXTERIOR_AVATAR_POS = new THREE.Vector3(1.55, 0, 3.35);
+      const INTERIOR_AVATAR_SCALE = 1.22;
+      const EXTERIOR_AVATAR_SCALE = INTERIOR_AVATAR_SCALE * EXTERIOR_SCALE;
+      const EXTERIOR_AVATAR_POS = new THREE.Vector3(1.38 * EXTERIOR_SCALE, 0, 3.32 * EXTERIOR_SCALE);
 
-      avatarGroup.scale.setScalar(1.22);
+      avatarGroup.scale.setScalar(EXTERIOR_AVATAR_SCALE);
       avatarGroup.userData = {
         id: "avatar",
         tooltip: "Rubina (Click or drag anywhere)",
@@ -3931,18 +4856,24 @@
         return null;
       }
 
-      function detectZoneAt(pos) {
+      function detectZoneAt(pos, isWalkingNow = false, targetRoom = appState.activeRoomIdx) {
         if (pos.y > TERRACE_Y - 0.85) {
           return { roomIdx: 4, onStair: 0 };
         }
         if (pos.y > BEDROOM_Y + 0.45) {
-          return { roomIdx: pos.y > (BEDROOM_Y + TERRACE_Y) * 0.5 ? 4 : 3, onStair: 2 };
+          const threshold = isWalkingNow
+            ? (targetRoom >= 4 ? TERRACE_Y - 1.0 : BEDROOM_Y + 1.0)
+            : (BEDROOM_Y + TERRACE_Y) * 0.5;
+          return { roomIdx: pos.y >= threshold ? 4 : 3, onStair: 2 };
         }
         if (pos.y > BEDROOM_Y - 0.8) {
           return { roomIdx: 3, onStair: 0 };
         }
         if (pos.y > GROUND_Y + 0.45) {
-          return { roomIdx: pos.y > BEDROOM_Y * 0.5 ? 3 : 2, onStair: 1 };
+          const threshold = isWalkingNow
+            ? (targetRoom >= 3 ? BEDROOM_Y - 1.05 : GROUND_Y + 1.05)
+            : BEDROOM_Y * 0.5;
+          return { roomIdx: pos.y >= threshold ? 3 : 2, onStair: 1 };
         }
         if (pos.x < -4.2) return { roomIdx: 0, onStair: 0 };
         if (pos.x <= 4.2) return { roomIdx: 1, onStair: 0 };
@@ -4137,21 +5068,263 @@
       function openCurrentRoomDefaultPanel() {
         const rmId = ROOM_CONFIG.rooms[appState.activeRoomIdx].id;
         if (rmId === "hall") openAboutPanel(els.roomActionBtn);
-        else if (rmId === "study") openProjectsPanel(els.roomActionBtn);
+        else if (rmId === "study") focusLaptopProjects(els.roomActionBtn);
         else if (rmId === "kitchen") openContactPanel(els.roomActionBtn);
         else if (rmId === "bedroom") openLearningPanel(els.roomActionBtn);
         else if (rmId === "terrace") openHackathonPanel(null, els.roomActionBtn);
       }
       els.roomActionBtn.addEventListener("click", openCurrentRoomDefaultPanel);
 
+      const _doorKnockAnchor = new THREE.Vector3(0, 0.04 * EXTERIOR_SCALE, 3.74 * EXTERIOR_SCALE);
+      const _knockProj = new THREE.Vector3();
+      function updateKnockOverlayPosition() {
+        if (els.knockOverlay.hidden || appState.scenePhase !== "exterior") return;
+        const vw = Math.max(320, window.innerWidth);
+        const vh = Math.max(320, window.innerHeight);
+        const topBarEl = document.querySelector(".top-bar");
+        const minTop = topBarEl ? topBarEl.getBoundingClientRect().bottom + 24 : 76;
+        camera.updateMatrixWorld();
+        _knockProj.copy(_doorKnockAnchor).project(camera);
+        const rawX = ((_knockProj.x + 1) * 0.5) * vw;
+        const rawY = ((-_knockProj.y + 1) * 0.5) * vh;
+        const halfOverlayW = Math.min(165, vw * 0.44);
+        const px = THREE.MathUtils.clamp(rawX, halfOverlayW, vw - halfOverlayW);
+        const py = THREE.MathUtils.clamp(rawY, minTop, vh - 86);
+        els.knockOverlay.style.left = `${px.toFixed(1)}px`;
+        els.knockOverlay.style.top = `${py.toFixed(1)}px`;
+        els.knockOverlay.style.bottom = "auto";
+        els.knockOverlay.style.transform = "translate(-50%, 0)";
+      }
+
+      /* 3D Laptop Screen Zoom + 4-Corner Projected VS Code Overlay */
+      const SCR_HALF_W = 0.375;
+      const SCR_HALF_H = 0.225;
+      const _scrLocalCorners = [
+        new THREE.Vector3(-SCR_HALF_W,  SCR_HALF_H, 0),
+        new THREE.Vector3( SCR_HALF_W,  SCR_HALF_H, 0),
+        new THREE.Vector3( SCR_HALF_W, -SCR_HALF_H, 0),
+        new THREE.Vector3(-SCR_HALF_W, -SCR_HALF_H, 0)
+      ];
+      const _scrWorldCorners = [
+        new THREE.Vector3(),
+        new THREE.Vector3(),
+        new THREE.Vector3(),
+        new THREE.Vector3()
+      ];
+      const _scrProjPx = [
+        { x: 0, y: 0 },
+        { x: 0, y: 0 },
+        { x: 0, y: 0 },
+        { x: 0, y: 0 }
+      ];
+      const _scrCenter = new THREE.Vector3();
+      const _scrNormal = new THREE.Vector3();
+      const laptopFocus = {
+        active: false,
+        leaving: false,
+        leaveTimer: 0,
+        enterTimer: 0,
+        overlayShown: false,
+        triggerEl: null
+      };
+
+      function computeLaptopCamGoal(outPos, outLook) {
+        lScr.updateWorldMatrix(true, false);
+        _scrCenter.set(0, 0, 0).applyMatrix4(lScr.matrixWorld);
+        _scrNormal.set(0, 0, 1).transformDirection(lScr.matrixWorld).normalize();
+        _scrWorldCorners[0].copy(_scrLocalCorners[0]).applyMatrix4(lScr.matrixWorld);
+        _scrWorldCorners[1].copy(_scrLocalCorners[1]).applyMatrix4(lScr.matrixWorld);
+        _scrWorldCorners[3].copy(_scrLocalCorners[3]).applyMatrix4(lScr.matrixWorld);
+
+        const worldW = _scrWorldCorners[1].distanceTo(_scrWorldCorners[0]);
+        const worldH = _scrWorldCorners[0].distanceTo(_scrWorldCorners[3]);
+        const vTan = Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5));
+        const hTan = vTan * Math.max(0.35, camera.aspect);
+        const distH = worldH / (2 * 0.60 * vTan);
+        const distW = worldW / (2 * 0.88 * hTan);
+        const dist = Math.max(distH, distW);
+
+        outLook.copy(_scrCenter);
+        outPos.copy(_scrCenter).addScaledVector(_scrNormal, dist);
+      }
+
+      function updateLaptopScreenOverlay() {
+        if (els.laptopScreenOverlay.hidden) return;
+        const vw = Math.max(320, window.innerWidth);
+        const vh = Math.max(320, window.innerHeight);
+
+        lScr.updateWorldMatrix(true, false);
+        camera.updateMatrixWorld();
+
+        for (let i = 0; i < 4; i++) {
+          _scrWorldCorners[i].copy(_scrLocalCorners[i]).applyMatrix4(lScr.matrixWorld).project(camera);
+          _scrProjPx[i].x = ((_scrWorldCorners[i].x + 1) * 0.5) * vw;
+          _scrProjPx[i].y = ((1 - _scrWorldCorners[i].y) * 0.5) * vh;
+        }
+
+        const pTL = _scrProjPx[0];
+        const pTR = _scrProjPx[1];
+        const pBR = _scrProjPx[2];
+        const pBL = _scrProjPx[3];
+
+        const topW = Math.hypot(pTR.x - pTL.x, pTR.y - pTL.y);
+        const botW = Math.hypot(pBR.x - pBL.x, pBR.y - pBL.y);
+        const leftH = Math.hypot(pBL.x - pTL.x, pBL.y - pTL.y);
+        const rightH = Math.hypot(pBR.x - pTR.x, pBR.y - pTR.y);
+
+        const projW = Math.max(120, (topW + botW) * 0.5);
+        const projH = Math.max(80, (leftH + rightH) * 0.5);
+        let cx = (pTL.x + pTR.x + pBR.x + pBL.x) * 0.25;
+        let cy = (pTL.y + pTR.y + pBR.y + pBL.y) * 0.25;
+        const angleRad = Math.atan2(pTR.y - pTL.y, pTR.x - pTL.x);
+
+        const isCompact = vw <= 640 || projW < 520;
+        els.laptopScreenOverlay.classList.toggle("is-compact", isCompact);
+
+        let displayW = projW;
+        let displayH = projH;
+        if (isCompact) {
+          displayW = Math.min(vw - 14, Math.max(projW, vw * 0.94));
+          displayH = Math.min(vh - 96, Math.max(projH, Math.min(480, vh * 0.66)));
+          cx = THREE.MathUtils.clamp(cx, displayW * 0.5 + 7, vw - displayW * 0.5 - 7);
+          cy = THREE.MathUtils.clamp(cy, displayH * 0.5 + 56, vh - displayH * 0.5 - 12);
+        }
+
+        els.laptopScreenOverlay.style.width = `${displayW.toFixed(1)}px`;
+        els.laptopScreenOverlay.style.height = `${displayH.toFixed(1)}px`;
+        els.laptopScreenOverlay.style.transform =
+          `translate3d(${(cx - displayW * 0.5).toFixed(1)}px, ${(cy - displayH * 0.5).toFixed(1)}px, 0) rotate(${angleRad.toFixed(4)}rad)`;
+      }
+
+      function enterLaptopFocus(triggerEl = null) {
+        if (!houseGroup.visible) return;
+        laptopFocus.active = true;
+        laptopFocus.leaving = false;
+        laptopFocus.enterTimer = 0;
+        laptopFocus.overlayShown = false;
+        laptopFocus.triggerEl = triggerEl || els.roomActionBtn;
+
+        appState.scenePhase = "laptop";
+        appState.activeRoomIdx = 1;
+        walkState.active = false;
+        isOrbitDragging = false;
+        draggedItem = null;
+        hoveredItem = null;
+        els.hoverTooltip.hidden = true;
+        els.speechBubble.hidden = true;
+        avatarState.speechTimer = 0;
+        document.body.style.cursor = "default";
+
+        document.body.classList.add("is-laptop-focused");
+        els.leaveLaptopBtn.hidden = false;
+
+        renderLaptopIde(false);
+        els.laptopScreenOverlay.classList.remove("is-visible");
+        els.laptopScreenOverlay.hidden = false;
+
+        computeLaptopCamGoal(perspCamState.targetPos, perspCamState.targetLookAt);
+        if (prefersReducedMotion) {
+          applyCamImmediate(perspCamState.targetPos, perspCamState.targetLookAt);
+          updateLaptopScreenOverlay();
+          els.laptopScreenOverlay.classList.add("is-visible");
+          laptopFocus.overlayShown = true;
+          const activeTabEl = els.vscodeTabs.querySelector('[aria-selected="true"]');
+          activeTabEl?.focus();
+        } else {
+          updateLaptopScreenOverlay();
+        }
+      }
+
+      function leaveLaptopFocus(immediate = false) {
+        if (appState.scenePhase !== "laptop" && !laptopFocus.active && !laptopFocus.leaving) return;
+        laptopFocus.active = false;
+        laptopFocus.overlayShown = false;
+
+        document.body.classList.remove("is-laptop-focused");
+        els.leaveLaptopBtn.hidden = true;
+        els.laptopScreenOverlay.classList.remove("is-visible");
+
+        if (immediate || prefersReducedMotion) {
+          laptopFocus.leaving = false;
+          els.laptopScreenOverlay.hidden = true;
+        } else {
+          laptopFocus.leaving = true;
+          laptopFocus.leaveTimer = 0;
+        }
+
+        if (appState.scenePhase === "laptop") {
+          appState.scenePhase = "room";
+          updateStageBackdrop(ROOM_CONFIG.rooms[appState.activeRoomIdx].id);
+          syncRoomCameraGoal(immediate || prefersReducedMotion);
+          showRoomChip();
+        }
+
+        const restoreEl = laptopFocus.triggerEl;
+        laptopFocus.triggerEl = null;
+        if (!immediate && appState.mode === "3d" && restoreEl && typeof restoreEl.focus === "function") {
+          requestAnimationFrame(() => restoreEl.focus());
+        }
+      }
+
+      function focusLaptopProjects(triggerEl = null) {
+        if (appState.scenePhase === "exterior" || appState.scenePhase === "opening" || appState.scenePhase === "laptop") return;
+        const standPos = new THREE.Vector3(
+          THREE.MathUtils.clamp(laptopGroup.position.x - 1.03, ROOM_BOUNDS[1].minX, ROOM_BOUNDS[1].maxX),
+          GROUND_Y,
+          THREE.MathUtils.clamp(laptopGroup.position.z + 1.0, ROOM_BOUNDS[1].minZ, ROOM_BOUNDS[1].maxZ)
+        );
+        walkToTarget(1, standPos, laptopGroup.position, () => {
+          if (!prefersReducedMotion) {
+            avatarState.gestureType = "point";
+            avatarState.gestureTimer = 0.7;
+          }
+          enterLaptopFocus(triggerEl || els.roomActionBtn);
+        }, false);
+      }
+
+      function resetWallFadesImmediate() {
+        for (let i = 0; i < fadeWallEntries.length; i++) {
+          const entry = fadeWallEntries[i];
+          entry.curAlpha = 1;
+          entry.targetAlpha = 1;
+          for (let j = 0; j < entry.mats.length; j++) {
+            const rec = entry.mats[j];
+            if (rec.mat.transparent !== rec.baseTransparent) {
+              rec.mat.transparent = rec.baseTransparent;
+              rec.mat.needsUpdate = true;
+            }
+            rec.mat.depthWrite = rec.baseDepthWrite;
+            rec.mat.opacity = rec.baseOpacity;
+          }
+        }
+      }
+
+      function returnFromWholeHouseOverview() {
+        if (appState.scenePhase !== "overview") return;
+        appState.scenePhase = "room";
+        els.wholeHouseBtn.classList.remove("is-active");
+        els.wholeHouseBtn.setAttribute("aria-pressed", "false");
+        camOrbit.targetYaw = 0;
+        camOrbit.targetPitch = 0;
+        updateRoomUI(appState.activeRoomIdx);
+        syncRoomCameraGoal(prefersReducedMotion);
+      }
+
       function refitCurrentPhase(immediate = false) {
         if (appState.scenePhase === "exterior" || appState.scenePhase === "opening") {
-          const box = knockAnim.active && knockAnim.stage === "dolly" ? DOORWAY_BOX : EXTERIOR_BOX;
-          fitIsoCamera(box, immediate, false, ISO_BASE_DIR);
+          const isDolly = knockAnim.active && knockAnim.stage === "dolly";
+          fitBoxPerspective(isDolly ? DOORWAY_BOX : EXTERIOR_BOX, immediate, isDolly ? 1.05 : 1.18);
+          if (immediate) updateKnockOverlayPosition();
+        } else if (appState.scenePhase === "laptop") {
+          computeLaptopCamGoal(perspCamState.targetPos, perspCamState.targetLookAt);
+          if (immediate || prefersReducedMotion) {
+            applyCamImmediate(perspCamState.targetPos, perspCamState.targetLookAt);
+          }
+          updateLaptopScreenOverlay();
         } else if (appState.scenePhase === "overview") {
-          fitIsoCamera(WHOLE_HOUSE_BOX, immediate, false, ISO_BASE_DIR);
+          fitBoxPerspective(WHOLE_HOUSE_BOX, immediate, 1.15);
         } else {
-          fitRoomToViewport(appState.activeRoomIdx, immediate, avatarGroup.position);
+          syncRoomCameraGoal(immediate);
         }
       }
 
@@ -4164,13 +5337,19 @@
       };
 
       function showConnectedHouseImmediate(roomIdx, waveOnEntry = true, customPos = null) {
+        leaveLaptopFocus(true);
         appState.scenePhase = "room";
         appState.activeRoomIdx = roomIdx;
         walkState.active = false;
         exteriorGroup.visible = false;
         houseGroup.visible = true;
+        camOrbit.targetYaw = 0;
+        camOrbit.curYaw = 0;
+        camOrbit.targetPitch = 0;
+        camOrbit.curPitch = 0;
 
         const homeWp = WAYPOINTS[ROOM_HOME_WP[roomIdx]];
+        avatarGroup.scale.setScalar(INTERIOR_AVATAR_SCALE);
         avatarGroup.visible = true;
         if (customPos) {
           avatarGroup.position.copy(customPos);
@@ -4192,12 +5371,21 @@
         els.wholeHouseBtn.classList.remove("is-active");
         els.wholeHouseBtn.setAttribute("aria-pressed", "false");
         updateRoomUI(roomIdx);
-        requestAnimationFrame(() => fitRoomToViewport(roomIdx, true, avatarGroup.position));
+        syncRoomCameraGoal(true);
+      }
+
+      function getDoorwayEntryWaypoint(fromRoomIdx, toRoomIdx) {
+        if (toRoomIdx === 0) return WAYPOINTS[1];
+        if (toRoomIdx === 1) return fromRoomIdx <= 0 ? WAYPOINTS[2] : WAYPOINTS[4];
+        if (toRoomIdx === 2) return fromRoomIdx <= 1 ? WAYPOINTS[5] : WAYPOINTS[7];
+        if (toRoomIdx === 3) return fromRoomIdx <= 2 ? WAYPOINTS[10] : WAYPOINTS[12];
+        return WAYPOINTS[15];
       }
 
       function walkToTarget(targetRoomIdx, finalStandPos = null, faceTarget = null, onArrive = null, waveOnArrive = true) {
         if (appState.scenePhase === "exterior" || appState.scenePhase === "opening") return;
 
+        const prevRoomIdx = appState.activeRoomIdx;
         if (appState.scenePhase === "overview") {
           appState.scenePhase = "room";
           els.wholeHouseBtn.classList.remove("is-active");
@@ -4213,14 +5401,17 @@
 
         const wrapped = (targetRoomIdx + ROOM_CONFIG.rooms.length) % ROOM_CONFIG.rooms.length;
 
-        /* Reduced Motion: instant relocation + soft warm fade */
+        /* Reduced Motion: place Rubina at next room doorway and jump clip box & camera immediately */
         if (prefersReducedMotion) {
           walkState.active = false;
           appState.activeRoomIdx = wrapped;
-          const homeWp = WAYPOINTS[ROOM_HOME_WP[wrapped]];
           if (finalStandPos) {
             avatarGroup.position.copy(finalStandPos);
+          } else if (wrapped !== prevRoomIdx) {
+            const entryWp = getDoorwayEntryWaypoint(prevRoomIdx, wrapped);
+            avatarGroup.position.set(entryWp.x, entryWp.y, entryWp.z);
           } else {
+            const homeWp = WAYPOINTS[ROOM_HOME_WP[wrapped]];
             avatarGroup.position.set(homeWp.x, homeWp.y, homeWp.z);
           }
           if (faceTarget) {
@@ -4231,12 +5422,7 @@
             avatarGroup.rotation.y = 0.45;
           }
           updateRoomUI(wrapped);
-          fitRoomToViewport(wrapped, true, avatarGroup.position);
-          veilFade.active = true;
-          veilFade.elapsed = 0;
-          veilFade.duration = 0.16;
-          veilFade.from = 0.55;
-          veilFade.to = 0;
+          syncRoomCameraGoal(true);
           if (onArrive) onArrive();
           return;
         }
@@ -4246,7 +5432,7 @@
           walkState.active = false;
           appState.activeRoomIdx = wrapped;
           updateRoomUI(wrapped);
-          fitRoomToViewport(wrapped, false, avatarGroup.position);
+          syncRoomCameraGoal(false);
           if (faceTarget) {
             const dx = faceTarget.x - avatarGroup.position.x;
             const dz = faceTarget.z - avatarGroup.position.z;
@@ -4269,7 +5455,10 @@
         walkState.faceTarget = faceTarget ? faceTarget.clone() : null;
         walkState.onArrive = onArrive;
         walkState.waveOnArrive = waveOnArrive;
-        updateRoomUI(detectZoneAt(avatarGroup.position).roomIdx);
+        const curZone = detectZoneAt(avatarGroup.position, true, wrapped);
+        appState.activeRoomIdx = curZone.roomIdx;
+        updateRoomUI(curZone.roomIdx);
+        syncRoomCameraGoal(false);
       }
 
       function goToRoom(targetIdx) {
@@ -4285,10 +5474,15 @@
         houseGroup.visible = true;
         doorSpillLight.intensity = 0;
         lightSpillMat.opacity = 0;
+        camOrbit.targetYaw = 0;
+        camOrbit.curYaw = 0;
+        camOrbit.targetPitch = 0;
+        camOrbit.curPitch = 0;
 
         avatarState.speechTimer = 0;
         els.speechBubble.hidden = true;
         const homeWp = WAYPOINTS[ROOM_HOME_WP[0]];
+        avatarGroup.scale.setScalar(INTERIOR_AVATAR_SCALE);
         avatarGroup.position.set(homeWp.x, homeWp.y, homeWp.z);
         avatarGroup.rotation.y = 0.45;
         avatarGroup.visible = true;
@@ -4306,7 +5500,7 @@
         els.wholeHouseBtn.classList.remove("is-active");
         els.wholeHouseBtn.setAttribute("aria-pressed", "false");
         updateRoomUI(0);
-        fitRoomToViewport(0, true, avatarGroup.position);
+        syncRoomCameraGoal(true);
 
         veilFade.active = true;
         veilFade.elapsed = 0;
@@ -4351,6 +5545,7 @@
       }
 
       function goOutside(immediate = false) {
+        leaveLaptopFocus(true);
         knockAnim.active = false;
         walkState.active = false;
         veilFade.active = false;
@@ -4360,6 +5555,10 @@
         els.hoverTooltip.hidden = true;
         hoveredItem = null;
         draggedItem = null;
+        document.body.classList.remove("controls-hidden", "is-laptop-focused");
+        els.bottomDock.classList.remove("is-collapsed");
+        els.dockToggleBtn.setAttribute("aria-expanded", "true");
+        els.dockToggleLabel.textContent = "Hide Controls";
         document.body.style.cursor = "default";
 
         if (immediate || prefersReducedMotion || appState.scenePhase === "exterior") {
@@ -4369,11 +5568,18 @@
           els.warmFadeVeil.style.opacity = immediate ? "0" : (prefersReducedMotion && !exteriorGroup.visible ? "0.75" : "0");
 
           houseGroup.visible = false;
+          nightSkyDome.visible = false;
+          resetWallFadesImmediate();
+          camOrbit.targetYaw = 0;
+          camOrbit.curYaw = 0;
+          camOrbit.targetPitch = 0;
+          camOrbit.curPitch = 0;
           exteriorGroup.visible = true;
           doorPivot.rotation.y = 0;
           doorSpillLight.intensity = 0;
           lightSpillMat.opacity = 0;
 
+          avatarGroup.scale.setScalar(EXTERIOR_AVATAR_SCALE);
           avatarGroup.visible = true;
           avatarGroup.position.copy(EXTERIOR_AVATAR_POS);
           avatarGroup.rotation.y = 0.28;
@@ -4390,9 +5596,11 @@
             veilFade.duration = 0.22;
             veilFade.from = 0.75;
             veilFade.to = 0;
-            fitIsoCamera(EXTERIOR_BOX, true, false, ISO_BASE_DIR);
+            fitBoxPerspective(EXTERIOR_BOX, true, 1.18);
+            updateKnockOverlayPosition();
           } else {
-            fitIsoCamera(EXTERIOR_BOX, immediate, false, ISO_BASE_DIR);
+            fitBoxPerspective(EXTERIOR_BOX, immediate, 1.18);
+            if (immediate) updateKnockOverlayPosition();
           }
           return;
         }
@@ -4411,11 +5619,7 @@
         if (appState.scenePhase === "exterior" || appState.scenePhase === "opening" || exitAnim.active) return;
 
         if (appState.scenePhase === "overview") {
-          appState.scenePhase = "room";
-          els.wholeHouseBtn.classList.remove("is-active");
-          els.wholeHouseBtn.setAttribute("aria-pressed", "false");
-          updateRoomUI(appState.activeRoomIdx);
-          fitRoomToViewport(appState.activeRoomIdx, false, avatarGroup.position);
+          returnFromWholeHouseOverview();
           return;
         }
 
@@ -4424,20 +5628,25 @@
         updateStageBackdrop("overview");
         exteriorGroup.visible = false;
         houseGroup.visible = true;
+        camOrbit.targetYaw = 0;
+        camOrbit.targetPitch = 0;
+        avatarGroup.scale.setScalar(INTERIOR_AVATAR_SCALE);
         avatarGroup.visible = true;
 
         els.wholeHouseBtn.classList.add("is-active");
         els.wholeHouseBtn.setAttribute("aria-pressed", "true");
-        els.roomBannerKicker.textContent = "3-LEVEL CONNECTED HOUSE";
+        els.roomBannerKicker.textContent = "3-LEVEL CONNECTED HOUSE · OVERVIEW";
         els.roomBannerTitle.textContent = "Rubina's Whole House";
-        els.roomBannerSub.textContent = "Click any room tab below or any item to walk Rubina right over.";
+        els.roomBannerSub.textContent = "Full connected home — drag to look around, or click any room tab.";
         showRoomChip();
-        requestAnimationFrame(() => fitIsoCamera(WHOLE_HOUSE_BOX, false, false, ISO_BASE_DIR));
+        fitBoxPerspective(WHOLE_HOUSE_BOX, prefersReducedMotion, 1.15);
       }
 
       function resetActiveRoomLayout() {
         if (appState.scenePhase === "room" || appState.scenePhase === "overview") {
           walkState.active = false;
+          camOrbit.targetYaw = 0;
+          camOrbit.targetPitch = 0;
           const idx = appState.activeRoomIdx;
           roomInteractiveItems[idx].forEach((item) => {
             item.position.copy(item.userData.defaultPos);
@@ -4447,7 +5656,9 @@
           avatarGroup.position.set(homeWp.x, homeWp.y, homeWp.z);
           avatarGroup.rotation.y = 0.45;
           if (appState.scenePhase === "room") {
-            fitRoomToViewport(idx, false, avatarGroup.position);
+            syncRoomCameraGoal(prefersReducedMotion);
+          } else {
+            fitBoxPerspective(WHOLE_HOUSE_BOX, prefersReducedMotion, 1.15);
           }
         }
       }
@@ -4466,13 +5677,20 @@
       let dragOffset = new THREE.Vector3();
       let downScreen = { x: 0, y: 0 };
       let didDrag = false;
+      let isOrbitDragging = false;
+      let orbitStartScreen = { x: 0, y: 0 };
+      let orbitStartYaw = 0;
+      let orbitStartPitch = 0;
       let lastHoverCheck = 0;
 
       const allInteractiveItems = roomInteractiveItems.flat();
 
       function getCurrentTargets() {
         if (appState.scenePhase === "exterior" && !exitAnim.active) return [doorPivot, avatarGroup];
-        if ((appState.scenePhase === "room" || appState.scenePhase === "overview") && !exitAnim.active) {
+        if (appState.scenePhase === "room" && !exitAnim.active) {
+          return [...roomInteractiveItems[appState.activeRoomIdx], avatarGroup];
+        }
+        if (appState.scenePhase === "overview" && !exitAnim.active) {
           return [...allInteractiveItems, avatarGroup];
         }
         return [];
@@ -4500,38 +5718,48 @@
       }
 
       function onPointerDown(e) {
-        if (!els.panelBackdrop.hidden) return;
+        if (!els.panelBackdrop.hidden || appState.scenePhase === "laptop") return;
         if (e.pointerType === "touch" && !e.isPrimary) return;
         updateNDC(e);
         downScreen = { x: e.clientX, y: e.clientY };
         didDrag = false;
 
         const targets = getCurrentTargets();
-        if (targets.length === 0) return;
+        if (targets.length > 0) {
+          raycaster.setFromCamera(pointerNDC, camera);
+          const hits = raycaster.intersectObjects(targets, true);
+          if (hits.length > 0) {
+            const item = getRootTarget(hits[0].object, targets);
+            if (item) {
+              if (appState.scenePhase === "exterior") {
+                if (item === doorPivot) {
+                  startKnockSequence();
+                } else if (item === avatarGroup) {
+                  showSpeech("Knock on the door!", 2.2);
+                }
+                return;
+              }
+              draggedItem = item;
+              hoveredJar = jarHitTargets.includes(hits[0].object) ? hits[0].object : null;
 
-        raycaster.setFromCamera(pointerNDC, camera);
-        const hits = raycaster.intersectObjects(targets, true);
-        if (hits.length > 0) {
-          const item = getRootTarget(hits[0].object, targets);
-          if (item) {
-            if (appState.scenePhase === "exterior") {
-              if (item === doorPivot) {
-                startKnockSequence();
-              } else if (item === avatarGroup) {
-                showSpeech("Knock on the door!", 2.2);
+              dragPlane.constant = -item.position.y;
+              if (raycaster.ray.intersectPlane(dragPlane, dragHit)) {
+                dragOffset.copy(item.position).sub(dragHit);
+              } else {
+                dragOffset.set(0, 0, 0);
               }
               return;
             }
-            draggedItem = item;
-            hoveredJar = jarHitTargets.includes(hits[0].object) ? hits[0].object : null;
-
-            dragPlane.constant = -item.position.y;
-            if (raycaster.ray.intersectPlane(dragPlane, dragHit)) {
-              dragOffset.copy(item.position).sub(dragHit);
-            } else {
-              dragOffset.set(0, 0, 0);
-            }
           }
+        }
+
+        if (appState.scenePhase === "room" || appState.scenePhase === "overview") {
+          isOrbitDragging = true;
+          orbitStartScreen = { x: e.clientX, y: e.clientY };
+          orbitStartYaw = camOrbit.targetYaw;
+          orbitStartPitch = camOrbit.targetPitch;
+          els.hoverTooltip.hidden = true;
+          document.body.style.cursor = "grabbing";
         }
       }
 
@@ -4555,12 +5783,33 @@
           appState.activeRoomIdx = meta.roomIdx;
           updateRoomUI(meta.roomIdx);
         }
+        if (appState.scenePhase === "room") {
+          syncRoomCameraGoal(prefersReducedMotion);
+        }
         return true;
       }
 
       function onPointerMove(e) {
-        if (!els.panelBackdrop.hidden) return;
+        if (!els.panelBackdrop.hidden || appState.scenePhase === "laptop") return;
         updateNDC(e);
+
+        if (isOrbitDragging) {
+          const dx = e.clientX - orbitStartScreen.x;
+          const dy = e.clientY - orbitStartScreen.y;
+          const vw = Math.max(320, window.innerWidth);
+          const vh = Math.max(320, window.innerHeight);
+          camOrbit.targetYaw = THREE.MathUtils.clamp(
+            orbitStartYaw - (dx / vw) * (MAX_ORBIT_YAW * 2.2),
+            -MAX_ORBIT_YAW,
+            MAX_ORBIT_YAW
+          );
+          camOrbit.targetPitch = THREE.MathUtils.clamp(
+            orbitStartPitch + (dy / vh) * ((MAX_ORBIT_PITCH - MIN_ORBIT_PITCH) * 1.8),
+            MIN_ORBIT_PITCH,
+            MAX_ORBIT_PITCH
+          );
+          return;
+        }
 
         /* Gentle camera parallax on mouse movement only */
         if (e.pointerType === "mouse" && !draggedItem && !prefersReducedMotion) {
@@ -4633,6 +5882,11 @@
       }
 
       function onPointerUp() {
+        if (isOrbitDragging) {
+          isOrbitDragging = false;
+          document.body.style.cursor = "default";
+          return;
+        }
         if (!draggedItem) return;
         const item = draggedItem;
         const jar = hoveredJar;
@@ -4642,7 +5896,7 @@
         if (didDrag) {
           if (item === avatarGroup) {
             if (appState.scenePhase === "room") {
-              fitRoomToViewport(appState.activeRoomIdx, false, avatarGroup.position);
+              syncRoomCameraGoal(prefersReducedMotion);
             }
             return;
           }
@@ -4727,6 +5981,7 @@
         }
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+        updateCameraFovForViewport();
         refitCurrentPhase(true);
       }
 
@@ -4744,6 +5999,7 @@
       document.addEventListener("visibilitychange", onVisibilityChange);
       window.addEventListener("resize", onResize);
       window.addEventListener("orientationchange", onOrientationChange);
+      window.addEventListener("pointercancel", onPointerUp);
       renderer.domElement.addEventListener("webglcontextlost", onContextLost);
 
       if (!isSoftwareGl) {
@@ -4753,7 +6009,95 @@
       const _speechWorld = new THREE.Vector3();
       const _camBasePos = new THREE.Vector3();
       const _walkDelta = new THREE.Vector3();
+      const _fadeOrigin = new THREE.Vector3();
+      const _fadeTarget = new THREE.Vector3();
+      const _fadeDir = new THREE.Vector3();
+      const _fadeSide = new THREE.Vector3();
+      const _sunTargetGoal = new THREE.Vector3();
+      let lastShadowMode = "";
       let codeTick = 0;
+
+      function isMeshHierarchyVisible(obj) {
+        let cur = obj;
+        while (cur) {
+          if (!cur.visible) return false;
+          cur = cur.parent;
+        }
+        return true;
+      }
+
+      function updateWallFades(delta) {
+        if (!houseGroup.visible || appState.scenePhase === "exterior" || appState.scenePhase === "opening") {
+          return;
+        }
+
+        if (appState.scenePhase === "overview") {
+          for (let i = 0; i < fadeWallEntries.length; i++) {
+            const entry = fadeWallEntries[i];
+            entry.targetAlpha = (entry.isFrontForOverview || entry.isCeiling) ? 0.15 : 1.0;
+          }
+        } else if (appState.scenePhase === "laptop") {
+          for (let i = 0; i < fadeWallEntries.length; i++) {
+            fadeWallEntries[i].targetAlpha = 1.0;
+          }
+        } else {
+          for (let i = 0; i < fadeWallEntries.length; i++) {
+            fadeWallEntries[i].targetAlpha = 1.0;
+          }
+
+          camera.updateMatrixWorld();
+          _fadeOrigin.copy(camera.position);
+          const m = camera.matrixWorld.elements;
+          _fadeSide.set(m[0], m[1], m[2]).normalize();
+
+          const ax = avatarGroup.position.x;
+          const ay = avatarGroup.position.y;
+          const az = avatarGroup.position.z;
+
+          for (let r = 0; r < 5; r++) {
+            if (r === 0) _fadeTarget.set(ax, ay + 1.05, az);
+            else if (r === 1) _fadeTarget.set(ax, ay + 0.42, az);
+            else if (r === 2) _fadeTarget.set(ax, ay + 1.72, az);
+            else if (r === 3) _fadeTarget.set(ax - _fadeSide.x * 1.15, ay + 1.05, az - _fadeSide.z * 1.15);
+            else _fadeTarget.set(ax + _fadeSide.x * 1.15, ay + 1.05, az + _fadeSide.z * 1.15);
+
+            _fadeDir.subVectors(_fadeTarget, _fadeOrigin);
+            const targetDist = _fadeDir.length();
+            if (targetDist < 0.35) continue;
+            _fadeDir.divideScalar(targetDist);
+
+            wallFadeRaycaster.set(_fadeOrigin, _fadeDir);
+            wallFadeRaycaster.near = 0.05;
+            wallFadeRaycaster.far = targetDist - 0.18;
+            const hits = wallFadeRaycaster.intersectObjects(occludableWallMeshes, false);
+            for (let h = 0; h < hits.length; h++) {
+              const hitObj = hits[h].object;
+              if (!isMeshHierarchyVisible(hitObj)) continue;
+              const entry = hitObj.userData.fadeEntry;
+              if (entry) entry.targetAlpha = 0.15;
+            }
+          }
+        }
+
+        for (let i = 0; i < fadeWallEntries.length; i++) {
+          const entry = fadeWallEntries[i];
+          entry.curAlpha = prefersReducedMotion
+            ? entry.targetAlpha
+            : THREE.MathUtils.damp(entry.curAlpha, entry.targetAlpha, 12, delta);
+          const faded = entry.curAlpha < 0.96;
+          const needTrans = (entry.curAlpha < 0.995);
+          for (let j = 0; j < entry.mats.length; j++) {
+            const rec = entry.mats[j];
+            const finalTrans = needTrans || rec.baseTransparent;
+            if (rec.mat.transparent !== finalTrans) {
+              rec.mat.transparent = finalTrans;
+              rec.mat.needsUpdate = true;
+            }
+            rec.mat.depthWrite = faded ? false : rec.baseDepthWrite;
+            rec.mat.opacity = rec.baseOpacity * entry.curAlpha;
+          }
+        }
+      }
 
       function afterDraw(cb) {
         const gl = renderer.getContext();
@@ -4817,25 +6161,25 @@
             doorPivot.rotation.y = THREE.MathUtils.lerp(0, -1.75, ease);
             doorSpillLight.intensity = THREE.MathUtils.lerp(0, 14, ease);
             lightSpillMat.opacity = THREE.MathUtils.lerp(0, 0.56, ease);
-            if (p >= 1) {
-              knockAnim.stage = "dolly";
-              knockAnim.timer = 0;
-              fitIsoCamera(DOORWAY_BOX, false, false, ISO_BASE_DIR);
-            }
-          } else if (knockAnim.stage === "dolly") {
-            const p = Math.min(1, knockAnim.timer / 0.68);
-            const veilAlpha = p * p;
-            els.warmFadeVeil.style.opacity = veilAlpha.toFixed(3);
-            if (p > 0.4 && avatarState.speechTimer > 0) {
-              avatarState.speechTimer = 0;
-              els.speechBubble.hidden = true;
-            }
-            if (p >= 1) {
-              knockAnim.active = false;
-              enterHallFromExterior();
+              if (p >= 1) {
+                knockAnim.stage = "dolly";
+                knockAnim.timer = 0;
+                fitBoxPerspective(DOORWAY_BOX, false, 1.05);
+              }
+            } else if (knockAnim.stage === "dolly") {
+              const p = Math.min(1, knockAnim.timer / 0.68);
+              const veilAlpha = p * p;
+              els.warmFadeVeil.style.opacity = veilAlpha.toFixed(3);
+              if (p > 0.4 && avatarState.speechTimer > 0) {
+                avatarState.speechTimer = 0;
+                els.speechBubble.hidden = true;
+              }
+              if (p >= 1) {
+                knockAnim.active = false;
+                enterHallFromExterior();
+              }
             }
           }
-        }
 
         /* 1b. Go Outside Reverse Transition */
         if (exitAnim.active) {
@@ -4845,20 +6189,28 @@
             els.warmFadeVeil.style.opacity = (p * 0.92).toFixed(3);
             if (p >= 1) {
               houseGroup.visible = false;
+              nightSkyDome.visible = false;
+              resetWallFadesImmediate();
+              camOrbit.targetYaw = 0;
+              camOrbit.curYaw = 0;
+              camOrbit.targetPitch = 0;
+              camOrbit.curPitch = 0;
               exteriorGroup.visible = true;
               doorPivot.rotation.y = -1.75;
               doorSpillLight.intensity = 10;
               lightSpillMat.opacity = 0.42;
 
+              avatarGroup.scale.setScalar(EXTERIOR_AVATAR_SCALE);
               avatarGroup.visible = true;
               avatarGroup.position.copy(EXTERIOR_AVATAR_POS);
               avatarGroup.rotation.y = 0.28;
 
-              fitIsoCamera(DOORWAY_BOX, true, false, ISO_BASE_DIR);
+              fitBoxPerspective(DOORWAY_BOX, true, 1.05);
               appState.scenePhase = "exterior";
               updateStageBackdrop("exterior");
               els.knockOverlay.hidden = false;
-              requestAnimationFrame(() => fitIsoCamera(EXTERIOR_BOX, false, false, ISO_BASE_DIR));
+              updateKnockOverlayPosition();
+              requestAnimationFrame(() => fitBoxPerspective(EXTERIOR_BOX, false, 1.18));
 
               exitAnim.stage = "fromVeil";
               exitAnim.timer = 0;
@@ -4930,7 +6282,7 @@
                 updateRoomUI(walkState.targetRoomIdx);
               }
               if (appState.scenePhase === "room") {
-                fitRoomToViewport(appState.activeRoomIdx, false, avatarGroup.position);
+                syncRoomCameraGoal(false);
               }
               if (walkState.onArrive) {
                 const cb = walkState.onArrive;
@@ -4957,63 +6309,142 @@
             }
             walkState.phase += delta * 12;
 
-            const zone = detectZoneAt(avatarGroup.position);
+            const zone = detectZoneAt(avatarGroup.position, true, walkState.targetRoomIdx);
             if (zone.roomIdx !== appState.activeRoomIdx) {
               appState.activeRoomIdx = zone.roomIdx;
               updateRoomUI(zone.roomIdx);
-              if (appState.scenePhase === "room") {
-                fitRoomToViewport(appState.activeRoomIdx, false);
-              }
             }
           }
         }
 
-        /* 3. Smooth Follow + Fit Orthographic Camera (+ Terrace Tilt & Mouse Parallax) */
+        /* 2b. Ceiling Visibility, Sky Dome, Room Lighting & Perspective Camera Follow */
+        if (houseGroup.visible) {
+          for (let i = 0; i < 4; i++) {
+            if (roomCeilings[i]) {
+              roomCeilings[i].visible = (appState.scenePhase === "overview") || (i !== appState.activeRoomIdx);
+            }
+          }
+          nightSkyDome.visible = (appState.scenePhase === "room" && appState.activeRoomIdx === 4);
+        } else {
+          nightSkyDome.visible = false;
+        }
+
+        roomFillLight.visible = houseGroup.visible && (appState.scenePhase === "room" || appState.scenePhase === "laptop");
+        if (roomFillLight.visible) {
+          const rcb = ROOM_CAM_BOUNDS[appState.activeRoomIdx] || ROOM_CAM_BOUNDS[0];
+          const fillTargetY = Math.max(rcb.floorY, avatarGroup.position.y) + 4.05;
+          if (prefersReducedMotion) {
+            roomFillLight.position.set(rcb.centerX, fillTargetY, rcb.centerZ);
+          } else {
+            const ld = 1 - Math.exp(-7.5 * delta);
+            roomFillLight.position.x = THREE.MathUtils.lerp(roomFillLight.position.x, rcb.centerX, ld);
+            roomFillLight.position.y = THREE.MathUtils.lerp(roomFillLight.position.y, fillTargetY, ld);
+            roomFillLight.position.z = THREE.MathUtils.lerp(roomFillLight.position.z, rcb.centerZ, ld);
+          }
+          roomFillLight.intensity = appState.isNightMode ? 5.2 : 3.2;
+        }
+
+        const shadowMode = (appState.scenePhase === "room" || appState.scenePhase === "laptop") ? "room" : "wide";
+        if (shadowMode !== lastShadowMode) {
+          lastShadowMode = shadowMode;
+          const halfSpan = shadowMode === "room" ? 10 : 18;
+          sunLight.shadow.camera.left = -halfSpan;
+          sunLight.shadow.camera.right = halfSpan;
+          sunLight.shadow.camera.top = halfSpan;
+          sunLight.shadow.camera.bottom = -halfSpan;
+          sunLight.shadow.camera.updateProjectionMatrix();
+        }
+        if ((appState.scenePhase === "room" || appState.scenePhase === "laptop") && houseGroup.visible) {
+          const rcb = ROOM_CAM_BOUNDS[appState.activeRoomIdx] || ROOM_CAM_BOUNDS[0];
+          _sunTargetGoal.set(rcb.centerX, rcb.floorY + 1.2, rcb.centerZ);
+        } else {
+          _sunTargetGoal.set(1, 3, -1);
+        }
+        sunLight.target.position.lerp(_sunTargetGoal, prefersReducedMotion ? 1 : (1 - Math.exp(-6 * delta)));
+        sunLight.position.set(
+          sunLight.target.position.x + 15,
+          sunLight.target.position.y + 25,
+          sunLight.target.position.z + 19
+        );
+
+        /* 3. Perspective Camera Update (Room Follow + Laptop Zoom + Drag-to-Orbit ±25° + Mouse Parallax) */
         if (!prefersReducedMotion) {
           const pDamp = 1 - Math.exp(-5.5 * delta);
           parallax.curX = THREE.MathUtils.lerp(parallax.curX, parallax.targetX, pDamp);
           parallax.curY = THREE.MathUtils.lerp(parallax.curY, parallax.targetY, pDamp);
+          const oDamp = 1 - Math.exp(-9.5 * delta);
+          camOrbit.curYaw = THREE.MathUtils.lerp(camOrbit.curYaw, camOrbit.targetYaw, oDamp);
+          camOrbit.curPitch = THREE.MathUtils.lerp(camOrbit.curPitch, camOrbit.targetPitch, oDamp);
+        } else {
+          camOrbit.curYaw = camOrbit.targetYaw;
+          camOrbit.curPitch = camOrbit.targetPitch;
         }
 
-        if (camFitState.active) {
-          const dampK = 1 - Math.exp(-7.2 * delta);
-          camFitState.curDir.lerp(camFitState.targetDir, dampK).normalize();
-          camFitState.lookAt.lerp(camFitState.targetLookAt, dampK);
-          camFitState.left = THREE.MathUtils.lerp(camFitState.left, camFitState.targetLeft, dampK);
-          camFitState.right = THREE.MathUtils.lerp(camFitState.right, camFitState.targetRight, dampK);
-          camFitState.top = THREE.MathUtils.lerp(camFitState.top, camFitState.targetTop, dampK);
-          camFitState.bottom = THREE.MathUtils.lerp(camFitState.bottom, camFitState.targetBottom, dampK);
+        if (appState.scenePhase === "laptop" && houseGroup.visible) {
+          computeLaptopCamGoal(perspCamState.targetPos, perspCamState.targetLookAt);
+        } else if (appState.scenePhase === "room" && houseGroup.visible) {
+          computeRoomCamGoal(avatarGroup.position, perspCamState.targetPos, perspCamState.targetLookAt);
+        } else if (appState.scenePhase === "overview" && houseGroup.visible) {
+          computeBoxCamGoal(
+            WHOLE_HOUSE_BOX,
+            ISO_BASE_DIR,
+            perspCamState.targetPos,
+            perspCamState.targetLookAt,
+            1.15,
+            camOrbit.curYaw + parallax.curX * 0.06,
+            camOrbit.curPitch * 0.4 - parallax.curY * 0.04
+          );
+        }
 
-          camera.left = camFitState.left;
-          camera.right = camFitState.right;
-          camera.top = camFitState.top;
-          camera.bottom = camFitState.bottom;
-          camera.updateProjectionMatrix();
+        const camRate = appState.scenePhase === "laptop" ? 9.5 : 7.8;
+        const camDamp = prefersReducedMotion ? 1 : (1 - Math.exp(-camRate * delta));
+        perspCamState.curPos.lerp(perspCamState.targetPos, camDamp);
+        perspCamState.curLookAt.lerp(perspCamState.targetLookAt, camDamp);
 
-          if (
-            camFitState.lookAt.distanceTo(camFitState.targetLookAt) < 0.015 &&
-            camFitState.curDir.distanceTo(camFitState.targetDir) < 0.005 &&
-            Math.abs(camFitState.top - camFitState.targetTop) < 0.015
-          ) {
-            applyFitImmediate({
-              dir: camFitState.targetDir,
-              lookAt: camFitState.targetLookAt,
-              left: camFitState.targetLeft,
-              right: camFitState.targetRight,
-              top: camFitState.targetTop,
-              bottom: camFitState.targetBottom
-            });
+        if (appState.scenePhase === "exterior" || appState.scenePhase === "opening") {
+          _camForward.subVectors(perspCamState.curLookAt, perspCamState.curPos).normalize();
+          _camSide.crossVectors(_camForward, THREE.Object3D.DEFAULT_UP).normalize();
+          _camUp.crossVectors(_camSide, _camForward).normalize();
+          _camBasePos
+            .copy(perspCamState.curPos)
+            .addScaledVector(_camSide, parallax.curX * 0.65)
+            .addScaledVector(_camUp, parallax.curY * 0.45);
+          camera.position.copy(_camBasePos);
+        } else {
+          camera.position.copy(perspCamState.curPos);
+        }
+        camera.lookAt(perspCamState.curLookAt);
+
+        if (nightSkyDome.visible) {
+          nightSkyDome.position.set(camera.position.x, TERRACE_Y, camera.position.z);
+        }
+
+        /* 3a. 4-Corner Laptop Screen Projection & Fade Timing */
+        if (appState.scenePhase === "laptop" && houseGroup.visible) {
+          laptopFocus.enterTimer += delta;
+          updateLaptopScreenOverlay();
+          const distToTarget = perspCamState.curPos.distanceTo(perspCamState.targetPos);
+          if (!laptopFocus.overlayShown && (distToTarget < 0.85 || laptopFocus.enterTimer > 0.28)) {
+            laptopFocus.overlayShown = true;
+            els.laptopScreenOverlay.classList.add("is-visible");
+            const activeTabEl = els.vscodeTabs.querySelector('[aria-selected="true"]');
+            activeTabEl?.focus();
+          }
+        } else if (laptopFocus.leaving) {
+          laptopFocus.leaveTimer += delta;
+          updateLaptopScreenOverlay();
+          if (laptopFocus.leaveTimer >= 0.25) {
+            laptopFocus.leaving = false;
+            els.laptopScreenOverlay.hidden = true;
           }
         }
 
-        _camBasePos.copy(camFitState.lookAt).addScaledVector(camFitState.curDir, ISO_DIST);
-        _isoUp.crossVectors(camFitState.curDir, SCREEN_RIGHT).normalize();
-        _parallaxCamPos
-          .copy(_camBasePos)
-          .addScaledVector(SCREEN_RIGHT, parallax.curX * ISO_DIST * 0.048)
-          .addScaledVector(_isoUp, parallax.curY * ISO_DIST * 0.038);
-        camera.position.copy(_parallaxCamPos);
-        camera.lookAt(camFitState.lookAt);
+        /* 3b. 5-Ray Wall & Ceiling Occlusion Fade (0.15 opacity + depthWrite=false only while faded) */
+        updateWallFades(delta);
+
+        if (exteriorGroup.visible && !els.knockOverlay.hidden) {
+          updateKnockOverlayPosition();
+        }
 
         /* 4. Environment & Connected House Animations */
         cloudsGroup.visible = exteriorGroup.visible;
@@ -5058,6 +6489,10 @@
             starMeshes.forEach((st, idx) => { st.rotation.y = elapsed * 0.8 + idx; });
             terraceTwinkleMat.size = 0.11 + Math.sin(elapsed * 2.6) * 0.03;
           }
+        }
+
+        if (houseGroup.visible) {
+          starLabelMeshes.forEach((lbl) => lbl.quaternion.copy(camera.quaternion));
         }
 
         skyStars.visible =
@@ -5114,7 +6549,7 @@
           if (avatarState.speechTimer > 0) {
             avatarState.speechTimer -= delta;
             avatarGroup.getWorldPosition(_speechWorld);
-            _speechWorld.y += 2.68;
+            _speechWorld.y += exteriorGroup.visible ? 2.68 * EXTERIOR_SCALE : 2.68;
             _speechWorld.project(camera);
             els.speechBubble.style.left = `${((_speechWorld.x + 1) / 2) * window.innerWidth}px`;
             els.speechBubble.style.top = `${((-_speechWorld.y + 1) / 2) * window.innerHeight}px`;
@@ -5137,12 +6572,15 @@
         toggleWholeHouseOverview,
         toggleDayNight,
         resetActiveRoomLayout,
+        focusLaptopProjects,
+        leaveLaptopFocus,
         showSpeech,
         refitCamera: () => refitCurrentPhase(false)
       };
 
       appState.threeCleanup = () => {
         disposed = true;
+        leaveLaptopFocus(true);
         cancelAnimationFrame(frameId);
         clearTimeout(frameId);
         clearTimeout(bannerFadeTimer);
@@ -5152,6 +6590,7 @@
         window.removeEventListener("orientationchange", onOrientationChange);
         window.removeEventListener("pointermove", onPointerMove);
         window.removeEventListener("pointerup", onPointerUp);
+        window.removeEventListener("pointercancel", onPointerUp);
         document.removeEventListener("mouseleave", onMouseLeave);
         els.roomBanner.removeEventListener("mouseenter", onBannerEnter);
         els.roomBanner.removeEventListener("mouseleave", onBannerLeave);
@@ -5170,6 +6609,10 @@
         document.body.style.cursor = "default";
       };
     }
+
+    els.leaveLaptopBtn.addEventListener("click", () => {
+      if (appState.sceneApi) appState.sceneApi.leaveLaptopFocus(false);
+    });
 
     /* ==========================================================================
        KEYBOARD & BUTTON HANDLERS
@@ -5261,6 +6704,7 @@
     els.dockToggleBtn.addEventListener("click", () => {
       closeMoreMenu();
       const collapsed = els.bottomDock.classList.toggle("is-collapsed");
+      document.body.classList.toggle("controls-hidden", collapsed);
       els.dockToggleBtn.setAttribute("aria-expanded", String(!collapsed));
       els.dockToggleLabel.textContent = collapsed ? "Show Controls" : "Hide Controls";
       if (appState.sceneApi) {
@@ -5301,6 +6745,21 @@
       }
 
       if (appState.mode !== "3d" || !appState.sceneApi) return;
+
+      if (appState.scenePhase === "laptop" && e.key === "Escape") {
+        e.preventDefault();
+        appState.sceneApi.leaveLaptopFocus(false);
+        return;
+      }
+
+      if ((e.key === "h" || e.key === "H") && !e.metaKey && !e.ctrlKey && !e.altKey && (appState.scenePhase === "room" || appState.scenePhase === "overview")) {
+        const tag = document.activeElement ? document.activeElement.tagName : "";
+        if (tag !== "INPUT" && tag !== "TEXTAREA") {
+          e.preventDefault();
+          els.dockToggleBtn.click();
+          return;
+        }
+      }
 
       if (appState.scenePhase === "exterior" && e.key === "Enter") {
         const tag = document.activeElement ? document.activeElement.tagName : "";
